@@ -1,0 +1,1 @@
+const script_root = 'imagechecker';

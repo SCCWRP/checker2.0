@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel = "stylesheet" href = "{{url_for('static', filename='main.css')}}">
+    <script src="{{url_for('static', filename='globals.js')}}"></script>
+  </head>
+  <body>
+    <main>
+      
+      
+      <div class = "container login-container">
+        <form id = "main-login-form">
+          <div class = "login-input-container">
+            <label for = "email">Enter your email address:</label>
+            <input type = "email" name = "email">
+          </div>
+          <br/>
+          <div class = "login-input-container">
+            <label for = "agency">Enter your agency:</label>
+            <input type = "agency" name = "agency">
+          </div>
+          <br>
+          <div class = "login-input-container">
+            <button type="submit">Sign in</button>
+          </div>
+        </form>
+      </div>
+
+
+      <div class = "container file-form-container">
+        <form id = "file-submission-form">
+          <input type = "file" name = "files" multiple>
+          <button type="submit">submit data</button>
+        </form>
+      </div>
+
+      <button id="session-reset">Start New Session</button>
+
+      <div>
+
+      </div>
+    </main>
+  </body>
+
+  <!--Load js at the end rather than doing something similar to $('document').ready()-->
+  <script src="{{url_for('static', filename='login.js')}}"></script>
+</html>
