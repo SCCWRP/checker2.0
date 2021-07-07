@@ -4,15 +4,13 @@ import time
 from itertools import chain
 from .dupes import checkDuplicatesInSession, checkDuplicatesInProduction
 from .lookups import checkLookUpLists
-from .metadata import checkNotNull, checkPrecision, checkScale, checkLength, checkDataTypes
+from .metadata import checkNotNull, checkPrecision, checkScale, checkLength, checkDataTypes, checkIntegers
 from .functions import fetch_meta, multitask
 
 
 # goal here is to take in all_dfs as an argument and assemble the CoreChecker processes
-def core(all_dfs, eng, all_meta):
+def core(all_dfs, eng, all_meta, debug = False):
 
-    debug = True
-    # to run with no multiprocessing
     errs = []
     for tbl, df in all_dfs.items():
         print(tbl)
@@ -22,6 +20,7 @@ def core(all_dfs, eng, all_meta):
                 checkDuplicatesInProduction(df, tbl, eng, all_meta[tbl]),
                 checkLookUpLists(df, tbl, eng, all_meta[tbl]),
                 checkNotNull(df, tbl, eng, all_meta[tbl]),
+                checkIntegers(df, tbl, eng, all_meta[tbl]),
                 checkPrecision(df, tbl, eng, all_meta[tbl]),
                 checkScale(df, tbl, eng, all_meta[tbl]),
                 checkLength(df, tbl, eng, all_meta[tbl]),
@@ -37,6 +36,7 @@ def core(all_dfs, eng, all_meta):
                     checkDuplicatesInProduction,
                     checkLookUpLists,
                     checkNotNull,
+                    checkIntegers,
                     checkPrecision,
                     checkScale,
                     checkLength,
@@ -48,7 +48,7 @@ def core(all_dfs, eng, all_meta):
                 all_meta[tbl]
             )
         )
-        print("done")
-    print("core checks done")
-    return errs
+
+    # flatten the list
+    return [e for sublist in errs for e in sublist if ( e != dict() and e != set() )]
     

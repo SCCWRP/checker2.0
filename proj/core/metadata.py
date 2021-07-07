@@ -4,9 +4,6 @@ from math import log10
 from .functions import checkData, convert_dtype, fetch_meta, check_precision, check_length, check_scale
 
 
-
-
-
 def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
     
     ret = [ 
@@ -332,5 +329,81 @@ def checkNotNull(dataframe, tablename, eng, meta, *args, output = None, **kwargs
         output.put(ret) 
 
     return ret
-    
-# TODO Check integer datatypes
+
+
+
+def checkIntegers(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
+        
+    ret = \
+    [
+        checkData(
+            dataframe = dataframe,
+            tablename = tablename,
+            badrows = [
+                {
+                    'row_number': int(rownum),
+                    'value': val if not pd.isnull(val) else '',
+                    'message': msg
+                }
+                for rownum, val, msg in
+                dataframe[
+                    dataframe[col].apply(
+                        lambda x:
+                        False if pd.isnull(x)
+                        else not ( (x >= -32768) & (x <= 32767) )
+                        if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int2'
+                        else not ( (x >= -2147483648) & (x <= 2147483647) )
+                        if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int4'
+                        else not ( (x >= -9223372036854775808) & (x <= 9223372036854775807) )
+                        if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int8'
+                        
+                        # if something else slips through the cracks, this will not allow it through by default
+                        else True 
+                    )
+                ] \
+                .apply(
+                    lambda row:
+                    (
+                        row.name + 1,
+                        row[col], 
+                        "The column {} allows integer values from {}" \
+                        .format(
+                            col,
+                             "-32768 to 32767"
+                            if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int2'
+                            else  "-2147483648 to 2147483647"
+                            if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int4'
+                            else  "-9223372036854775808 to 9223372036854775807"
+                            if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int8'
+
+                            # It should never be anything other than the above cases, since below we are filtering for int2, 4, and 8 columns.
+                            else "(unexpected error occurred. If you see this, contact it@sccwrp.org)"
+                        )
+                    ),
+                    axis = 1
+                ) \
+                .values
+            ],
+            badcolumn = col,
+            error_type = "Value out of range",
+            is_core_error = True,
+            error_message = "The column {} allows integer values from {}" \
+                .format(
+                    col,
+                    "-32768 to 32767"
+                    if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int2'
+                    else  "-2147483648 to 2147483647"
+                    if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int4'
+                    else  "-9223372036854775808 to 9223372036854775807"
+                    if meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0] == 'int8'
+
+                    # It should never be anything other than the above cases, since below we are filtering for int2, 4, and 8 columns.
+                    else "(unexpected error occurred. If you see this, contact it@sccwrp.org)"
+                )
+        )
+        for col in dataframe.columns if col in meta[meta.udt_name.isin(['int2','int4','int8'])].column_name.values
+    ]
+
+    if output:
+        output.put(ret)
+    return ret

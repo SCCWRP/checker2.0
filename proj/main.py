@@ -93,13 +93,12 @@ def upload():
 
 
     # Core Checks
-    errs = core(all_dfs, current_app.eng, current_app.dbmetadata)
-    #print(errs)
+    # debug = False will cause corechecks to run with multiprocessing, but the logs will not show as much useful information
+    errs = core(all_dfs, current_app.eng, current_app.dbmetadata, debug = True)
+
 
     # Custom Checks based on match dataset
 
-    # TODO Need to figure out the system of error recording and reporting
-    # Just copy the change request system but dont store it in the session
 
 
     returnvals = {
