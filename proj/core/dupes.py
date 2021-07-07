@@ -1,6 +1,6 @@
 import re
 from .functions import checkData, get_primary_key
-from pandas import isnull
+from pandas import isnull, read_sql, concat
 
 # All the functions for the Core Checks should have the dataframe and the datatype as the two main arguments
 # This is to allow the multiprocessing to work, so it can pass in the same args to all the functions
@@ -42,9 +42,6 @@ def checkDuplicatesInSession(dataframe, tablename, eng, *args, output = None, **
             .values
         ]
 
-        print("badrows")
-        print(badrows)
-
         ret = [
             checkData(
                 dataframe = dataframe,
@@ -67,5 +64,68 @@ def checkDuplicatesInSession(dataframe, tablename, eng, *args, output = None, **
     return ret
 
 
+def checkDuplicatesInProduction(dataframe, tablename, eng, *args, output = None, **kwargs):
+    """
+    check for duplicates in Production only
+    """
+    print("BEGIN function - checkDuplicatesInProduction")
+    
+    pkey = get_primary_key(tablename, eng)
+    print(pkey)
 
-# TODO Check Duplicates in Production
+    if len(pkey) == 0:
+        print("No Primary Key")
+        return
+
+   
+    current_recs = read_sql(f"SELECT DISTINCT {','.join(pkey)} FROM {tablename}", eng) \
+        .assign(already_in_db = True)
+
+    ret = []
+    if not current_recs.empty:
+
+        # merge current recs with a left merge and tack on that "already_in_db" column
+        dataframe = dataframe.merge(current_recs, on = pkey, how = 'left')
+
+        badrows = [
+            {
+                'row_number': int(rownum),
+                'value': val if not isnull(val) else '',
+                'message': msg
+            } 
+            for rownum, val, msg in
+            dataframe[dataframe.already_in_db == True].apply(
+                lambda row:
+                (
+                    row.name + 1,
+                    None, 
+                    "This is a record which already exists in the database"
+                ),
+                axis = 1
+            ) \
+            .values
+        ]
+
+        print("badrows")
+        print(badrows)
+
+        ret = [
+            checkData(
+                dataframe = dataframe,
+                tablename = tablename,
+                badrows = badrows,
+                badcolumn = ','.join(pkey),
+                error_type = "Duplicate",
+                is_core_error = True,
+                error_message = "This is a record which already exists in the database"
+            )
+        ]
+
+        if output:
+            output.put(ret)
+
+        
+    print("END function - checkDuplicatesInProduction")
+    return ret
+
+
