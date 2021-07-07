@@ -6,6 +6,8 @@ import pandas as pd
 # custom imports, from local files
 from .match import match
 from .core.core import core
+from .custom.func1 import func1
+from .custom.func2 import func2
 
 homepage = Blueprint('homepage', __name__)
 @homepage.route('/')
@@ -94,10 +96,36 @@ def upload():
 
     # Core Checks
     # debug = False will cause corechecks to run with multiprocessing, but the logs will not show as much useful information
-    errs = core(all_dfs, current_app.eng, current_app.dbmetadata, debug = True)
+
+    # initialize errors and warnings
+    errs = []
+    warnings = []
+
+    # tack on core errors to errors list
+    errs.extend(
+        core(all_dfs, current_app.eng, current_app.dbmetadata, debug = True)
+    )
 
 
+    
     # Custom Checks based on match dataset
+    custom_functions = {
+        "test1": func1,
+        "test2": func2,
+    }
+
+    if match_dataset in custom_functions.keys() and errs == []: # no core errors
+
+        # custom output should be a dictionary where errors and warnings are the keys and the values are a list of "errors" 
+        # (structured the same way as errors are as seen in core checks section)
+        custom_output = custom_functions.get(match_dataset)(all_dfs)
+
+        # tack on errors and warnings
+        errs.extend(custom_output.get('errors'))
+        warnings.extend(custom_output.get('warnings'))
+
+    # End Custom Checks section    
+
 
 
 
@@ -106,7 +134,8 @@ def upload():
         "match_report" : match_report,
         "matched_all_tables" : True,
         "match_dataset" : match_dataset,
-        "errs" : errs
+        "errs" : errs,
+        "warnings": warnings
     }
     return jsonify(**returnvals)
 

@@ -1,6 +1,6 @@
 import re
-from .functions import checkData, get_primary_key
 from pandas import isnull, read_sql, concat
+from .functions import checkData, get_primary_key
 
 # All the functions for the Core Checks should have the dataframe and the datatype as the two main arguments
 # This is to allow the multiprocessing to work, so it can pass in the same args to all the functions

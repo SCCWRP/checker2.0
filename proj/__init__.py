@@ -37,7 +37,8 @@ app.tabs_to_ignore = []
 app.datasets = {
     # these lists are treated as sets when it does matching.
     # i think they have to be stored here as lists because sets are not json serializable?
-    'test': ['tbl_test1','tbl_test2']
+    'test1': ['tbl_test1'],
+    'test2': ['tbl_test2']
 }
 
 app.dbmetadata = {

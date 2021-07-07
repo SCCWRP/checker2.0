@@ -55,42 +55,6 @@ def multitask(functions: list, *args):
     return finaloutput
 
 
-# This function allows you to put in a table name and get back the primary key fields of the table
-def get_primary_key(tablename, eng):
-    # eng is a sqlalchemy database connection
-
-    # This query gets us the primary keys of a table. Not in a python friendly format
-    # Copy paste to Navicat, pgadmin, or do a pd.read_sql to see what it gives
-    pkey_query = f"""
-        SELECT 
-            conrelid::regclass AS table_from, 
-            conname, 
-            pg_get_constraintdef(oid) 
-        FROM pg_constraint 
-        WHERE 
-            contype IN ('f', 'p') 
-            AND connamespace = 'sde'::regnamespace 
-            AND conname LIKE '{tablename}%%' 
-        ORDER BY 
-            conrelid::regclass::text, contype DESC;
-    """
-    pkey_df = pd.read_sql(pkey_query, eng)
-    
-    pkey = []
-    # sometimes there is no primary key
-    if not pkey_df.empty:
-        # pg_get_constraintdef = postgres get constraint definition
-        # Get the primary key constraint's definition
-        pkey = pkey_df.pg_get_constraintdef.tolist()[0]
-
-        # Remove excess junk to just get the primary key field names
-        # split at the commas to get a nice neat python list
-        pkey = re.sub(r"(PRIMARY\sKEY\s\()|(\))","",pkey).split(',')
-
-        # remove whitespace from the edges
-        pkey = [colname.strip() for colname in pkey]
-        
-    return pkey
 
 def convert_dtype(t, x):
     try:
@@ -150,6 +114,7 @@ def check_length(x, maxlength):
 
 
 
+
 def fetch_meta(tablename, eng):
 
     meta = pd.read_sql(
@@ -184,3 +149,42 @@ def fetch_meta(tablename, eng):
         )  
 
     return meta
+
+
+
+# This function allows you to put in a table name and get back the primary key fields of the table
+def get_primary_key(tablename, eng):
+    # eng is a sqlalchemy database connection
+
+    # This query gets us the primary keys of a table. Not in a python friendly format
+    # Copy paste to Navicat, pgadmin, or do a pd.read_sql to see what it gives
+    pkey_query = f"""
+        SELECT 
+            conrelid::regclass AS table_from, 
+            conname, 
+            pg_get_constraintdef(oid) 
+        FROM pg_constraint 
+        WHERE 
+            contype IN ('f', 'p') 
+            AND connamespace = 'sde'::regnamespace 
+            AND conname LIKE '{tablename}%%' 
+        ORDER BY 
+            conrelid::regclass::text, contype DESC;
+    """
+    pkey_df = pd.read_sql(pkey_query, eng)
+    
+    pkey = []
+    # sometimes there is no primary key
+    if not pkey_df.empty:
+        # pg_get_constraintdef = postgres get constraint definition
+        # Get the primary key constraint's definition
+        pkey = pkey_df.pg_get_constraintdef.tolist()[0]
+
+        # Remove excess junk to just get the primary key field names
+        # split at the commas to get a nice neat python list
+        pkey = re.sub(r"(PRIMARY\sKEY\s\()|(\))","",pkey).split(',')
+
+        # remove whitespace from the edges
+        pkey = [colname.strip() for colname in pkey]
+        
+    return pkey
