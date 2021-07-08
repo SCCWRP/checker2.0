@@ -13,13 +13,14 @@ def checkDuplicatesInSession(dataframe, tablename, eng, *args, output = None, **
     print("BEGIN function - checkDuplicatesInSession")
     
     pkey = get_primary_key(tablename, eng)
-    print(pkey)
+
+    # initialize return value
+    ret = []
 
     if len(pkey) == 0:
         print("No Primary Key")
-        return
+        return ret
 
-    ret = []
     if any(dataframe.duplicated(pkey)):
 
         badrows = [
@@ -33,7 +34,7 @@ def checkDuplicatesInSession(dataframe, tablename, eng, *args, output = None, **
             .apply(
                 lambda row:
                 (
-                    row.name + 1,
+                    row.name,
                     None, 
                     "This is a duplicated row"
                 ),
@@ -72,16 +73,18 @@ def checkDuplicatesInProduction(dataframe, tablename, eng, *args, output = None,
     
     pkey = get_primary_key(tablename, eng)
     print(pkey)
+    
+    # initialize return values
+    ret = []
 
     if len(pkey) == 0:
         print("No Primary Key")
-        return
+        return ret
 
    
     current_recs = read_sql(f"SELECT DISTINCT {','.join(pkey)} FROM {tablename}", eng) \
         .assign(already_in_db = True)
 
-    ret = []
     if not current_recs.empty:
 
         # merge current recs with a left merge and tack on that "already_in_db" column
@@ -97,7 +100,7 @@ def checkDuplicatesInProduction(dataframe, tablename, eng, *args, output = None,
             dataframe[dataframe.already_in_db == True].apply(
                 lambda row:
                 (
-                    row.name + 1,
+                    row.name,
                     None, 
                     "This is a record which already exists in the database"
                 ),

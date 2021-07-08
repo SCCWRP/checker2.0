@@ -3,7 +3,7 @@ import multiprocessing as mp
 import re, time
 from math import log10
 
-def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error, error_message, errors_list = [], q = None):
+def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error = True, error_message = "Error", errors_list = [], q = None):
     if len(badrows) > 0:
         if q is not None:
             # This is the case where we run with multiprocessing
@@ -13,7 +13,7 @@ def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_erro
                 "rows":badrows,
                 "columns":badcolumn,
                 "error_type":error_type,
-                "core_error" : is_core_error,
+                "is_core_error" : is_core_error,
                 "error_message":error_message
             })
 
@@ -22,7 +22,7 @@ def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_erro
             "rows":badrows,
             "columns":badcolumn,
             "error_type":error_type,
-            "core_error" : is_core_error,
+            "is_core_error" : is_core_error,
             "error_message":error_message
         }
     return {}

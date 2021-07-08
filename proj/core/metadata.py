@@ -39,7 +39,7 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                 .apply(
                     lambda row:
                     (
-                        row.name + 1,
+                        row.name,
                         row[col], 
                         "the value here {} is an invalid value for the column {} of datatype {}" \
                         .format(
@@ -107,7 +107,7 @@ def checkPrecision(dataframe, tablename, eng, meta, *args, output = None, **kwar
                 .apply(
                     lambda row:
                     (
-                        row.name + 1,
+                        row.name,
                         row[col], 
                         "the value here {} is too long for the column {} which allows {} significant digits" \
                         .format(
@@ -177,7 +177,7 @@ def checkScale(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
                 .apply(
                     lambda row:
                     (
-                        row.name + 1,
+                        row.name,
                         row[col], 
                         """the value here {} 
                         has too many decimal places for the column {} 
@@ -250,7 +250,7 @@ def checkLength(dataframe, tablename, eng, meta, *args, output = None, **kwargs)
                 .apply(
                     lambda row:
                     (
-                        row.name + 1,
+                        row.name,
                         row[col], 
                         "the value here {} has too many characters for the column {} which has a {} character limit" \
                         .format(
@@ -309,7 +309,7 @@ def checkNotNull(dataframe, tablename, eng, meta, *args, output = None, **kwargs
                 .apply(
                     lambda row:
                     (
-                        row.name + 1,
+                        row.name,
                         row[col], 
                         f"There is an empty value here, but the column {col} requires a value in all rows"
                     ),
@@ -364,7 +364,7 @@ def checkIntegers(dataframe, tablename, eng, meta, *args, output = None, **kwarg
                 .apply(
                     lambda row:
                     (
-                        row.name + 1,
+                        row.name,
                         row[col], 
                         "The column {} allows integer values from {}" \
                         .format(

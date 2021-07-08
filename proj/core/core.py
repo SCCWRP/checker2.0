@@ -50,5 +50,6 @@ def core(all_dfs, eng, all_meta, debug = False):
         )
 
     # flatten the list
+    print(errs)
     return [e for sublist in errs for e in sublist if ( e != dict() and e != set() )]
     

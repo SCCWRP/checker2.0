@@ -1,6 +1,12 @@
+import json, os
 from pandas import isnull
 
-def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error, error_message, errors_list = [], q = None):
+def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error = False, error_message = "Error", errors_list = [], q = None):
+    
+    # See comments on the get_badrows function
+    # doesnt have to be used but it makes it more convenient to plug in a check
+    # that function can be used to get the badrows argument that would be used in this function
+    
     if len(badrows) > 0:
         if q is not None:
             # This is the case where we run with multiprocessing
@@ -10,7 +16,7 @@ def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_erro
                 "rows":badrows,
                 "columns":badcolumn,
                 "error_type":error_type,
-                "core_error" : is_core_error,
+                "is_core_error" : is_core_error,
                 "error_message":error_message
             })
 
@@ -19,35 +25,34 @@ def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_erro
             "rows":badrows,
             "columns":badcolumn,
             "error_type":error_type,
-            "core_error" : is_core_error,
+            "is_core_error" : is_core_error,
             "error_message":error_message
         }
     return {}
         
 
-def get_badrows(df, mask, errmsg):
+def get_badrows(df_badrows, errmsg, offset = None):
     """
-    df is a dataframe and mask is a series of booleans used to filter that dataframe. errmsg is self explanatory
-    The way the 'mask' should be written should be such that it is True if it is a bad row, otherwise, False
+    df_badrows is a dataframe filtered down to the rows which DO NOT meet the criteria of the check. 
+    errmsg is self explanatory
     """
 
-    assert len(df) == len(mask), "function - get_badrows - dataframe and mask have different number of rows"
-    
-    if not any(mask):
+    if df_badrows.empty:
         return []
 
-    badrows = [
+    return [
         {
+            # row number is the row number in the excel file
             'row_number': int(rownum),
             'value': val if not isnull(val) else '',
             'message': msg
         } 
         for rownum, val, msg in
-        df[mask] \
+        df_badrows \
         .apply(
             lambda row:
             (
-                row.name + 1,
+                row.name,
 
                 # We wont be including the specific cell value in the error message for custom checks, 
                 # it would be too complicated to implement in the cookie cutter type fashion that we are looking for, 
@@ -68,5 +73,4 @@ def get_badrows(df, mask, errmsg):
         .values
     ]
 
-    return badrows
-    
+

@@ -2,6 +2,7 @@ import pandas as pd
 from flask import current_app, Blueprint, session
 from copy import deepcopy
 from gc import collect
+from openpyxl import load_workbook
 
 
 # I believe the way to give the function access to the variables initialized in __init__.py is to make it a blueprint
@@ -90,6 +91,14 @@ def match(all_dfs):
             # assign the dataframe with a key being the name of the table it matched in the db
             all_dfs[matched_tbl] = all_dfs.pop(sheetname)
 
+            # Rename the worksheet in the original excel file
+            # https://stackoverflow.com/questions/39540789/how-to-rename-the-sheet-name-in-the-spread-sheet-using-python
+            # ss = spreadsheet
+            ss = load_workbook(session['excel_path'])
+            ss_sheet = ss[sheetname]
+            ss_sheet.title = matched_tbl
+            ss.save(session['excel_path'])
+
             match_report.append(
                 {
                     "sheetname"        : sheetname,
@@ -107,7 +116,10 @@ def match(all_dfs):
 
     # Now try to figure out which datatype they are submitting
     datasets = current_app.datasets
-    match_dataset = [k for k,v in datasets.items() if set(v) == set(all_dfs.keys())]
+    
+    # the values of the datasets dictionary are themselves dictionaries
+    # would look like {'tables': ['tbl1','tbl2'], 'function': some_function}
+    match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(all_dfs.keys())]
 
     assert len(match_dataset) < 2, "matched 2 or more different datasets, which should never happen"
 

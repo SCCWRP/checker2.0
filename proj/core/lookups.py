@@ -59,7 +59,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
                     .apply(
                         lambda row:
                         (
-                            row.name + 1,
+                            row.name,
                             row[x['column_name']], 
                             f"""The value you entered here ({row[x['column_name']]}) does not match the 
                             <a href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer={x['foreign_table_name']}\\\"> 
