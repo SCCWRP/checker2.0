@@ -1,6 +1,5 @@
 from os import environ
 from flask import Flask
-from flask_cors import CORS
 from sqlalchemy import create_engine
 
 # import blueprints to register them
@@ -13,8 +12,6 @@ from .custom.func2 import func2
 
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
-
-CORS(app)
 
 
 # does your application require uploaded filenames to be modified to timestamps or left as is
@@ -30,7 +27,9 @@ app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
 
 # system fields
 app.system_fields = [
-    'objectid','globalid','created_date','created_user','last_edited_date','last_edited_user','email_login','submissionid','warning'
+    'objectid','globalid','created_date','created_user',
+    'last_edited_date','last_edited_user',
+    'login_email','login_agency','submissionid','warnings'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file

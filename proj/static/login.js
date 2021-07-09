@@ -41,9 +41,17 @@
             method: 'post',
             body: formData
         });
+        document.querySelector(".before-submit").classList.add("hidden");
+        document.querySelector(".after-submit").classList.remove("hidden");
         console.log(response);
         const result = await response.json();
         console.log(result);
+
+        if (Object.keys(result).includes("errs")) {
+            if (result['errs'].length == 0){
+                document.querySelector(".final-submit-button-container").classList.remove("hidden");
+            }
+        }
         
         // we can possibly validate the email address on the python side and return a message in "result"
         // and handle the situation accordingly

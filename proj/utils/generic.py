@@ -1,5 +1,13 @@
 from json import dump
 from pandas import DataFrame
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.utils import COMMASPACE, formatdate
+from email import encoders
+import smtplib
+
 
 # a function used to collect the warnings to store in database
 # in other words, if a user submitted flagged data we want to store that information somewhere in the database to make it easier to hunt down flagged data
@@ -44,6 +52,34 @@ def collect_error_messages(errs):
 
 
 
+def correct_row_offset(lst, offset):
+    # By default the error and warnings collection methods assume that no rows were skipped in reading in of excel file.
+    # It adds 1 to the row number when getting the error/warning, since excel is 1 based but the python dataframe indexing is zero based.
+    # Therefore the row number in the errors and warnings will only match with their excel file's row if the column headers are actually in 
+    #   the first row of the excel file.
+    # These next few lines of code should correct that
+
+    [
+        r.update(
+            {
+                'message'     : r['message'],
+                
+                # to get the actual excel file row number, we must add the number of rows that pandas skipped while first reading in the dataframe,
+                #   and we must add another row to account for the row in the excel file that contains the column headers 
+                #   and another 1 to account for the 1 based indexing of excel vs the zero based indexing of python
+                'row_number'  : r['row_number'] + offset + 1 + 1 ,
+                'value'       : r['value']
+            }
+        )
+        for e in lst
+        for r in e['rows']
+    ]
+
+
+    return lst
+
+
+
 
 def save_errors(errs, filepath):
     errors_file = open(filepath, 'w')
@@ -52,3 +88,29 @@ def save_errors(errs, filepath):
         errors_file
     )
     errors_file.close()
+
+
+
+# Function to be used later in sending email
+def send_mail(send_from, send_to, subject, text, filename=None, server="localhost"):
+    msg = MIMEMultipart()
+    
+    msg['From'] = send_from
+    msg['To'] = COMMASPACE.join(send_to)
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = subject
+    
+    msg_content = MIMEText(text)
+    msg.attach(msg_content)
+    
+    if filename is not None:
+        attachment = open(filename,"rb")
+        p = MIMEBase('application','octet-stream')
+        p.set_payload((attachment).read())
+        encoders.encode_base64(p)
+        p.add_header('Content-Disposition','attachment; filename= %s' % filename.split("/")[-1])
+        msg.attach(p)
+
+    smtp = smtplib.SMTP(server)
+    smtp.sendmail(send_from, send_to, msg.as_string())
+    smtp.close()

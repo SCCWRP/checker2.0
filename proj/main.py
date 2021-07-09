@@ -7,7 +7,7 @@ import pandas as pd
 from .match import match
 from .core.core import core
 from .core.functions import fetch_meta
-from .utils.generic import save_errors
+from .utils.generic import save_errors, correct_row_offset
 
 homepage = Blueprint('homepage', __name__)
 @homepage.route('/')
@@ -16,7 +16,6 @@ def index():
         session['submissionid'] = int(time.time())
         session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
         os.mkdir(session['submission_dir'])
-
 
     return render_template('index.html')
 
@@ -27,8 +26,11 @@ def login():
 
     login_info = dict(request.form)
     print(login_info)
-    for k,v in login_info.items():
-        session[k] = v
+    session['login_info'] = login_info
+
+    # The info from the login form needs to be in the system fields list, otherwise it will throw off the match routine
+    assert set(login_info.keys()).issubset(set(current_app.system_fields)), \
+        f"{','.join(set(login_info.keys()) - set(current_app.system_fields))} not found in the system fields list"
 
     return jsonify(msg="login successful")
 
@@ -46,7 +48,8 @@ def upload():
     files = request.files.getlist('files[]')
     if len(files) > 0:
         
-        # TODO Need logic to ensure that there is only one excel file
+        if sum(['xls' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
+            return jsonify(user_error_msg='You have submitted more than one excel file')
         
         for f in files:
             # i'd like to figure a way we can do it without writing the thing to an excel file
@@ -63,7 +66,7 @@ def upload():
             session['excel_path'] = excel_path
 
     else:
-        return jsonify(msg="No file given")
+        return jsonify(user_error_msg="No file given")
 
     print("DONE uploading files")
 
@@ -72,7 +75,8 @@ def upload():
     
     # Read in the excel file to make a dictionary of dataframes (all_dfs)
 
-    assert isinstance(current_app.excel_offset, int), "Number of rows to offset in excel file must be an integer. Check__init__.py"
+    assert isinstance(current_app.excel_offset, int), \
+        "Number of rows to offset in excel file must be an integer. Check__init__.py"
 
     # build all_dfs where we will store their data
     print("building 'all_dfs' dictionary")
@@ -212,25 +216,11 @@ def upload():
     #   the first row of the excel file.
     # These next few lines of code should correct that
 
-    for lst in (errs, warnings):
-        [
-            r.update(
-                {
-                    'message'     : r['message'],
-                    
-                    # to get the actual excel file row number, we must add the number of rows that pandas skipped while first reading in the dataframe,
-                    #   and we must add another row to account for the row in the excel file that contains the column headers 
-                    #   and another 1 to account for the 1 based indexing of excel vs the zero based indexing of python
-                    'row_number'  : r['row_number'] + current_app.excel_offset + 1 + 1 ,
-                    'value'       : r['value']
-                }
-            )
-            for e in lst
-            for r in e['rows']
-        ]
+    errs = correct_row_offset(errs, offset = current_app.excel_offset)
+    warnings = correct_row_offset(warnings, offset = current_app.excel_offset)
 
 
-    # ---------------------------------------------------------------- #
+    # -------------------------------------------------------------------------------- #
 
 
     # These are the values we are returning to the browser as a json

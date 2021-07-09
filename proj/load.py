@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, session
+from flask import Blueprint, current_app, session, jsonify
 from .utils.db import GeoDBDataFrame
 
 import pandas as pd
@@ -7,6 +7,14 @@ import json, os
 finalsubmit = Blueprint('finalsubmit', __name__)
 @finalsubmit.route('/load', methods = ['GET','POST'])
 def load():
+
+    # Errors and warnings are stored in a directory in a json since it is likely that they will exceed 4kb in many cases
+    # For this reason i didnt use the session cookie
+    # Also couldnt figure out how to correctly set up a filesystem session.
+    if not pd.DataFrame( json.loads(open(os.path.join(session['submission_dir'], 'errors.json') , 'r').read()) ).empty:
+        return jsonify(user_error_message='An attempt was made to do a final submit, but there are errors in the submission')
+
+
     excel_path = session['excel_path']
 
     eng = current_app.eng
@@ -66,14 +74,19 @@ def load():
             created_user = 'checker',
             last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
             last_edited_user = 'checker',
-            email_login = session['email'],
             submissionid = session['submissionid']
+        ).assign(
+            # This will assign all the other necessary columns from the user's login, which typically are appended as columns
+            **session['login_info']
         )
+
+
 
         all_dfs[tbl] = GeoDBDataFrame(df, current_app.eng)
 
 
     for tbl, df in all_dfs.items():
         df.to_geodb(tbl)
-
+        print(f"done loading data to {tbl}")
+    return jsonify(user_notification="Sucessfully loaded data")
 
