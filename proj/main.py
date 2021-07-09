@@ -26,8 +26,8 @@ def index():
 def login():
 
     login_info = dict(request.form)
-
-    for k,v in login_info.items():    
+    print(login_info)
+    for k,v in login_info.items():
         session[k] = v
 
     return jsonify(msg="login successful")
@@ -202,7 +202,7 @@ def upload():
     
     # Later we will need to have a way to map the dataframe column names to the column indices
     session['col_indices'] = {tbl: {col: df.columns.get_loc(col) for col in df.columns} for tbl, df in all_dfs.items() }
-    
+
 
     # ---------------------------------------------------------------- #
 

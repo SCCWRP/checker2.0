@@ -30,7 +30,7 @@ app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
 
 # system fields
 app.system_fields = [
-    'objectid','globalid','created_date','created_user','last_edited_date','last_edited_user','email_login','submissionid'
+    'objectid','globalid','created_date','created_user','last_edited_date','last_edited_user','email_login','submissionid','warning'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file

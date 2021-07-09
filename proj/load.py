@@ -2,6 +2,7 @@ from flask import Blueprint, current_app, session
 from .utils.db import GeoDBDataFrame
 
 import pandas as pd
+import json, os
 
 finalsubmit = Blueprint('finalsubmit', __name__)
 @finalsubmit.route('/load', methods = ['GET','POST'])
@@ -34,6 +35,45 @@ def load():
 
     assert all(sheet in valid_tables for sheet in all_dfs.keys()), \
         f"Sheetname in excel file {excel_path} not found in the list of tables that can be submitted to"
+
+    # read in warnings and merge it to tack on the warnings column
+    # only if warnings is non empty
+    warnings = pd.DataFrame( json.loads(open(os.path.join(session['submission_dir'], 'warnings.json') , 'r').read()) )
     
+    for tbl, df in all_dfs.items():
+        assert not df.empty, "Somehow an empty dataframe was about to be submitted"
+
+        # warnings
+        if not warnings[warnings['table'] == tbl].empty:
+
+            # This is the one liner that tacks on the warnings column
+            all_dfs[tbl] = df \
+                .reset_index() \
+                .rename(columns = {'index' : 'row_number'}) \
+                .merge(
+                    warnings[warnings['table'] == tbl].rename(columns = {'message':'warnings'})[['row_number','warnings']], 
+                    on = 'row_number', 
+                    how = 'left'
+                ) \
+                .drop('row_number', axis = 1)
+        else:
+            all_dfs[tbl] = df.assign(warnings = '')
+            
+        all_dfs[tbl] = df.assign(
+            objectid = f"sde.next_rowid('sde','{tbl}')",
+            globalid = "sde.next_globalid()",
+            created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
+            created_user = 'checker',
+            last_edited_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
+            last_edited_user = 'checker',
+            email_login = session['email'],
+            submissionid = session['submissionid']
+        )
+
+        all_dfs[tbl] = GeoDBDataFrame(df, current_app.eng)
+
+
+    for tbl, df in all_dfs.items():
+        df.to_geodb(tbl)
 
 

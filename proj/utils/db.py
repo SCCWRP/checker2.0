@@ -19,18 +19,21 @@ class GeoDBDataFrame(pd.DataFrame):
         return(GeoDBDataFrame)
 
     def to_geodb(self, tablename):
-        unifcols = read_sql(f"SELECT * FROM information_schema.columns WHERE table_name = '{tablename}';", self.eng) \
+        tbl_cols = read_sql(f"SELECT * FROM information_schema.columns WHERE table_name = '{tablename}';", self.eng) \
             .column_name \
             .tolist()
         if not self.empty:
             # this used to have ON CONFLICT ON CONSTRAINT (prinary key) DO NOTHING
             # but that was in the bmpsync routine. I'm not sure if we want to include that here.
+
+            # TODO assert that the columns match up between the dataframe and table
+
             finalsql = """
                 INSERT INTO {} \n({}) \nVALUES {}
                 """ \
                 .format(
                     tablename, 
-                    ', '.join(set(self.columns).intersection(set(unifcols))),
+                    ', '.join(set(self.columns).intersection(set(tbl_cols))),
                     ',\n'.join(
                         "({})" \
                         .format(
@@ -55,7 +58,7 @@ class GeoDBDataFrame(pd.DataFrame):
                             )
                         )
                         for x in 
-                        list(zip(*[self[c] for c in set(self.columns).intersection(set(unifcols))]))
+                        list(zip(*[self[c] for c in set(self.columns).intersection(set(tbl_cols))]))
                     ),
                     tablename
                 ) \
