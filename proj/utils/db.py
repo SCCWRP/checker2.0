@@ -1,5 +1,5 @@
 import re
-from pandas import read_sql, Timestamp, isnull
+from pandas import read_sql, Timestamp, isnull, DataFrame
 
 
 def check_dtype(t, x):
@@ -9,17 +9,16 @@ def check_dtype(t, x):
     except Exception as e:
         return False
 
-class GeoDBDataFrame(pd.DataFrame):
-    def __init__(self, eng, *args, **kwargs):
+class GeoDBDataFrame(DataFrame):
+    def __init__(self, *args, **kwargs):
         super(GeoDBDataFrame, self).__init__(*args, **kwargs)
-        self.eng = eng
 
     @property
     def _constructor(self):
         return(GeoDBDataFrame)
 
-    def to_geodb(self, tablename):
-        tbl_cols = read_sql(f"SELECT * FROM information_schema.columns WHERE table_name = '{tablename}';", self.eng) \
+    def to_geodb(self, tablename, eng):
+        tbl_cols = read_sql(f"SELECT * FROM information_schema.columns WHERE table_name = '{tablename}';", eng) \
             .column_name \
             .tolist()
 
@@ -72,7 +71,7 @@ class GeoDBDataFrame(pd.DataFrame):
                 ) \
                 .replace("%","%%")
 
-            self.eng.execute(finalsql)
+            eng.execute(finalsql)
         else:
             print("Nothing to load.")
 

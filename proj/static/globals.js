@@ -1,1 +1,1 @@
-const script_root = 'imagechecker';
+const script_root = 'newchecker';

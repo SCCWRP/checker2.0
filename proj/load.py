@@ -48,14 +48,14 @@ def load():
     # only if warnings is non empty
     warnings = pd.DataFrame( json.loads(open(os.path.join(session['submission_dir'], 'warnings.json') , 'r').read()) )
     
-    for tbl, df in all_dfs.items():
-        assert not df.empty, "Somehow an empty dataframe was about to be submitted"
+    for tbl in all_dfs.keys():
+        assert not all_dfs[tbl].empty, "Somehow an empty dataframe was about to be submitted"
 
         # warnings
         if not warnings[warnings['table'] == tbl].empty:
 
             # This is the one liner that tacks on the warnings column
-            all_dfs[tbl] = df \
+            all_dfs[tbl] = all_dfs[tbl] \
                 .reset_index() \
                 .rename(columns = {'index' : 'row_number'}) \
                 .merge(
@@ -65,9 +65,9 @@ def load():
                 ) \
                 .drop('row_number', axis = 1)
         else:
-            all_dfs[tbl] = df.assign(warnings = '')
+            all_dfs[tbl] = all_dfs[tbl].assign(warnings = '')
             
-        all_dfs[tbl] = df.assign(
+        all_dfs[tbl] = all_dfs[tbl].assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
             globalid = "sde.next_globalid()",
             created_date = pd.Timestamp(int(session['submissionid']), unit = 's'),
@@ -82,11 +82,11 @@ def load():
 
 
 
-        all_dfs[tbl] = GeoDBDataFrame(df, current_app.eng)
+        all_dfs[tbl] = GeoDBDataFrame(all_dfs[tbl])
 
 
     for tbl, df in all_dfs.items():
-        df.to_geodb(tbl)
+        df.to_geodb(tbl, current_app.eng)
         print(f"done loading data to {tbl}")
     return jsonify(user_notification="Sucessfully loaded data")
 

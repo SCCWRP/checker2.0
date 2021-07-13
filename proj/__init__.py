@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 # import blueprints to register them
 from .main import homepage
 from .match import match_file
+from .load import finalsubmit
 from .core.functions import fetch_meta
 from .custom.func1 import func1
 from .custom.func2 import func2
@@ -20,7 +21,7 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 app.config['MAIL_SERVER'] = '192.168.1.18'
 
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
-app.secret_key = 'any random string'
+app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
 
 # set the database connection string, database, and type of database we are going to point our application at
 app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
@@ -56,3 +57,4 @@ app.datasets = {
 
 app.register_blueprint(homepage)
 app.register_blueprint(match_file)
+app.register_blueprint(finalsubmit)
