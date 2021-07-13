@@ -34,74 +34,114 @@ const buildReport = (res) => {
         return s;
     }).join("") ;
     
-    document.getElementById("errors-report-body-inner-tab-container").innerHTML = res.errs.map(x => {
-        s = `
-        <div id="${x.table}-errors-tab-body" class="errors-tab-body">
-            
-            <ul class="errors-info-header-list">
-                <li class="errors-info-header-list-item">Column(s)</li>
-                <li class="errors-info-header-list-item">Error Type</li>
-                <li class="errors-info-header-list-item">Error Message</li>
-                <li class="errors-info-header-list-item">Row(s)</li>
-            </ul>
-
-            <ul class="error-description-list">
-                <li class="error-description-list-item">
-                    ${x.columns}
-                </li>
-                <li class="error-description-list-item">
-                    ${x.error_type}
-                </li>
-                <li class="error-description-list-item">
-                    ${x.error_message}
-                </li>
-                <li class="error-description-list-item">
-                    ${x.rows.map(r => {return String(r.row_number)}).join() }
-                </li>
-            </ul>
-
+    const errs_tables = [...new Set(res.errs.map(e => e.table))]
+    document.getElementById("errors-report-body-inner-tab-container").innerHTML = errs_tables.map(tblname => {
+        let s = `
+        <div id="${tblname}-errors-tab-body" class="errors-tab-body">
+            <table id="${tblname}-errors-tab-table">
+                <thead class="errors-info-header-list">
+                    <tr>
+                        <th class="errors-info-header-list-item">Column(s)</th>
+                        <th class="errors-info-header-list-item">Error Type</th>
+                        <th class="errors-info-header-list-item">Error Message</th>
+                        <th class="errors-info-header-list-item">Row(s)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
         `;
         return s
     })
     
-    document.getElementById("warnings-report-body-inner-tab-container").innerHTML = res.errs.map(x => {
+    errs_tables.map(tblname => {
+        let tbl = document.querySelector(`#${tblname}-errors-tab-table tbody`);
+        tbl.innerHTML = res.errs.map(e => {
+            let s = `
+                <tr class="error-description-list">
+                    <td class="error-description-list-item">
+                    ${e.columns}
+                    </td>
+                    <td class="error-description-list-item">
+                    ${e.error_type}
+                    </td>
+                    <td class="error-description-list-item">
+                    ${e.error_message}
+                    </td>
+                    <td class="error-description-list-item">
+                    ${e.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
+                    </td>
+                </tr>
+            `;
+            return s
+        }).join("")
+    })
+
+    // warnings
+    document.getElementById("warnings-report-tab-headers").innerHTML = res.errs.map(x => {
         s = `
-        <div id="${x.table}-warnings-tab-body" class="warnings-tab-body">
-            
-            <ul class="warnings-info-header-list">
-                <li class="warnings-info-header-list-item">Column(s)</li>
-                <li class="warnings-info-header-list-item">Error Type</li>
-                <li class="warnings-info-header-list-item">Error Message</li>
-                <li class="warnings-info-header-list-item">Row(s)</li>
-            </ul>
+        <button id="${x.table}-warnings-tab-button" class="warnings-report-tab-button" onclick="openTab('${x.table}-warnings-tab-body','warnings-tab-body')">
+            ${x.table}
+        </button>
+        `;
+        return s;
+    }).join("") ;
 
-            <ul class="warning-description-list">
-                <li class="warning-description-list-item">
-                    ${x.columns}
-                </li>
-                <li class="warning-description-list-item">
-                    ${x.error_type}
-                </li>
-                <li class="warning-description-list-item">
-                    ${x.error_message}
-                </li>
-                <li class="warning-description-list-item">
-                    ${x.rows.map(r => {return String(r.row_number)}).join() }
-                </li>
-            </ul>
-
+    const warnings_tables = [...new Set(res.warnings.map(w => w.table))]
+    document.getElementById("warnings-report-body-inner-tab-container").innerHTML = warnings_tables.map(tblname => {
+        let s = `
+        <div id="${tblname}-warnings-tab-body" class="warnings-tab-body">
+            <table id="${tblname}-warnings-tab-table">
+                <thead class="warnings-info-header-list">
+                    <tr>
+                        <th class="warnings-info-header-list-item">Column(s)</th>
+                        <th class="warnings-info-header-list-item">Warning Type</th>
+                        <th class="warnings-info-header-list-item">Warning Message</th>
+                        <th class="warnings-info-header-list-item">Row(s)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
         `;
         return s
     })
+    
+    warnings_tables.map(tblname => {
+        let tbl = document.querySelector(`#${tblname}-warnings-tab-table tbody`);
+        tbl.innerHTML = res.warnings.map(w => {
+            // classes still have error since the css will be the same.
+            let s = `
+                <tr class="error-description-list">
+                    <td class="error-description-list-item">
+                    ${w.columns}
+                    </td>
+                    <td class="error-description-list-item">
+                    ${w.error_type}
+                    </td>
+                    <td class="error-description-list-item">
+                    ${w.error_message}
+                    </td>
+                    <td class="error-description-list-item">
+                    ${w.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
+                    </td>
+                </tr>
+            `;
+            return s
+        }).join("")
+    })
+    
 
 }
 
 const openTab = (id, classname) => {
     const x = document.getElementsByClassName(classname);
     for (let i = 0; i < x.length; i++) {
-      x[i].style.display = "none";
+      //x[i].style.display = "none";
+      x[i].classList.add("hidden");
     }
-    document.getElementById(id).style.display = "block";
+    //document.getElementById(id).style.display = "block";
+    document.getElementById(id).classList.remove("hidden");
 }

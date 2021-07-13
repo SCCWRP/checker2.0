@@ -4,7 +4,7 @@ def func2(all_dfs):
     errs = []
     warnings = []
     for tbl, df in all_dfs.items():
-        errs.extend(
+        warnings.extend(
             [
                 checkData(
                     dataframe = df,
