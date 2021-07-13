@@ -1,5 +1,5 @@
 files
-docker
+docker/deploy.sh
 export
 logs
 .vscode
