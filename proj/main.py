@@ -8,6 +8,8 @@ from .match import match
 from .core.core import core
 from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
+from .utils.mail import send_mail
+from .utils.exceptions import default_exception_handler
 
 
 homepage = Blueprint('homepage', __name__)
@@ -38,6 +40,9 @@ def login():
     # The info from the login form needs to be in the system fields list, otherwise it will throw off the match routine
     assert set(login_info.keys()).issubset(set(current_app.system_fields)), \
         f"{','.join(set(login_info.keys()) - set(current_app.system_fields))} not found in the system fields list"
+
+    assert "login_email" in login_info.keys(), \
+        "No email address found in login form. It should be named login_email since the email notification routine assumes so."
 
     return jsonify(msg="login successful")
 
@@ -76,7 +81,6 @@ def upload():
         return jsonify(user_error_msg="No file given")
 
     print("DONE uploading files")
-
 
     # -------------------------------------------------------------------------- #
     
@@ -117,8 +121,10 @@ def upload():
     # keys of all_dfs should be no longer the original sheet names but rather the table names that got matched, if any
     # if the tab didnt match any table it will not alter that item in the all_dfs dictionary
     print("Running match tables routine")
-    match_dataset, match_report, all_dfs = match(all_dfs)
+    match_dataset, match_report, all_dfs = match(all_dfs, current_app.eng, current_app.system_fields, current_app.datasets)
     print("DONE - Running match tables routine")
+
+    session['datatype'] = match_dataset
 
 
     if any([x['tablename'] == "" for x in match_report]):
@@ -160,7 +166,6 @@ def upload():
     # ----------------------------------------- #
 
     
-
     # Custom Checks based on match dataset
 
     assert match_dataset in current_app.datasets.keys(), \
@@ -239,7 +244,8 @@ def upload():
         "match_dataset" : match_dataset,
         "errs" : errs,
         "warnings": warnings,
-        "submissionid": session.get("submissionid")
+        "submissionid": session.get("submissionid"),
+        "critical_error": False
     }
     
     print("DONE with upload routine, returning JSON to browser")
@@ -250,3 +256,16 @@ def upload():
 def clearsession():
     session.clear()
     return jsonify(msg="session cleared")
+
+
+# When an exception happens when the browser is sending requests to the homepage blueprint, this routine runs
+@homepage.errorhandler(Exception)
+def homepage_error_handler(error):
+    response = default_exception_handler(
+        mail_from = current_app.mail_from,
+        errmsg = str(error),
+        maintainers = current_app.maintainers,
+        project_name = current_app.project_name,
+        mail_server = current_app.config['MAIL_SERVER']
+    )
+    return response

@@ -1,23 +1,17 @@
 import pandas as pd
-from flask import current_app, Blueprint, session
 from copy import deepcopy
+from flask import session
 from gc import collect
 from openpyxl import load_workbook
 
 
-# I believe the way to give the function access to the variables initialized in __init__.py is to make it a blueprint
-# That's what i have noticed in my experience, however, there could be a better way
-match_file = Blueprint('match_file', __name__)
-@match_file.route('/match')
-def match(all_dfs):
-
-    eng = current_app.eng
+def match(all_dfs, eng, system_fields, datasets):
 
     match_tbls_sql = f"""
         SELECT table_name, column_name 
         FROM information_schema.columns 
         WHERE table_name LIKE 'tbl_%%'
-        AND column_name NOT IN ('{"','".join(current_app.system_fields)}')
+        AND column_name NOT IN ('{"','".join(system_fields)}')
         ;"""
 
     cols_df = pd.read_sql(match_tbls_sql, eng) \
@@ -114,8 +108,6 @@ def match(all_dfs):
     collect()
 
 
-    # Now try to figure out which datatype they are submitting
-    datasets = current_app.datasets
     
     # the values of the datasets dictionary are themselves dictionaries
     # would look like {'tables': ['tbl1','tbl2'], 'function': some_function}

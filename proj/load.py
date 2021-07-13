@@ -1,5 +1,7 @@
 from flask import Blueprint, current_app, session, jsonify
 from .utils.db import GeoDBDataFrame
+from .utils.mail import data_receipt
+from .utils.exceptions import default_exception_handler
 
 import pandas as pd
 import json, os
@@ -88,9 +90,37 @@ def load():
 
         all_dfs[tbl] = GeoDBDataFrame(all_dfs[tbl])
 
-
+    
     for tbl, df in all_dfs.items():
         df.to_geodb(tbl, current_app.eng)
         print(f"done loading data to {tbl}")
+    
+    # So we know the massive argument list of the data receipt function, which is like the notification email for successful submission
+    #def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, originalfile, tables, eng, mailserver, *args, **kwargs):
+    data_receipt(
+        send_from = 'admin@checker.sccwrp.org',
+        always_send_to = ['robertb@sccwrp.org'],
+        login_email = session.get('login_info').get('login_email'),
+        dtype = session.get('datatype'),
+        submissionid = session.get('submissionid'),
+        originalfile = session.get('excel_path'),
+        tables = all_dfs.keys(),
+        eng = current_app.eng,
+        mailserver = current_app.config['MAIL_SERVER'],
+        login_info = session.get('login_info')
+    )
+    
     return jsonify(user_notification="Sucessfully loaded data")
 
+
+# When an exception happens when the browser is sending requests to the finalsubmit blueprint, this routine runs
+@finalsubmit.errorhandler(Exception)
+def finalsubmit_error_handler(error):
+    response = default_exception_handler(
+        mail_from = current_app.mail_from,
+        errmsg = str(error),
+        maintainers = current_app.maintainers,
+        project_name = current_app.project_name,
+        mail_server = current_app.config['MAIL_SERVER']
+    )
+    return response

@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 
 # import blueprints to register them
 from .main import homepage
-from .match import match_file
 from .load import finalsubmit
 from .core.functions import fetch_meta
 from .custom.func1 import func1
@@ -25,6 +24,15 @@ app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
 
 # set the database connection string, database, and type of database we are going to point our application at
 app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
+
+# Project name
+app.project_name = "TEST"
+
+# Maintainers
+app.maintainers = ['robertb@sccwrp.org']
+
+# Mail From
+app.mail_from = 'admin@checker.sccwrp.org'
 
 # system fields
 app.system_fields = [
@@ -56,5 +64,4 @@ app.datasets = {
 
 
 app.register_blueprint(homepage)
-app.register_blueprint(match_file)
 app.register_blueprint(finalsubmit)

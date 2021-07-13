@@ -48,6 +48,12 @@
         const result = await response.json();
         console.log(result);
 
+        // handling the case where there was a critical error
+        if (result.critical_error) {
+            // critical_error_handler defined in globals.js
+            critical_error_handler(result.contact)
+        }
+
         if (Object.keys(result).includes("errs")) {
             if (result['errs'].length == 0){
                 document.querySelector(".final-submit-button-container").classList.remove("hidden");
