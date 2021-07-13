@@ -32,3 +32,19 @@ body {
 .hidden {
     display: none;
 }
+
+.errors-info-header-list-item {
+    display: inline-block;
+}
+
+.error-description-list-item {
+    display: inline-block;
+}
+
+.warnings-info-header-list-item {
+    display: inline-block;
+}
+
+.warning-description-list-item {
+    display: inline-block;
+}

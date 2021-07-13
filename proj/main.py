@@ -9,9 +9,16 @@ from .core.core import core
 from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
 
+
 homepage = Blueprint('homepage', __name__)
 @homepage.route('/')
 def index():
+
+    # When a request is made, we need to check if they have an active session open or not
+    # If there is an active session (if session.get('submissionid')) then we need to prompt them saying that there is an active session open
+    # and we need to ask if they want to clear it and start a new one
+    session.clear()
+
     if not session.get('submissionid'):
         session['submissionid'] = int(time.time())
         session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
@@ -231,7 +238,8 @@ def upload():
         "matched_all_tables" : True,
         "match_dataset" : match_dataset,
         "errs" : errs,
-        "warnings": warnings
+        "warnings": warnings,
+        "submissionid": session.get("submissionid")
     }
     
     print("DONE with upload routine, returning JSON to browser")

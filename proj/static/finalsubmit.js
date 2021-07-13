@@ -1,7 +1,7 @@
-(function(){
-    finalSubmit = document.getElementById("final-submit");
 
-    //routine for when the user logs in
+const addFinalSubmitListener = () => {
+
+    const finalSubmit = document.getElementById("final-submit");
     finalSubmit.addEventListener("submit", async function(e) {
         e.preventDefault();
         const formData = new FormData(this);
@@ -14,9 +14,8 @@
         console.log(result);
         
         alert(result.user_notification);
-
+        
         finalSubmit.classList.add("hidden")
-
+    
     })
-
-})()
+}

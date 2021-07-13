@@ -27,32 +27,98 @@
       </div>
 
 
-      <div class = "before-submit">
+      <div class = "before-submit hidden">
         <div class = "container file-form-container">
           <form id = "file-submission-form">
             <input type = "file" name = "files" multiple>
             <button type="submit">submit data</button>
           </form>
         </div>
-
-        <button id="session-reset">Start New Session</button>
       </div>
-      <div class = "after-submit hidden">
-        <div class = "container form-container final-submit-button-container hidden">
-          <form id = "final-submit">
-            <button type="submit">final submit</button>
-          </form>
+
+
+      <div class="errors-report-outer-container after-submit hidden">
+
+        <div class="errors-report-inner-container">
+
+
+          <div class="errors-report-headers">
+            <button id="submission-info-button" class="submission-info-tab-header" onclick="openTab('submission-info','submission-info-tab-body')">Submission Information</button>
+            <button id="errors-report-button" class="submission-info-tab-header" onclick="openTab('errors-report','submission-info-tab-body')">Errors</button>
+            <button id="warnings-report-button" class="submission-info-tab-header" onclick="openTab('warnings-report','submission-info-tab-body')">Warnings</button>
+          </div>
+
+
+          <div class="submission-report-body">
+            <div id="submission-info" class="submission-info-tab-body">
+              <ul>
+                <li>
+                  <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
+                </li>
+                <li>
+                  <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
+                </li>
+                <li>
+                  <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
+                </li>
+                <li>
+                  <p><span id="compare-list-header"> Excel Tab to Database Table Comparison</span></p>
+                  <p id="comparison-list-wrapper">
+                    <ul id="tab-table-comparison-list">
+                    </ul>
+                  </p>
+                </li>
+                <li>
+                  <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
+                </li>
+              </ul>
+            </div>
+
+
+
+            <div id="errors-report" class="errors-report-body-outer-container submission-info-tab-body hidden">
+              
+              <div id="errors-report-tab-headers" class="errors-report-tab-headers-container">
+                
+              </div>
+              <div id="errors-report-body-inner-tab-container">
+
+              </div>
+            
+            </div>
+            
+
+
+            <div id="warnings-report" class="warnings-report-body-outer-container submission-info-tab-body hidden">
+
+              <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
+                
+              </div>
+              <div id="warnings-report-body-inner-tab-container">
+
+              </div>
+            
+            </div>
+
+
+
+          </div>
+          
+
+          <div class = "container form-container final-submit-button-container hidden">
+            <form id = "final-submit">
+              <button type="submit">final submit</button>
+            </form>
+          </div>
+
+
         </div>
-      </div>
-
-
-      <div>
-
       </div>
     </main>
   </body>
 
   <!--Load js at the end rather than doing something similar to $('document').ready()-->
-  <script src="{{url_for('static', filename='login.js')}}"></script>
   <script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
+  <script src="{{url_for('static', filename='report.js')}}"></script>
+  <script src="{{url_for('static', filename='main.js')}}"></script>
 </html>

@@ -4,7 +4,7 @@ def func2(all_dfs):
     errs = []
     warnings = []
     for tbl, df in all_dfs.items():
-        warnings.extend(
+        errs.extend(
             [
                 checkData(
                     dataframe = df,
@@ -21,5 +21,4 @@ def func2(all_dfs):
             ]
         )
     
-    #return {'errors': errs, 'warnings': warnings}
-    return {'errors': [], 'warnings': []}
+    return {'errors': errs, 'warnings': warnings}
