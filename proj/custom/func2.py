@@ -10,15 +10,16 @@ def func2(all_dfs):
                     dataframe = df,
                     tablename = tbl,
                     badrows = get_badrows(
-                        df[df['first'] != "BSAHH"], 
-                        "The value here is not BSAHH"
+                        df[df['first'] != "asdf"], 
+                        "The value here is not asdf"
                     ),
                     badcolumn = 'first',
-                    error_type = "Not BSAHH",
+                    error_type = "Not asdf",
                     is_core_error = False,
-                    error_message = "this is not BSAHH"
+                    error_message = "this is not asdf"
                 )
             ]
         )
     
-    return {'errors': errs, 'warnings': warnings}
+    #return {'errors': errs, 'warnings': warnings}
+    return {'errors': [], 'warnings': []}

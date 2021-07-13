@@ -51,21 +51,25 @@ def load():
     for tbl in all_dfs.keys():
         assert not all_dfs[tbl].empty, "Somehow an empty dataframe was about to be submitted"
 
-        # warnings
-        if not warnings[warnings['table'] == tbl].empty:
+        if not warnings.empty:
+            # warnings
+            if not warnings[warnings['table'] == tbl].empty:
 
-            # This is the one liner that tacks on the warnings column
-            all_dfs[tbl] = all_dfs[tbl] \
-                .reset_index() \
-                .rename(columns = {'index' : 'row_number'}) \
-                .merge(
-                    warnings[warnings['table'] == tbl].rename(columns = {'message':'warnings'})[['row_number','warnings']], 
-                    on = 'row_number', 
-                    how = 'left'
-                ) \
-                .drop('row_number', axis = 1)
+                # This is the one liner that tacks on the warnings column
+                all_dfs[tbl] = all_dfs[tbl] \
+                    .reset_index() \
+                    .rename(columns = {'index' : 'row_number'}) \
+                    .merge(
+                        warnings[warnings['table'] == tbl].rename(columns = {'message':'warnings'})[['row_number','warnings']], 
+                        on = 'row_number', 
+                        how = 'left'
+                    ) \
+                    .drop('row_number', axis = 1)
+            else:
+                all_dfs[tbl] = all_dfs[tbl].assign(warnings = '')
         else:
             all_dfs[tbl] = all_dfs[tbl].assign(warnings = '')
+            
             
         all_dfs[tbl] = all_dfs[tbl].assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",

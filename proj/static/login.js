@@ -29,6 +29,7 @@
 
         // an example of how we can put a loader gif
         //document.querySelector(".records-display-inner-container").innerHTML = '<img src="/changerequest/static/loading.gif">';
+        document.querySelector(".before-submit").classList.add("hidden");
         
         const dropped_files = document.querySelector('[type=file]').files;
         const formData = new FormData();
@@ -41,7 +42,6 @@
             method: 'post',
             body: formData
         });
-        document.querySelector(".before-submit").classList.add("hidden");
         document.querySelector(".after-submit").classList.remove("hidden");
         console.log(response);
         const result = await response.json();
