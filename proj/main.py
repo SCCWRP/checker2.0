@@ -8,6 +8,7 @@ from .match import match
 from .core.core import core
 from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
+from .utils.excel import mark_workbook
 from .utils.mail import send_mail
 from .utils.exceptions import default_exception_handler
 
@@ -231,6 +232,17 @@ def upload():
     errs = correct_row_offset(errs, offset = current_app.excel_offset)
     warnings = correct_row_offset(warnings, offset = current_app.excel_offset)
 
+
+    # -------------------------------------------------------------------------------- #
+
+    # Mark up the excel workbook
+
+    mark_workbook(
+        all_dfs = all_dfs, 
+        excel_path = session.get('excel_path'), 
+        errs = errs, 
+        warnings = warnings
+    )
 
     # -------------------------------------------------------------------------------- #
 

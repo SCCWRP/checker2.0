@@ -17,6 +17,8 @@ def load():
         return jsonify(user_error_message='An attempt was made to do a final submit, but there are errors in the submission')
 
 
+    # This ensures that the exact file that was originally read in and checked, is being read in the same exact way before the final submit
+    # This way, there are not issues with pandas changing data before rewriting the file to excel
     excel_path = session['excel_path']
 
     eng = current_app.eng
