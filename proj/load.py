@@ -112,6 +112,8 @@ def load():
         login_info = session.get('login_info')
     )
     
+    # TODO Need to move submitted and marked files to a separate directory that stores submitted files
+
     return jsonify(user_notification="Sucessfully loaded data")
 
 

@@ -74,3 +74,5 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
             wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
 
     wb.save(marked_path)
+
+    return marked_path

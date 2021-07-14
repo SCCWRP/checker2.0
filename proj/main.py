@@ -237,7 +237,8 @@ def upload():
 
     # Mark up the excel workbook
 
-    mark_workbook(
+    # mark_workbook function returns the file path to which it saved the marked excel file
+    session['marked_excel_path'] = mark_workbook(
         all_dfs = all_dfs, 
         excel_path = session.get('excel_path'), 
         errs = errs, 
