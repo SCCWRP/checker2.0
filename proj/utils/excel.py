@@ -1,25 +1,9 @@
 import os, shutil
+from openpyxl import load_workbook
+from openpyxl.comments import Comment
+from openpyxl.styles import PatternFill
 from flask import session
-def highlight_changes(worksheet, color, cells):
-    """
-        worksheet: the excel worksheet being formatted,
-        color: the format that will be added,
-        cells: list of tuples, indicating the coordinates of the cells to be highlighted
 
-        This function aims to utilie the speed of the list comprehension for loop, without returning anything
-    """
-    [
-        worksheet.conditional_format(
-            # coord is a tuple of the coordinates of cells that were changed, and need to be highlighted
-            coord.get('row_index'), coord.get('column_index'), coord.get('row_index'), coord.get('column_index'),
-            {
-                'type': 'no_errors',
-                'format': color
-            }
-        )
-        for coord in cells
-    ]
-    return None
 
 def mark_workbook(all_dfs, excel_path, errs, warnings):
     assert session.get('submission_dir') is not None, "function - mark_workbook - session submission dir is not defined."
@@ -63,7 +47,30 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
         for r in w.get('rows')
     ]
 
-    print("warnings_cells")
-    print(warnings_cells)
-    print("errs_cells")
-    print(errs_cells)
+    
+    # for errors
+    redFill = PatternFill(
+        start_color='FFFF0000',
+        end_color='FFFF0000',
+        fill_type='solid'
+    )
+
+    # for warnings
+    yellowFill = PatternFill(
+        start_color='00FFFF00',
+        end_color='00FFFF00',
+        fill_type='solid'
+    )
+
+
+    wb = load_workbook(marked_path)
+
+    for sheet in wb.sheetnames:
+        for coord in errs_cells.get(sheet) if errs_cells.get(sheet) is not None else []:
+            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].fill = redFill 
+            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
+        for coord in warnings_cells.get(sheet) if warnings_cells.get(sheet) is not None else []:
+            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].fill = yellowFill 
+            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
+
+    wb.save(marked_path)
