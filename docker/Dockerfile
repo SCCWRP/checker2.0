@@ -27,3 +27,10 @@ WORKDIR /var/www/newchecker/
 
 CMD ["uwsgi","-s","/tmp/newchecker.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/newchecker=run:app","--chmod-socket=666"]
 
+
+# docker container run -it -d --name appname \
+#     -v /tmp:/tmp -v /var/www/templates/appname:/var/www/appname \
+#     -v /etc/timezone:/etc/timezone:ro \
+#     -e DB_CONNECTION_STRING='db_connection_string whatever it is' \
+#     -e FLASK_APP_SECRET_KEY='some secret key' \
+#     sccwrp/flaskchecker:latest
