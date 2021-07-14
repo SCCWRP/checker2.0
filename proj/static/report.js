@@ -21,7 +21,8 @@ const buildReport = (res) => {
         }
     ).join("");
 
-    document.getElementById("excel-markup-download").setAttribute("href",`/${script_root}/export?submissionid=${res.submissionid}&original_filename=${res.filename}`) ;
+    // Let them download their marked excel file
+    document.getElementById("excel-markup-download").setAttribute("href",`/${script_root}/download/${res.submissionid}/${res.marked_filename}`) ;
     
     
     // errors
@@ -61,16 +62,16 @@ const buildReport = (res) => {
             let s = `
                 <tr class="error-description-list">
                     <td class="error-description-list-item">
-                    ${e.columns}
+                        ${e.columns}
                     </td>
                     <td class="error-description-list-item">
-                    ${e.error_type}
+                        ${e.error_type}
                     </td>
                     <td class="error-description-list-item">
-                    ${e.error_message}
+                        ${e.error_message}
                     </td>
                     <td class="error-description-list-item">
-                    ${e.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
+                        ${e.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
                     </td>
                 </tr>
             `;
@@ -116,16 +117,16 @@ const buildReport = (res) => {
             let s = `
                 <tr class="error-description-list">
                     <td class="error-description-list-item">
-                    ${w.columns}
+                        ${w.columns}
                     </td>
                     <td class="error-description-list-item">
-                    ${w.error_type}
+                        ${w.error_type}
                     </td>
                     <td class="error-description-list-item">
-                    ${w.error_message}
+                        ${w.error_message}
                     </td>
                     <td class="error-description-list-item">
-                    ${w.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
+                        ${w.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
                     </td>
                 </tr>
             `;

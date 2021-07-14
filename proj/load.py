@@ -125,6 +125,7 @@ def finalsubmit_error_handler(error):
         errmsg = str(error),
         maintainers = current_app.maintainers,
         project_name = current_app.project_name,
+        attachment = session.get('excel_path'),
         mail_server = current_app.config['MAIL_SERVER']
     )
     return response

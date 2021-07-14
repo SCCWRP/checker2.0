@@ -39,7 +39,7 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
             {
                 'row_index': r.get('row_number'),
                 'column_index': all_dfs[table].columns.get_loc(str(col).strip()),
-                'message': r.get('message')
+                'message': f"{r.get('message')} (Warning)"
             }
         )
         for w in warnings

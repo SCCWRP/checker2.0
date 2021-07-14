@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 # import blueprints to register them
 from .main import homepage
 from .load import finalsubmit
+from .download import download
 from .core.functions import fetch_meta
 from .custom.func1 import func1
 from .custom.func2 import func2
@@ -65,3 +66,4 @@ app.datasets = {
 
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
+app.register_blueprint(download)

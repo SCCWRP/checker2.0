@@ -1,7 +1,7 @@
 from .mail import send_mail
 from flask import jsonify
 
-def default_exception_handler(mail_from, errmsg, maintainers, project_name, mail_server):
+def default_exception_handler(mail_from, errmsg, maintainers, project_name, mail_server, attachment = None):
     print("Checker application came across an error")
     print(errmsg)
     response = jsonify(
@@ -17,6 +17,7 @@ def default_exception_handler(mail_from, errmsg, maintainers, project_name, mail
         maintainers,
         f"{project_name} Checker - Internal Server Error", 
         f"{project_name} Checker crashed. Here is the error message:\n{errmsg}", 
+        filename = attachment,
         server = mail_server
     )
     return response

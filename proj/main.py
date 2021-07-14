@@ -81,6 +81,9 @@ def upload():
     else:
         return jsonify(user_error_msg="No file given")
 
+    # We are assuming filename is an excel file
+    assert '.xls' in filename, f"filename: {filename} appears to not be what we would expect of an excel file"
+
     print("DONE uploading files")
 
     # -------------------------------------------------------------------------- #
@@ -252,6 +255,7 @@ def upload():
     # https://pics.me.me/code-comments-be-like-68542608.png
     returnvals = {
         "filename" : filename,
+        "marked_filename" : f"{filename.rsplit('.',1)[0]}-marked.{filename.rsplit('.',1)[-1]}",
         "match_report" : match_report,
         "matched_all_tables" : True,
         "match_dataset" : match_dataset,
@@ -279,6 +283,7 @@ def homepage_error_handler(error):
         errmsg = str(error),
         maintainers = current_app.maintainers,
         project_name = current_app.project_name,
+        attachment = session.get('excel_path'),
         mail_server = current_app.config['MAIL_SERVER']
     )
     return response

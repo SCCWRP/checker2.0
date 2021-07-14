@@ -36,7 +36,7 @@ def checkDuplicatesInSession(dataframe, tablename, eng, *args, output = None, **
                 (
                     row.name,
                     None, 
-                    "This is a duplicated row"
+                    f"This is a duplicated row based on the primary key fields {', '.join(pkey)}"
                 ),
                 axis = 1
             ) \
