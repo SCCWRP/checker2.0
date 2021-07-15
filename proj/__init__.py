@@ -7,8 +7,7 @@ from .main import homepage
 from .load import finalsubmit
 from .download import download
 from .core.functions import fetch_meta
-from .custom.func1 import func1
-from .custom.func2 import func2
+from .custom.datalogger import datalogger
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -27,10 +26,10 @@ app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
 app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
 
 # Project name
-app.project_name = "TEST"
+app.project_name = "NESE"
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org']
+app.maintainers = ['robertb@sccwrp.org', 'duyn@sccwrp.org']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
@@ -59,9 +58,10 @@ app.datasets = {
     # offset
     #   Some people like to give the clients excel submission templates with column descriptions in the first row
     #   offset refers to the number of rows to offset, or skip, when reading in the excel file
-    'test1': {'tables': ['tbl_test1'], 'function': func1},
-    'test2': {'tables': ['tbl_test2'], 'function': func2}
+    'datalogger': {'tables': ['tbl_datalogger_raw', 'tbl_datalogger_metadata'], 'function': datalogger}
 }
+
+# need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 
 
 app.register_blueprint(homepage)

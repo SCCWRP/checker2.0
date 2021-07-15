@@ -101,7 +101,7 @@ def load():
     #def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, originalfile, tables, eng, mailserver, *args, **kwargs):
     data_receipt(
         send_from = 'admin@checker.sccwrp.org',
-        always_send_to = ['robertb@sccwrp.org'],
+        always_send_to = ['robertb@sccwrp.org','duyn@sccwrp.org'],
         login_email = session.get('login_info').get('login_email'),
         dtype = session.get('datatype'),
         submissionid = session.get('submissionid'),

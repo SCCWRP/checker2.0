@@ -1,6 +1,6 @@
 from .functions import checkData, get_badrows
 
-def func1(all_dfs):
+def datalogger(all_dfs):
     errs = []
     warnings = []
     for tbl, df in all_dfs.items():

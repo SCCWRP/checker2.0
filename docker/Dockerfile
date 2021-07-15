@@ -31,6 +31,7 @@ CMD ["uwsgi","-s","/tmp/nese.sock","--uid","www-data","--gid","www-data","--mana
 # docker container run -it -d --name appname \
 #     -v /tmp:/tmp -v /var/www/templates/appname:/var/www/appname \
 #     -v /etc/timezone:/etc/timezone:ro \
+#     -v /etc/localtime:/etc/localtime:ro \
 #     -e DB_CONNECTION_STRING='db_connection_string whatever it is' \
 #     -e FLASK_APP_SECRET_KEY='some secret key' \
 #     sccwrp/flaskchecker:latest
