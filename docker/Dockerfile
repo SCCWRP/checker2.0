@@ -22,10 +22,10 @@ RUN pip3 install Werkzeug
 RUN pip3 install openpyxl
 #RUN pip3 install opencv-python
 
-RUN mkdir -p /var/www/newchecker/
-WORKDIR /var/www/newchecker/
+RUN mkdir -p /var/www/checker/
+WORKDIR /var/www/checker/
 
-CMD ["uwsgi","-s","/tmp/newchecker.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/newchecker=run:app","--chmod-socket=666"]
+CMD ["uwsgi","-s","/tmp/nese.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/nese=run:app","--chmod-socket=666"]
 
 
 # docker container run -it -d --name appname \
