@@ -10,7 +10,7 @@ def datalogger(all_dfs):
                     dataframe = df,
                     tablename = tbl,
                     badrows = get_badrows(df, df.first != 'asdf', "The value here is not asdf"),
-                    badcolumn = 'first',
+                    badcolumn = 'temperature',
                     error_type = "Not asdf",
                     is_core_error = False,
                     error_message = "this is not asdf"

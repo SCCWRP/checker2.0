@@ -1,29 +1,33 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!--This helped so much: https://getbootstrap.com/docs/5.0/components/card/-->
     <link rel = "stylesheet" href = "{{url_for('static', filename='main.css')}}">
+    <link rel = "stylesheet" href = "{{url_for('static', filename='bootstrap.min.css')}}">
     <script src="{{url_for('static', filename='globals.js')}}"></script>
   </head>
   <body>
     <main>
       
       
-      <div class = "container login-container">
-        <form id = "main-login-form">
-          <div class = "login-input-container">
-            <label for = "login_email">Enter your email address:</label>
-            <input type = "email" name = "login_email">
-          </div>
-          <br/>
-          <div class = "login-input-container">
-            <label for = "login_agency">Enter your agency:</label>
-            <input type = "agency" name = "login_agency">
-          </div>
-          <br>
-          <div class = "login-input-container">
-            <button type="submit">Sign in</button>
-          </div>
-        </form>
+      <div class = "container card hidden" id="login-container">
+        <div class="card-body">
+          <form id = "main-login-form">
+            <div class = "login-input-container">
+              <label for = "login_email">Enter your email address:</label>
+              <input type = "email" name = "login_email">
+            </div>
+            <br/>
+            <div class = "login-input-container">
+              <label for = "login_agency">Enter your agency:</label>
+              <input type = "agency" name = "login_agency">
+            </div>
+            <br>
+            <div class = "login-input-container">
+              <button type="submit">Sign in</button>
+            </div>
+          </form>
+        </div>
       </div>
 
 
@@ -39,79 +43,84 @@
 
       <div class="errors-report-outer-container after-submit hidden">
 
-        <div class="errors-report-inner-container">
+        <div class="errors-report-inner-container container">
+          <div class="card container">
+              <div class="errors-report-headers row">
+                <div class="col-sm submission-info-tab-header" id="submission-info-button" onclick="openTab('submission-info','submission-info-tab-body')">
+                  Submission Information
+                </div>
+                <div class="col-sm submission-info-tab-header" id="submission-info-button" onclick="openTab('errors-report','submission-info-tab-body')">
+                  Errors
+                </div>
+                <div class="col-sm submission-info-tab-header" id="submission-info-button" onclick="openTab('warnings-report','submission-info-tab-body')">
+                  Warnings
+                </div>
+              </div>
+
+            <div class="submission-report-body container card-body">
+              <div id="submission-info" class="submission-info-tab-body">
+                <ul>
+                  <li class="list-group-item">
+                    <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><span id="compare-list-header"> Excel Tab to Database Table Comparison</span></p>
+                    <p id="comparison-list-wrapper">
+                      <ul id="tab-table-comparison-list">
+                      </ul>
+                    </p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
+                  </li>
+                </ul>
+              </div>
 
 
-          <div class="errors-report-headers">
-            <button id="submission-info-button" class="submission-info-tab-header" onclick="openTab('submission-info','submission-info-tab-body')">Submission Information</button>
-            <button id="errors-report-button" class="submission-info-tab-header" onclick="openTab('errors-report','submission-info-tab-body')">Errors</button>
-            <button id="warnings-report-button" class="submission-info-tab-header" onclick="openTab('warnings-report','submission-info-tab-body')">Warnings</button>
-          </div>
 
 
-          <div class="submission-report-body">
-            <div id="submission-info" class="submission-info-tab-body">
-              <ul>
-                <li>
-                  <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
-                </li>
-                <li>
-                  <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
-                </li>
-                <li>
-                  <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
-                </li>
-                <li>
-                  <p><span id="compare-list-header"> Excel Tab to Database Table Comparison</span></p>
-                  <p id="comparison-list-wrapper">
-                    <ul id="tab-table-comparison-list">
-                    </ul>
-                  </p>
-                </li>
-                <li>
-                  <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
-                </li>
-              </ul>
-            </div>
+              <div id="errors-report" class="errors-report-body-outer-container container submission-info-tab-body hidden">
+                
+                <div id="errors-report-tab-headers" class="errors-report-tab-headers-container">
+                  
+                </div>
+                <div id="errors-report-body-inner-tab-container" class="container">
 
-
-
-            <div id="errors-report" class="errors-report-body-outer-container submission-info-tab-body hidden">
+                </div>
               
-              <div id="errors-report-tab-headers" class="errors-report-tab-headers-container">
-                
               </div>
-              <div id="errors-report-body-inner-tab-container">
+              
 
+
+              <div id="warnings-report" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
+
+                <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
+                  
+                </div>
+                <div id="warnings-report-body-inner-tab-container" class="container">
+
+                </div>
+              
               </div>
-            
+
+
+
             </div>
             
 
-
-            <div id="warnings-report" class="warnings-report-body-outer-container submission-info-tab-body hidden">
-
-              <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
-                
-              </div>
-              <div id="warnings-report-body-inner-tab-container">
-
-              </div>
-            
+            <div class = "container form-container final-submit-button-container hidden">
+              <form id = "final-submit">
+                <button type="submit">final submit</button>
+              </form>
             </div>
 
-
-
           </div>
-          
-
-          <div class = "container form-container final-submit-button-container hidden">
-            <form id = "final-submit">
-              <button type="submit">final submit</button>
-            </form>
-          </div>
-
-
         </div>
       </div>
     </main>

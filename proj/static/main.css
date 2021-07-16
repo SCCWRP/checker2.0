@@ -10,7 +10,7 @@ body {
     padding: 0.1rem;
 }
 
-.container.login-container {
+.container#login-container {
     margin: auto;
     width: 40%;
     background-color: rgba(0, 0, 0, 0.8);
@@ -47,4 +47,9 @@ body {
 
 .warning-description-list-item {
     display: inline-block;
+}
+
+.submission-info-tab-header {
+    cursor: pointer;
+    border: 1px solid black;
 }

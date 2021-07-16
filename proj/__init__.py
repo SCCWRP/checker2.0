@@ -59,7 +59,8 @@ app.datasets = {
     # offset
     #   Some people like to give the clients excel submission templates with column descriptions in the first row
     #   offset refers to the number of rows to offset, or skip, when reading in the excel file
-    'datalogger': {'tables': ['tbl_data_logger_raw', 'tbl_data_logger_metadata'], 'function': datalogger}
+    'datalogger': {'tables': ['tbl_data_logger_raw', 'tbl_data_logger_metadata'], 'function': datalogger},
+    'dataloggerraw': {'tables': ['tbl_data_logger_raw'], 'function': datalogger}
 }
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
