@@ -75,3 +75,15 @@ span.table-not-matched {
 #main-outer-container {
     padding: 2rem;
 }
+
+#loader-gif-container .card-body {
+    text-align: center
+}
+
+#loader-gif-container .card-header {
+    text-align: center
+}
+
+#loader-gif-container #loader-gif {
+    display: inline-block;
+}

@@ -31,6 +31,7 @@
         // an example of how we can put a loader gif
         //document.querySelector(".records-display-inner-container").innerHTML = '<img src="/changerequest/static/loading.gif">';
         document.querySelector(".before-submit").classList.add("hidden");
+        document.getElementById("loader-gif-container").classList.remove("hidden");
         
         const dropped_files = document.querySelector('[type=file]').files;
         const formData = new FormData();
@@ -38,11 +39,12 @@
             /* submit as array to as file array - otherwise will fail */
             formData.append('files[]', dropped_files[i]);
         }
-
+        
         const response = await fetch(`/${script_root}/upload`, {
             method: 'post',
             body: formData
         });
+        document.getElementById("loader-gif-container").classList.add("hidden");
         document.querySelector(".after-submit").classList.remove("hidden");
         console.log(response);
         const result = await response.json();

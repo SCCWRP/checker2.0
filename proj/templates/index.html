@@ -10,6 +10,8 @@
     <main>
         
       <div class="container" id="main-outer-container">
+
+        <!--login screen-->
         <div class = "container" id="login-outer-container">
           <div class = "card inner-container" id="login-inner-container">
             <div class="card-header">
@@ -34,7 +36,11 @@
             </div>
           </div>
         </div>
+        <!--End login screen-->
+        
 
+
+        <!--File submission form-->
         <div class = "before-submit container hidden">
           <div class="card inner-container">
             <div class="card-header">
@@ -57,17 +63,35 @@
             </div>
           </div>
         </div>
+        <!--End file submission form-->
+      
+
+
+
+        <!--Loader gif-->
+        <div class="container hidden" id="loader-gif-container">
+          <div class="card">
+            <div class="card-header loader-gif-card-header">
+              Please wait
+            </div>
+            <div class="card-body loader-gif-card-body">
+              <img id="loader-gif" src="{{url_for('static',filename='loader.gif')}}">
+            </div>
+          </div>
+        </div>
+        <!--End Loader gif-->
         
 
 
+        <!--Error Report Section (outer container)-->
         <div class="errors-report-outer-container after-submit hidden">
-
+          
           <div class="errors-report-inner-container container">
             <div class="card container">
-                <div class="errors-report-headers row">
-                  <div class="col-sm submission-info-tab-header active" id="submission-info-button">
-                    Submission Information
-                  </div>
+              <div class="errors-report-headers row">
+                <div class="col-sm submission-info-tab-header active" id="submission-info-button">
+                  Submission Information
+                </div>
                   <div class="col-sm submission-info-tab-header" id="errors-report-button">
                     Errors
                   </div>
@@ -75,20 +99,20 @@
                     Warnings
                   </div>
                 </div>
-
-              <div class="submission-report-body container card-body">
-                <div id="submission-info-body" class="submission-info-tab-body">
-                  <ul>
-                    <li class="list-group-item">
-                      <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
-                    </li>
-                    <li class="list-group-item">
-                      <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
-                    </li>
-                    <li class="list-group-item">
-                      <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
-                    </li>
-                    <li class="list-group-item">
+                
+                <div class="submission-report-body container card-body">
+                  <div id="submission-info-body" class="submission-info-tab-body">
+                    <ul>
+                      <li class="list-group-item">
+                        <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
+                      </li>
+                      <li class="list-group-item">
+                        <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
+                      </li>
+                      <li class="list-group-item">
+                        <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
+                      </li>
+                      <li class="list-group-item">
                       <div class="card">
                         <div class="card-header">
                           <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
@@ -98,61 +122,64 @@
                           </ul>
                         </div>
                       </div>
-
+                      
                     </li>
                     <li class="list-group-item">
                       <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
                     </li>
                   </ul>
                 </div>
-
-
-
-
+                
+                
+                
+                
                 <div id="errors-report-body" class="errors-report-body-outer-container container submission-info-tab-body hidden">
                   
                   <div id="errors-report-tab-headers" class="errors-report-tab-headers-container row">
                     
                   </div>
                   <div id="errors-report-body-inner-tab-container" class="container">
-
+                    
                   </div>
-                
+                  
                 </div>
                 
 
-
+                
                 <div id="warnings-report-body" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
-
+                  
                   <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
                     
                   </div>
                   <div id="warnings-report-body-inner-tab-container" class="container">
-
+                    
                   </div>
-                
+                  
                 </div>
-
-
-
+                
+                
+                
               </div>
               
-
+              
               <div class = "container form-container final-submit-button-container hidden">
                 <form id = "final-submit">
                   <button type="submit">final submit</button>
                 </form>
               </div>
-
+              
             </div>
           </div>
+
         </div>
+        <!--End error Report Section (outer container)-->
+
       </div>
     </main>
   </body>
-
+  
   <!--Load js at the end rather than doing something similar to $('document').ready()-->
   <script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
   <script src="{{url_for('static', filename='report.js')}}"></script>
   <script src="{{url_for('static', filename='main.js')}}"></script>
-</html>
+  </html>
