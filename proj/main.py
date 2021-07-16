@@ -27,7 +27,7 @@ def index():
         session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
         os.mkdir(session['submission_dir'])
 
-    return render_template('index.html')
+    return render_template('index.html', projectname=current_app.project_name)
 
 
 
@@ -265,7 +265,8 @@ def upload():
         "errs" : errs,
         "warnings": warnings,
         "submissionid": session.get("submissionid"),
-        "critical_error": False
+        "critical_error": False,
+        "all_datasets": list(current_app.datasets.keys())
     }
     
     print("DONE with upload routine, returning JSON to browser")

@@ -8,118 +8,145 @@
   </head>
   <body>
     <main>
-      
-      
-      <div class = "container card hidden" id="login-container">
-        <div class="card-body">
-          <form id = "main-login-form">
-            <div class = "login-input-container">
-              <label for = "login_email">Enter your email address:</label>
-              <input type = "email" name = "login_email">
+        
+      <div class="container" id="main-outer-container">
+        <div class = "container" id="login-outer-container" style="display:none;">
+          <div class = "card inner-container" id="login-inner-container">
+            <div class="card-header">
+              {{projectname}} Checker
             </div>
-            <br/>
-            <div class = "login-input-container">
-              <label for = "login_agency">Enter your agency:</label>
-              <input type = "agency" name = "login_agency">
-            </div>
-            <br>
-            <div class = "login-input-container">
-              <button type="submit">Sign in</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-
-      <div class = "before-submit hidden">
-        <div class = "container file-form-container">
-          <form id = "file-submission-form">
-            <input type = "file" name = "files" multiple>
-            <button type="submit">submit data</button>
-          </form>
-        </div>
-      </div>
-
-
-      <div class="errors-report-outer-container after-submit hidden">
-
-        <div class="errors-report-inner-container container">
-          <div class="card container">
-              <div class="errors-report-headers row">
-                <div class="col-sm submission-info-tab-header" id="submission-info-button" onclick="openTab('submission-info','submission-info-tab-body')">
-                  Submission Information
+            <div class="card-body">
+              <form id = "main-login-form">
+                <div class = "login-input-container">
+                  <label for = "login_email">Enter your email address:</label>
+                  <input type = "email" name = "login_email">
                 </div>
-                <div class="col-sm submission-info-tab-header" id="submission-info-button" onclick="openTab('errors-report','submission-info-tab-body')">
-                  Errors
+                <br/>
+                <div class = "login-input-container">
+                  <label for = "login_agency">Enter your agency:</label>
+                  <input type = "agency" name = "login_agency">
                 </div>
-                <div class="col-sm submission-info-tab-header" id="submission-info-button" onclick="openTab('warnings-report','submission-info-tab-body')">
-                  Warnings
+                <br>
+                <div class = "login-input-container">
+                  <button type="submit">Sign in</button>
                 </div>
-              </div>
-
-            <div class="submission-report-body container card-body">
-              <div id="submission-info" class="submission-info-tab-body">
-                <ul>
-                  <li class="list-group-item">
-                    <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
-                  </li>
-                  <li class="list-group-item">
-                    <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
-                  </li>
-                  <li class="list-group-item">
-                    <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
-                  </li>
-                  <li class="list-group-item">
-                    <p><span id="compare-list-header"> Excel Tab to Database Table Comparison</span></p>
-                    <p id="comparison-list-wrapper">
-                      <ul id="tab-table-comparison-list">
-                      </ul>
-                    </p>
-                  </li>
-                  <li class="list-group-item">
-                    <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
-                  </li>
-                </ul>
-              </div>
-
-
-
-
-              <div id="errors-report" class="errors-report-body-outer-container container submission-info-tab-body hidden">
-                
-                <div id="errors-report-tab-headers" class="errors-report-tab-headers-container">
-                  
-                </div>
-                <div id="errors-report-body-inner-tab-container" class="container">
-
-                </div>
-              
-              </div>
-              
-
-
-              <div id="warnings-report" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
-
-                <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
-                  
-                </div>
-                <div id="warnings-report-body-inner-tab-container" class="container">
-
-                </div>
-              
-              </div>
-
-
-
-            </div>
-            
-
-            <div class = "container form-container final-submit-button-container hidden">
-              <form id = "final-submit">
-                <button type="submit">final submit</button>
               </form>
             </div>
+          </div>
+        </div>
 
+        <div class = "before-submit container ">
+          <div class="card inner-container">
+            <div class="card-header">
+              <div class="card-title">
+                Choose a file or drag and drop to begin
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row container file-form-container">
+                <form id = "file-submission-form">
+                  <div class="row form-group file-submission-form-row">
+                    <input type = "file" name = "files" class="form-control-file" multiple>
+                  </div>
+                  <div class="row form-group file-submission-form-row">
+                    <button type="submit" class="btn btn-dark">submit data</button>
+                  </div>
+                </form>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        
+
+
+        <div class="errors-report-outer-container after-submit hidden">
+
+          <div class="errors-report-inner-container container">
+            <div class="card container">
+                <div class="errors-report-headers row">
+                  <div class="col-sm submission-info-tab-header active" id="submission-info-button" onclick="openTab('submission-info','submission-info-tab-body')">
+                    Submission Information
+                  </div>
+                  <div class="col-sm submission-info-tab-header" id="errors-report-button" onclick="openTab('errors-report','submission-info-tab-body')">
+                    Errors
+                  </div>
+                  <div class="col-sm submission-info-tab-header" id="warnings-report-button" onclick="openTab('warnings-report','submission-info-tab-body')">
+                    Warnings
+                  </div>
+                </div>
+
+              <div class="submission-report-body container card-body">
+                <div id="submission-info" class="submission-info-tab-body">
+                  <ul>
+                    <li class="list-group-item">
+                      <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
+                    </li>
+                    <li class="list-group-item">
+                      <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
+                    </li>
+                    <li class="list-group-item">
+                      <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
+                    </li>
+                    <li class="list-group-item">
+                      <div class="card">
+                        <div class="card-header">
+                          <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
+                        </div>
+                        <div class="card-body">
+                          <p id="comparison-list-wrapper">
+                            <ul id="tab-table-comparison-list">
+                            </ul>
+                          </p>
+                        </div>
+                      </div>
+
+                    </li>
+                    <li class="list-group-item">
+                      <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
+                    </li>
+                  </ul>
+                </div>
+
+
+
+
+                <div id="errors-report" class="errors-report-body-outer-container container submission-info-tab-body hidden">
+                  
+                  <div id="errors-report-tab-headers" class="errors-report-tab-headers-container row">
+                    
+                  </div>
+                  <div id="errors-report-body-inner-tab-container" class="container">
+
+                  </div>
+                
+                </div>
+                
+
+
+                <div id="warnings-report" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
+
+                  <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
+                    
+                  </div>
+                  <div id="warnings-report-body-inner-tab-container" class="container">
+
+                  </div>
+                
+                </div>
+
+
+
+              </div>
+              
+
+              <div class = "container form-container final-submit-button-container hidden">
+                <form id = "final-submit">
+                  <button type="submit">final submit</button>
+                </form>
+              </div>
+
+            </div>
           </div>
         </div>
       </div>

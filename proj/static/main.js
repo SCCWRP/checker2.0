@@ -16,7 +16,7 @@
         
         // we can possibly validate the email address on the python side and return a message in "result"
         // and handle the situation accordingly
-        document.querySelector("#login-container").style.display = "none";
+        document.querySelector("#login-outer-container").style.display = "none";
         document.querySelector(".before-submit").classList.remove("hidden");
 
     })

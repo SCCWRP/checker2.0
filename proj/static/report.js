@@ -9,12 +9,12 @@ const buildReport = (res) => {
     document.getElementById("tab-table-comparison-list").innerHTML = res.match_report.map(
         r => {
             s = r.tablename ? 
-            `<li><span class="table-matched">MATCH</span> - Sheet ${r.sheetname} matched with table ${r.tablename}</li>` :
-            `<li><span class="table-matched">UNABLE TO MATCH</span> 
-            <p>Sheet ${r.sheetname} most closely matched ${r.closest_tbl}</p>
-            <p>In table ${r.closest_tbl} but not tab ${r.sheetname}:</p>
-            <p>${r.in_table_not_tab}</p>
-            <p>In table ${r.sheetname} but not tab ${r.closest_tbl}:</p>
+            `<li class="list-group-item"><span class="table-matched">MATCH</span> - Sheet ${r.sheetname} matched with table ${r.tablename}</li>` :
+            `<li class="list-group-item"><span class="table-not-matched">UNABLE TO MATCH</span> </li>
+            <li class="list-group-item"><p>Sheet ${r.sheetname} most closely matched ${r.closest_tbl}</p></li>
+            <li class="list-group-item"><p>In table ${r.closest_tbl} but not tab ${r.sheetname}:</p>
+            <p>${r.in_table_not_tab}</p></li>
+            <li class="list-group-item"><p>In table ${r.sheetname} but not tab ${r.closest_tbl}:</p>
             <p>${r.in_tab_not_table}</p>
             </li>` ;
             return s;
@@ -28,9 +28,9 @@ const buildReport = (res) => {
     // errors
     document.getElementById("errors-report-tab-headers").innerHTML = res.errs.map(x => {
         s = `
-        <button id="${x.table}-errors-tab-button" class="errors-report-tab-button" onclick="openTab('${x.table}-errors-tab-body','errors-tab-body')">
+        <div id="${x.table}-errors-tab-button" class="errors-report-tab-button col-sm" onclick="openTab('${x.table}-errors-tab-body','errors-tab-body')">
             ${x.table}
-        </button>
+        </div>
         `;
         return s;
     }).join("") ;
@@ -38,42 +38,42 @@ const buildReport = (res) => {
     const errs_tables = [...new Set(res.errs.map(e => e.table))]
     document.getElementById("errors-report-body-inner-tab-container").innerHTML = errs_tables.map(tblname => {
         let s = `
-        <div id="${tblname}-errors-tab-body" class="errors-tab-body">
-            <table id="${tblname}-errors-tab-table">
-                <thead class="errors-info-header-list">
-                    <tr>
-                        <th class="errors-info-header-list-item">Column(s)</th>
-                        <th class="errors-info-header-list-item">Error Type</th>
-                        <th class="errors-info-header-list-item">Error Message</th>
-                        <th class="errors-info-header-list-item">Row(s)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+        <div id="${tblname}-errors-tab-body" class="errors-tab-body container">
+            <div id="${tblname}-errors-tab-table" class="container card">
+                
+                <div class="row errors-report-header">
+                    <div class="col-sm errors-report-cell">Column(s)</div>
+                    <div class="col-sm errors-report-cell">Error Type</div>
+                    <div class="col-sm errors-report-cell">Error Message</div>
+                    <div class="col-sm errors-report-cell">Row(s)</div>
+                </div>
+                
+                <div class="errors-tab-body">
+                </div>
+            </div>
         </div>
         `;
         return s
     })
     
     errs_tables.map(tblname => {
-        let tbl = document.querySelector(`#${tblname}-errors-tab-table tbody`);
+        let tbl = document.querySelector(`#${tblname}-errors-tab-table div.errors-tab-body`);
         tbl.innerHTML = res.errs.map(e => {
             let s = `
-                <tr class="error-description-list">
-                    <td class="error-description-list-item">
+                <div class="error-description-list row">
+                    <div class="errors-report-cell error-description-list-item col-sm">
                         ${e.columns}
-                    </td>
-                    <td class="error-description-list-item">
+                    </div>
+                    <div class="errors-report-cell error-description-list-item col-sm">
                         ${e.error_type}
-                    </td>
-                    <td class="error-description-list-item">
+                    </div>
+                    <div class="errors-report-cell error-description-list-item col-sm">
                         ${e.error_message}
-                    </td>
-                    <td class="error-description-list-item">
-                        ${e.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
-                    </td>
-                </tr>
+                    </div>
+                    <div class="errors-report-cell error-description-list-item col-sm">
+                        ${e.rows.map(r => {return `${String(r.row_number)}`}).join(", ") }
+                    </div>
+                </div>
             `;
             return s
         }).join("")
@@ -138,11 +138,18 @@ const buildReport = (res) => {
 }
 
 const openTab = (id, classname) => {
-    const x = document.getElementsByClassName(classname);
+    let x = document.getElementsByClassName(classname);
     for (let i = 0; i < x.length; i++) {
       //x[i].style.display = "none";
       x[i].classList.add("hidden");
     }
+    let th = document.getElementsByClassName("submission-info-tab-header");
+    for (let i = 0; i < th.length; i++) {
+      //x[i].style.display = "none";
+      th[i].classList.remove("active");
+    }
+   
     //document.getElementById(id).style.display = "block";
     document.getElementById(id).classList.remove("hidden");
+    document.getElementById(`${id}-button`).classList.add("active");
 }
