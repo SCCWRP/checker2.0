@@ -165,8 +165,8 @@ def upload():
     errs.extend(
         # debug = False will cause corechecks to run with multiprocessing, 
         # but the logs will not show as much useful information
-        #core(all_dfs, current_app.eng, dbmetadata, debug = False)
-        core(all_dfs, current_app.eng, dbmetadata, debug = True)
+        core(all_dfs, current_app.eng, dbmetadata, debug = False)
+        #core(all_dfs, current_app.eng, dbmetadata, debug = True)
     )
     print("DONE - Core Checks")
 
@@ -242,6 +242,7 @@ def upload():
     # -------------------------------------------------------------------------------- #
 
     # Mark up the excel workbook
+    print("Marking Excel file")
 
     # mark_workbook function returns the file path to which it saved the marked excel file
     session['marked_excel_path'] = mark_workbook(
@@ -250,6 +251,8 @@ def upload():
         errs = errs, 
         warnings = warnings
     )
+
+    print("DONE - Marking Excel file")
 
     # -------------------------------------------------------------------------------- #
 

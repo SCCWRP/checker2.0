@@ -4,19 +4,34 @@ const buildReport = (res) => {
     // submission info
     document.getElementById("submissionid").innerText = res.submissionid;
     document.getElementById("original-filename").innerText = res.filename;
-    document.getElementById("submission-type").innerText = res.match_dataset ? res.match_dataset : "Undetermined";
+    document.getElementById("submission-type").innerHTML = res.match_dataset ? res.match_dataset : "Undetermined (<strong>Unable to match submission with any data type</strong>)";
     
+
     document.getElementById("tab-table-comparison-list").innerHTML = res.match_report.map(
         r => {
             s = r.tablename ? 
             `<li class="list-group-item"><span class="table-matched">MATCH</span> - Sheet ${r.sheetname} matched with table ${r.tablename}</li>` :
-            `<li class="list-group-item"><span class="table-not-matched">UNABLE TO MATCH</span> </li>
-            <li class="list-group-item"><p>Sheet ${r.sheetname} most closely matched ${r.closest_tbl}</p></li>
-            <li class="list-group-item"><p>In table ${r.closest_tbl} but not tab ${r.sheetname}:</p>
-            <p>${r.in_table_not_tab}</p></li>
-            <li class="list-group-item"><p>In table ${r.sheetname} but not tab ${r.closest_tbl}:</p>
-            <p>${r.in_tab_not_table}</p>
-            </li>` ;
+            `<li class="list-group-item">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="table-not-matched">UNABLE TO MATCH</span> Excel sheet ${r.sheetname} with any table (<strong><u>most closely matched ${r.closest_tbl}</u></strong>)
+                    </div> 
+                    <div class="card-body">
+                        <!--<ul>-->
+                            <!--<li class="list-group-item">-->
+                                <p>In database table ${r.closest_tbl} but <em><u>not</u></em> Excel tab ${r.sheetname}:</p>
+                                <p>${r.in_table_not_tab}</p>
+                                <hr>
+                            <!--</li>-->
+                            <!--<li class="list-group-item">-->
+                                <p>In Excel tab ${r.sheetname} but <em><u>not</u></em> database table ${r.closest_tbl}:</p>
+                                <p>${r.in_tab_not_table}</p>
+                            <!--</li> -->
+                        <!--</ul>-->
+                    </div>
+                </div>
+            </li>
+            `;
             return s;
         }
     ).join("");
@@ -28,7 +43,7 @@ const buildReport = (res) => {
     // errors
     document.getElementById("errors-report-tab-headers").innerHTML = res.errs.map(x => {
         s = `
-        <div id="${x.table}-errors-tab-button" class="errors-report-tab-button col-sm" onclick="openTab('${x.table}-errors-tab-body','errors-tab-body')">
+        <div id="${x.table}-errors-tab-button" class="errors-report-tab-button col-sm">
             ${x.table}
         </div>
         `;
@@ -82,7 +97,7 @@ const buildReport = (res) => {
     // warnings
     document.getElementById("warnings-report-tab-headers").innerHTML = res.errs.map(x => {
         s = `
-        <button id="${x.table}-warnings-tab-button" class="warnings-report-tab-button" onclick="openTab('${x.table}-warnings-tab-body','warnings-tab-body')">
+        <button id="${x.table}-warnings-tab-button" class="warnings-report-tab-button">
             ${x.table}
         </button>
         `;
@@ -138,18 +153,12 @@ const buildReport = (res) => {
 }
 
 const openTab = (id, classname) => {
-    let x = document.getElementsByClassName(classname);
+    const x = document.getElementsByClassName(classname);
     for (let i = 0; i < x.length; i++) {
       //x[i].style.display = "none";
       x[i].classList.add("hidden");
     }
-    let th = document.getElementsByClassName("submission-info-tab-header");
-    for (let i = 0; i < th.length; i++) {
-      //x[i].style.display = "none";
-      th[i].classList.remove("active");
-    }
-   
-    //document.getElementById(id).style.display = "block";
-    document.getElementById(id).classList.remove("hidden");
-    document.getElementById(`${id}-button`).classList.add("active");
+
+    document.getElementById(id).style.display = "block";
+    //document.getElementById(id).classList.remove("hidden");
 }

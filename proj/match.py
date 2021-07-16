@@ -71,8 +71,8 @@ def match(all_dfs, eng, system_fields, datasets):
                 {
                     "sheetname"        : sheetname,
                     "tablename"        : "", 
-                    "in_tab_not_table" : closest["in_tab_not_table"], 
-                    "in_table_not_tab" : closest["in_table_not_tab"], 
+                    "in_tab_not_table" : ', '.join(closest["in_tab_not_table"]),
+                    "in_table_not_tab" : ', '.join(closest["in_table_not_tab"]), 
                     "closest_tbl"      : closest["table_name"] 
                 }
             )

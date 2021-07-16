@@ -10,7 +10,7 @@
     <main>
         
       <div class="container" id="main-outer-container">
-        <div class = "container" id="login-outer-container" style="display:none;">
+        <div class = "container" id="login-outer-container">
           <div class = "card inner-container" id="login-inner-container">
             <div class="card-header">
               {{projectname}} Checker
@@ -35,7 +35,7 @@
           </div>
         </div>
 
-        <div class = "before-submit container ">
+        <div class = "before-submit container hidden">
           <div class="card inner-container">
             <div class="card-header">
               <div class="card-title">
@@ -65,19 +65,19 @@
           <div class="errors-report-inner-container container">
             <div class="card container">
                 <div class="errors-report-headers row">
-                  <div class="col-sm submission-info-tab-header active" id="submission-info-button" onclick="openTab('submission-info','submission-info-tab-body')">
+                  <div class="col-sm submission-info-tab-header active" id="submission-info-button">
                     Submission Information
                   </div>
-                  <div class="col-sm submission-info-tab-header" id="errors-report-button" onclick="openTab('errors-report','submission-info-tab-body')">
+                  <div class="col-sm submission-info-tab-header" id="errors-report-button">
                     Errors
                   </div>
-                  <div class="col-sm submission-info-tab-header" id="warnings-report-button" onclick="openTab('warnings-report','submission-info-tab-body')">
+                  <div class="col-sm submission-info-tab-header" id="warnings-report-button">
                     Warnings
                   </div>
                 </div>
 
               <div class="submission-report-body container card-body">
-                <div id="submission-info" class="submission-info-tab-body">
+                <div id="submission-info-body" class="submission-info-tab-body">
                   <ul>
                     <li class="list-group-item">
                       <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
@@ -94,10 +94,8 @@
                           <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
                         </div>
                         <div class="card-body">
-                          <p id="comparison-list-wrapper">
-                            <ul id="tab-table-comparison-list">
-                            </ul>
-                          </p>
+                          <ul id="tab-table-comparison-list">
+                          </ul>
                         </div>
                       </div>
 
@@ -111,7 +109,7 @@
 
 
 
-                <div id="errors-report" class="errors-report-body-outer-container container submission-info-tab-body hidden">
+                <div id="errors-report-body" class="errors-report-body-outer-container container submission-info-tab-body hidden">
                   
                   <div id="errors-report-tab-headers" class="errors-report-tab-headers-container row">
                     
@@ -124,7 +122,7 @@
                 
 
 
-                <div id="warnings-report" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
+                <div id="warnings-report-body" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
 
                   <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
                     
