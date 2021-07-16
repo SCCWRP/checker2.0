@@ -130,11 +130,13 @@ def upload():
 
     session['datatype'] = match_dataset
 
+    print("match_dataset")
+    print(match_dataset)
 
-    if any([x['tablename'] == "" for x in match_report]):
+    if match_dataset == "":
         # A tab in their excel file did not get matched with a table
         # return to user
-        print("A tab in their excel file was not matched to any table in the database. Returning JSON response to browser")
+        print("Failed to match a dataset")
         return jsonify(
             filename = filename,
             match_report = match_report,
@@ -163,7 +165,8 @@ def upload():
     errs.extend(
         # debug = False will cause corechecks to run with multiprocessing, 
         # but the logs will not show as much useful information
-        core(all_dfs, current_app.eng, dbmetadata, debug = False)
+        #core(all_dfs, current_app.eng, dbmetadata, debug = False)
+        core(all_dfs, current_app.eng, dbmetadata, debug = True)
     )
     print("DONE - Core Checks")
 

@@ -1,4 +1,4 @@
-const script_root = 'newchecker';
+const script_root = 'nese';
 const critical_error_handler = (contact) => {
     alert(
 `

@@ -46,7 +46,8 @@ app.tabs_to_ignore = []
 
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
-app.excel_offset = 1
+# NESE offsets by 2 rows
+app.excel_offset = 2
 
 # data sets / groups of tables for datatypes will be defined here in __init__.py
 app.datasets = {
@@ -58,7 +59,7 @@ app.datasets = {
     # offset
     #   Some people like to give the clients excel submission templates with column descriptions in the first row
     #   offset refers to the number of rows to offset, or skip, when reading in the excel file
-    'datalogger': {'tables': ['tbl_datalogger_raw', 'tbl_datalogger_metadata'], 'function': datalogger}
+    'datalogger': {'tables': ['tbl_data_logger_raw', 'tbl_data_logger_metadata'], 'function': datalogger}
 }
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
