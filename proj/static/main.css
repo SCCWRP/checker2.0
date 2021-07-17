@@ -70,6 +70,13 @@ body {
     background-color: #d1d1d1;
 }
 
+.tab-header.active {
+    background-color: #dddddd;
+}
+.tab-header:hover {
+    background-color: #d1d1d1;
+}
+
 .row.file-submission-form-row {
     padding: 0.2rem;
     margin:0.2rem;
@@ -106,6 +113,3 @@ span.table-not-matched {
     display: inline-block;
 }
 
-/* .tab-header-container {
-    padding: 0.1rem;
-} */

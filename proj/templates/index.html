@@ -155,7 +155,7 @@
                     <div id="errors-report-body-inner-tab-container" class="container">
 
                       <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
-                      <div class="errors-tab-body"> <!--id would be tablename-errors-tab-table-->
+                      <div class="errors-tab-body"> <!--id would be tablename-errors-tab-body-->
                             
                         <div class="row errors-report-header">
                             <div class="col-sm errors-report-cell">Column(s)</div>
@@ -219,8 +219,9 @@
   </body>
   
   <!--Load js at the end rather than doing something similar to $('document').ready()-->
+  <!--tabs.js has a function called tabs which i plan on using in report.js-->
+  <script src="{{url_for('static', filename='tabs.js')}}"></script>
   <script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
   <script src="{{url_for('static', filename='report.js')}}"></script>
-  <script src="{{url_for('static', filename='tabs.js')}}"></script>
   <script src="{{url_for('static', filename='main.js')}}"></script>
   </html>

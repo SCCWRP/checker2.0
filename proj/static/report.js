@@ -47,7 +47,7 @@ const buildReport = (res) => {
     document.getElementById("errors-report-tab-headers").innerHTML = document.getElementById("errors-report-tab-headers").innerHTML.repeat(errs_tables.length);
     
     // put the appropriate ID's and inner text on each div ("table") containing the error tab headers
-    const errorsHeaders = document.querySelectorAll("#errors-report-tab-headers .errors-tab-header");
+    let errorsHeaders = document.querySelectorAll("#errors-report-tab-headers .errors-tab-header");
     for (let i = 0; i < errorsHeaders.length; i++) {
         errorsHeaders[i].setAttribute('id',`${errs_tables[i]}-errors-tab-header`);
         errorsHeaders[i].innerText = errs_tables[i];
@@ -59,7 +59,7 @@ const buildReport = (res) => {
         .repeat(errs_tables.length);
 
     // put the appropriate ID's on each div ("table")containing the error messages
-    const errorsTabBodies = document.querySelectorAll("#errors-report-body-inner-tab-container .errors-tab-body");
+    let errorsTabBodies = document.querySelectorAll("#errors-report-body-inner-tab-container .errors-tab-body");
     for (let i = 0; i < errorsTabBodies.length; i++) {
         errorsTabBodies[i].setAttribute('id', `${errs_tables[i]}-errors-tab-body`);
     }
@@ -68,25 +68,41 @@ const buildReport = (res) => {
     errs_tables.map(tblname => {
         let tbl = document.querySelector(`#${tblname}-errors-tab-body div.errors-tab-rows`);
         tbl.innerHTML = res.errs.map(e => {
-            let s = `
-                <div class="error-description-list row">
-                    <div class="errors-report-cell error-description-list-item col-sm">
-                        ${e.columns}
+            if (e.table === tblname) {
+                let s = `
+                    <div class="error-description-list row">
+                        <div class="errors-report-cell error-description-list-item col-sm">
+                            ${e.columns}
+                        </div>
+                        <div class="errors-report-cell error-description-list-item col-sm">
+                            ${e.error_type}
+                        </div>
+                        <div class="errors-report-cell error-description-list-item col-sm">
+                            ${e.error_message}
+                        </div>
+                        <div class="errors-report-cell error-description-list-item col-sm">
+                            ${e.rows.map(r => {return `${String(r.row_number)}`}).join(", ") }
+                        </div>
                     </div>
-                    <div class="errors-report-cell error-description-list-item col-sm">
-                        ${e.error_type}
-                    </div>
-                    <div class="errors-report-cell error-description-list-item col-sm">
-                        ${e.error_message}
-                    </div>
-                    <div class="errors-report-cell error-description-list-item col-sm">
-                        ${e.rows.map(r => {return `${String(r.row_number)}`}).join(", ") }
-                    </div>
-                </div>
-            `;
-            return s
+                `;
+                return s
+            } else {
+                return ''
+            }
         }).join("")
     })
+
+    // set up the tabbing system
+    let tabIDs = new Object();
+    errorsHeaders = document.querySelectorAll("#errors-report-tab-headers .errors-tab-header");
+    errorsTabBodies = document.querySelectorAll("#errors-report-body-inner-tab-container .errors-tab-body");
+    for (let i = 0; i < errorsHeaders.length; i++) {
+        tabIDs[errorsHeaders[i].getAttribute('id')] = errorsTabBodies[i].getAttribute('id')
+    }
+    tabs(
+        tabClass = 'errors-tab', 
+        tabIDs = tabIDs
+    )
 
 
 

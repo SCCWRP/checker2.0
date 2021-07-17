@@ -10,6 +10,16 @@ const tabs = (tabClass, tabIDs) => {
     const tabHeaders = Array.from(document.getElementsByClassName(`${tabClass}-header`));
     const tabBodies = Array.from(document.getElementsByClassName(`${tabClass}-body`));
 
+    // hide all tab bodies except the first one
+    for (let i = 0; i < tabBodies.length; i++) {
+        if (i === 0) {
+            tabBodies[i].classList.remove('hidden')
+        } else {
+            tabBodies[i].classList.add('hidden')
+
+        }
+    }
+
     tabHeaders.map(t => {
         t.addEventListener('click',function(){
             tabHeaders.map(x => x.classList.remove('active'));
@@ -28,3 +38,4 @@ tabs(
         'warnings-report-header':'warnings-report-body'
     }
 )
+
