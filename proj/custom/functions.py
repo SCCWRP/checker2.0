@@ -1,5 +1,5 @@
 import json, os
-from pandas import isnull
+from pandas import isnull, DataFrame
 
 def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error = False, error_message = "Error", errors_list = [], q = None):
     
@@ -31,11 +31,15 @@ def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_erro
     return {}
         
 
-def get_badrows(df_badrows, errmsg, offset = None):
+def get_badrows(df_badrows, errmsg):
     """
     df_badrows is a dataframe filtered down to the rows which DO NOT meet the criteria of the check. 
     errmsg is self explanatory
     """
+
+    assert isinstance(df_badrows, DataFrame), "in function get_badrows, df_badrows argument is not a pandas DataFrame"
+    assert isinstance(errmsg, str), f"in function get_badrows, errmsg argument ({errmsg}) is not a string"
+
 
     if df_badrows.empty:
         return []

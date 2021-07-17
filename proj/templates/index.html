@@ -83,45 +83,49 @@
         
 
 
-        <!--Error Report Section (outer container)-->
-        <div class="errors-report-outer-container after-submit hidden">
+        <!--Submission Report Section (outer container)-->
+        <div class="submission-report-outer-container after-submit hidden">
           
-          <div class="errors-report-inner-container container">
+          <div class="submission-report-inner-container container">
             <div class="card container">
-              <div class="errors-report-headers row">
-                <div class="col-sm submission-info-tab-header active" id="submission-info-button">
+
+
+              <div class="submission-report-headers row">
+                <div class="col-sm submission-info-tab-header active" id="submission-info-header">
                   Submission Information
                 </div>
-                  <div class="col-sm submission-info-tab-header" id="errors-report-button">
-                    Errors
-                  </div>
-                  <div class="col-sm submission-info-tab-header" id="warnings-report-button">
-                    Warnings
-                  </div>
+                <div class="col-sm submission-info-tab-header" id="errors-report-header">
+                  Errors
                 </div>
-                
-                <div class="submission-report-body container card-body">
-                  <div id="submission-info-body" class="submission-info-tab-body">
-                    <ul>
-                      <li class="list-group-item">
-                        <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
-                      </li>
-                      <li class="list-group-item">
-                        <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
-                      </li>
-                      <li class="list-group-item">
-                        <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
-                      </li>
-                      <li class="list-group-item">
-                      <div class="card">
-                        <div class="card-header">
-                          <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
-                        </div>
-                        <div class="card-body">
-                          <ul id="tab-table-comparison-list">
-                          </ul>
-                        </div>
+                <div class="col-sm submission-info-tab-header" id="warnings-report-header">
+                  Warnings
+                </div>
+              </div>
+              
+              
+
+              <div class="submission-report-body container card-body">
+                <div id="submission-info-body" class="submission-info-tab-body">
+                  <ul>
+                    <li class="list-group-item">
+                      <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
+                    </li>
+                    <li class="list-group-item">
+                      <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
+                    </li>
+                    <li class="list-group-item">
+                      <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
+                    </li>
+                    <li class="list-group-item">
+                    <div class="card">
+                      <div class="card-header">
+                        <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
                       </div>
+                      <div class="card-body">
+                        <ul id="tab-table-comparison-list">
+                        </ul>
+                      </div>
+                    </div>
                       
                     </li>
                     <li class="list-group-item">
@@ -131,20 +135,52 @@
                 </div>
                 
                 
+              
+
                 
-                
-                <div id="errors-report-body" class="errors-report-body-outer-container container submission-info-tab-body hidden">
                   
-                  <div id="errors-report-tab-headers" class="errors-report-tab-headers-container row">
-                    
-                  </div>
-                  <div id="errors-report-body-inner-tab-container" class="container">
-                    
+                <div id="errors-report-body" class="errors-report-body-outer-container container submission-info-tab-body hidden">
+                  <div class="card">
+
+
+
+                    <div id="errors-report-tab-headers" class="row tab-header-container container">
+
+                      <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                      <div class="errors-tab-header tab-header col-sm"> <!--id="${x.table}-errors-tab-header" -->
+                      </div>
+
+                    </div>
+
+                    <div id="errors-report-body-inner-tab-container" class="container">
+
+                      <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                      <div class="errors-tab-body"> <!--id would be tablename-errors-tab-table-->
+                            
+                        <div class="row errors-report-header">
+                            <div class="col-sm errors-report-cell">Column(s)</div>
+                            <div class="col-sm errors-report-cell">Error Type</div>
+                            <div class="col-sm errors-report-cell">Error Message</div>
+                            <div class="col-sm errors-report-cell">Row(s)</div>
+                        </div>
+                        
+                        <div class="errors-tab-rows">
+                        </div>
+
+                      </div>
+
+                    </div>
+
+
+
                   </div>
                   
                 </div>
-                
+                  
 
+
+
+                
                 
                 <div id="warnings-report-body" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
                   
@@ -156,11 +192,15 @@
                   </div>
                   
                 </div>
-                
-                
-                
+              
+
+
+
+              
               </div>
               
+                
+                
               
               <div class = "container form-container final-submit-button-container hidden">
                 <form id = "final-submit">
@@ -181,5 +221,6 @@
   <!--Load js at the end rather than doing something similar to $('document').ready()-->
   <script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
   <script src="{{url_for('static', filename='report.js')}}"></script>
+  <script src="{{url_for('static', filename='tabs.js')}}"></script>
   <script src="{{url_for('static', filename='main.js')}}"></script>
   </html>

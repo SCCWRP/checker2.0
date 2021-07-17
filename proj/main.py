@@ -113,6 +113,10 @@ def upload():
         
         if sheet not in current_app.tabs_to_ignore
     }
+
+    for tblname in all_dfs.keys():
+        all_dfs[tblname].columns = [x.lower() for x in all_dfs[tblname].columns]
+
     print("DONE - building 'all_dfs' dictionary")
 
 
@@ -272,6 +276,8 @@ def upload():
         "all_datasets": list(current_app.datasets.keys())
     }
     
+    print(returnvals)
+
     print("DONE with upload routine, returning JSON to browser")
     return jsonify(**returnvals)
 

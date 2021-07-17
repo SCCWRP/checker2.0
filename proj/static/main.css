@@ -24,9 +24,19 @@ body {
 }
 
 
+/* 
+    I figure if there was never a use case for the important tag, it wouldnt exist right?
+    The way the front end application is set up, i want it so that whenever an element has a hidden class it should not show. 
+    Plain and simple
+
+    I cant imagine an element having a hidden class but we would still want it displayed
+
+    So i want to make sure this wins the cascade over any of the bootstrap css
+*/
 .hidden {
-    display: none;
+    display: none !important;
 }
+
 
 .errors-report-tab-button{
     cursor: pointer;
@@ -37,6 +47,14 @@ body {
     padding: 0.5rem;
 }
 .submission-info-tab-header{
+    cursor: pointer;
+    border: 1px solid rgba(226, 226, 226,0.5);
+    border-radius: 0.1rem;
+    background-color: #ebebeb;
+    text-align: center;
+    padding: 0.5rem;
+}
+.tab-header{
     cursor: pointer;
     border: 1px solid rgba(226, 226, 226,0.5);
     border-radius: 0.1rem;
@@ -87,3 +105,7 @@ span.table-not-matched {
 #loader-gif-container #loader-gif {
     display: inline-block;
 }
+
+/* .tab-header-container {
+    padding: 0.1rem;
+} */

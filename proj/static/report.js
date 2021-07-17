@@ -41,38 +41,32 @@ const buildReport = (res) => {
     
     
     // errors
-    document.getElementById("errors-report-tab-headers").innerHTML = res.errs.map(x => {
-        s = `
-        <div id="${x.table}-errors-tab-button" class="errors-report-tab-button col-sm">
-            ${x.table}
-        </div>
-        `;
-        return s;
-    }).join("") ;
-    
     const errs_tables = [...new Set(res.errs.map(e => e.table))]
-    document.getElementById("errors-report-body-inner-tab-container").innerHTML = errs_tables.map(tblname => {
-        let s = `
-        <div id="${tblname}-errors-tab-body" class="errors-tab-body container">
-            <div id="${tblname}-errors-tab-table" class="container card">
-                
-                <div class="row errors-report-header">
-                    <div class="col-sm errors-report-cell">Column(s)</div>
-                    <div class="col-sm errors-report-cell">Error Type</div>
-                    <div class="col-sm errors-report-cell">Error Message</div>
-                    <div class="col-sm errors-report-cell">Row(s)</div>
-                </div>
-                
-                <div class="errors-tab-body">
-                </div>
-            </div>
-        </div>
-        `;
-        return s
-    })
     
+    // Create the tab headers, as many as there are unique tables in the error report
+    document.getElementById("errors-report-tab-headers").innerHTML = document.getElementById("errors-report-tab-headers").innerHTML.repeat(errs_tables.length);
+    
+    // put the appropriate ID's and inner text on each div ("table") containing the error tab headers
+    const errorsHeaders = document.querySelectorAll("#errors-report-tab-headers .errors-tab-header");
+    for (let i = 0; i < errorsHeaders.length; i++) {
+        errorsHeaders[i].setAttribute('id',`${errs_tables[i]}-errors-tab-header`);
+        errorsHeaders[i].innerText = errs_tables[i];
+    }
+    
+    // repeat the error tab bodies as much as there are tables with errors
+    document.getElementById("errors-report-body-inner-tab-container").innerHTML = document.getElementById("errors-report-body-inner-tab-container")
+        .innerHTML
+        .repeat(errs_tables.length);
+
+    // put the appropriate ID's on each div ("table")containing the error messages
+    const errorsTabBodies = document.querySelectorAll("#errors-report-body-inner-tab-container .errors-tab-body");
+    for (let i = 0; i < errorsTabBodies.length; i++) {
+        errorsTabBodies[i].setAttribute('id', `${errs_tables[i]}-errors-tab-body`);
+    }
+    
+    // Now append the rows with the error information
     errs_tables.map(tblname => {
-        let tbl = document.querySelector(`#${tblname}-errors-tab-table div.errors-tab-body`);
+        let tbl = document.querySelector(`#${tblname}-errors-tab-body div.errors-tab-rows`);
         tbl.innerHTML = res.errs.map(e => {
             let s = `
                 <div class="error-description-list row">
@@ -93,6 +87,9 @@ const buildReport = (res) => {
             return s
         }).join("")
     })
+
+
+
 
     // warnings
     document.getElementById("warnings-report-tab-headers").innerHTML = res.errs.map(x => {
