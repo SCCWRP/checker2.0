@@ -5,7 +5,7 @@ def datalogger(all_dfs):
     warnings = []
     for tbl, df in all_dfs.items():
         if tbl == 'tbl_data_logger_raw':
-            errs.extend(
+            warnings.extend(
                 [
                     checkData(
                         dataframe = df,
@@ -19,7 +19,7 @@ def datalogger(all_dfs):
                     )
                 ]
             )
-            errs.extend(
+            warnings.extend(
                 [
                     checkData(
                         dataframe = df,
@@ -34,7 +34,7 @@ def datalogger(all_dfs):
                 ]
             )
         if tbl == 'tbl_data_logger_metadata':
-            errs.extend(
+            warnings.extend(
                 [
                     checkData(
                         dataframe = df,

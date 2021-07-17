@@ -40,6 +40,7 @@ const buildReport = (res) => {
     document.getElementById("excel-markup-download").setAttribute("href",`/${script_root}/download/${res.submissionid}/${res.marked_filename}`) ;
     
     
+
     // errors
     const errs_tables = [...new Set(res.errs.map(e => e.table))]
     
@@ -103,75 +104,85 @@ const buildReport = (res) => {
         tabClass = 'errors-tab', 
         tabIDs = tabIDs
     )
-
-
+    
+    /* 
+    I am fully aware that this is a disgusting violation of the DRY (Don't Repeat Yourself) Principle
+    But its been 3 weeks of getting this thing done, we are almost there, it needs to get done ASAP, there's only one place where that above errors display routine
+    will be repeated, so i think its ok.
+    
+    If we have time in the future we can think of a way to generalize it, but there's not so much of a need to do so in this particular case
+    */
 
 
     // warnings
-    document.getElementById("warnings-report-tab-headers").innerHTML = res.errs.map(x => {
-        s = `
-        <button id="${x.table}-warnings-tab-button" class="warnings-report-tab-button">
-            ${x.table}
-        </button>
-        `;
-        return s;
-    }).join("") ;
+    const warnings_tables = [...new Set(res.warnings.map(e => e.table))]
 
-    const warnings_tables = [...new Set(res.warnings.map(w => w.table))]
-    document.getElementById("warnings-report-body-inner-tab-container").innerHTML = warnings_tables.map(tblname => {
-        let s = `
-        <div id="${tblname}-warnings-tab-body" class="warnings-tab-body">
-            <table id="${tblname}-warnings-tab-table">
-                <thead class="warnings-info-header-list">
-                    <tr>
-                        <th class="warnings-info-header-list-item">Column(s)</th>
-                        <th class="warnings-info-header-list-item">Warning Type</th>
-                        <th class="warnings-info-header-list-item">Warning Message</th>
-                        <th class="warnings-info-header-list-item">Row(s)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-        `;
-        return s
-    })
-    
-    warnings_tables.map(tblname => {
-        let tbl = document.querySelector(`#${tblname}-warnings-tab-table tbody`);
-        tbl.innerHTML = res.warnings.map(w => {
-            // classes still have error since the css will be the same.
-            let s = `
-                <tr class="error-description-list">
-                    <td class="error-description-list-item">
-                        ${w.columns}
-                    </td>
-                    <td class="error-description-list-item">
-                        ${w.error_type}
-                    </td>
-                    <td class="error-description-list-item">
-                        ${w.error_message}
-                    </td>
-                    <td class="error-description-list-item">
-                        ${w.rows.map(r => {return `<span class="error-row-number">${String(r.row_number)}, </span>`}).join("") }
-                    </td>
-                </tr>
-            `;
-            return s
-        }).join("")
-    })
-    
+    // Create the tab headers, as many as there are unique tables in the error report
+    document.getElementById("warnings-report-tab-headers").innerHTML = document.getElementById("warnings-report-tab-headers").innerHTML.repeat(warnings_tables.length);
 
-}
-
-const openTab = (id, classname) => {
-    const x = document.getElementsByClassName(classname);
-    for (let i = 0; i < x.length; i++) {
-      //x[i].style.display = "none";
-      x[i].classList.add("hidden");
+    // put the appropriate ID's and inner text on each div ("table") containing the error tab headers
+    let warningsHeaders = document.querySelectorAll("#warnings-report-tab-headers .warnings-tab-header");
+    for (let i = 0; i < warningsHeaders.length; i++) {
+        warningsHeaders[i].setAttribute('id',`${warnings_tables[i]}-warnings-tab-header`);
+        warningsHeaders[i].innerText = warnings_tables[i];
     }
 
-    document.getElementById(id).style.display = "block";
-    //document.getElementById(id).classList.remove("hidden");
+    // repeat the error tab bodies as much as there are tables with warnings
+    document.getElementById("warnings-report-body-inner-tab-container").innerHTML = document.getElementById("warnings-report-body-inner-tab-container")
+        .innerHTML
+        .repeat(warnings_tables.length);
+
+    // put the appropriate ID's on each div ("table")containing the error messages
+    let warningsTabBodies = document.querySelectorAll("#warnings-report-body-inner-tab-container .warnings-tab-body");
+    for (let i = 0; i < warningsTabBodies.length; i++) {
+        warningsTabBodies[i].setAttribute('id', `${warnings_tables[i]}-warnings-tab-body`);
+    }
+
+    // Now append the rows with the error information
+    warnings_tables.map(tblname => {
+        let tbl = document.querySelector(`#${tblname}-warnings-tab-body div.warnings-tab-rows`);
+        tbl.innerHTML = res.warnings.map(e => {
+            if (e.table === tblname) {
+                let s = `
+                    <div class="error-description-list row">
+                        <div class="warnings-report-cell error-description-list-item col-sm">
+                            ${e.columns}
+                        </div>
+                        <div class="warnings-report-cell error-description-list-item col-sm">
+                            ${e.error_type}
+                        </div>
+                        <div class="warnings-report-cell error-description-list-item col-sm">
+                            ${e.error_message}
+                        </div>
+                        <div class="warnings-report-cell error-description-list-item col-sm">
+                            ${e.rows.map(r => {return `${String(r.row_number)}`}).join(", ") }
+                        </div>
+                    </div>
+                `;
+                return s
+            } else {
+                return ''
+            }
+        }).join("")
+    })
+
+    // set up the tabbing system
+    tabIDs = new Object();
+    warningsHeaders = document.querySelectorAll("#warnings-report-tab-headers .warnings-tab-header");
+    warningsTabBodies = document.querySelectorAll("#warnings-report-body-inner-tab-container .warnings-tab-body");
+    for (let i = 0; i < warningsHeaders.length; i++) {
+        tabIDs[warningsHeaders[i].getAttribute('id')] = warningsTabBodies[i].getAttribute('id')
+    }
+    tabs(
+        tabClass = 'warnings-tab', 
+        tabIDs = tabIDs
+    )
+
+
+
+
+    
+    
+
 }
+

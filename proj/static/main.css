@@ -97,6 +97,14 @@ span.table-not-matched {
     text-align: center;
 }
 
+.warnings-report-header {
+    background-color: #f2f2f2;
+}
+.warnings-report-cell {
+    border: 1px solid rgba(226, 226, 226,0.5);
+    text-align: center;
+}
+
 #main-outer-container {
     padding: 2rem;
 }

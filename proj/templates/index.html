@@ -176,22 +176,52 @@
                   </div>
                   
                 </div>
-                  
-
-
-
-                
-                
+        
+        
+        
+        
                 <div id="warnings-report-body" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
-                  
-                  <div id="warnings-report-tab-headers" class="warnings-report-tab-headers-container">
-                    
-                  </div>
-                  <div id="warnings-report-body-inner-tab-container" class="container">
-                    
+                  <div class="card">
+
+
+
+                    <div id="warnings-report-tab-headers" class="row tab-header-container container">
+
+                      <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                      <div class="warnings-tab-header tab-header col-sm"> <!--id="${x.table}-warnings-tab-header" -->
+                      </div>
+
+                    </div>
+
+                    <div id="warnings-report-body-inner-tab-container" class="container">
+
+                      <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                      <div class="warnings-tab-body"> <!--id would be tablename-warnings-tab-body-->
+                            
+                        <div class="row warnings-report-header">
+                            <div class="col-sm warnings-report-cell">Column(s)</div>
+                            <div class="col-sm warnings-report-cell">Error Type</div>
+                            <div class="col-sm warnings-report-cell">Error Message</div>
+                            <div class="col-sm warnings-report-cell">Row(s)</div>
+                        </div>
+                        
+                        <div class="warnings-tab-rows">
+                        </div>
+
+                      </div>
+
+                    </div>
+
+
+
                   </div>
                   
                 </div>
+                  
+
+
+
+                
               
 
 
