@@ -1,7 +1,7 @@
 from .mail import send_mail
 from flask import jsonify
 
-def default_exception_handler(mail_from, errmsg, maintainers, project_name, mail_server, attachment = None):
+def default_exception_handler(mail_from, errmsg, maintainers, project_name, login_info, submissionid, mail_server, attachment = None):
     print("Checker application came across an error")
     print(errmsg)
     response = jsonify(
@@ -12,11 +12,18 @@ def default_exception_handler(mail_from, errmsg, maintainers, project_name, mail
     )
     response.status_code = 500
     # need to add code here to email SCCWRP staff about error
+
+    msgbody = f"{project_name} Checker crashed.\n\n"
+    msgbody += f"submissionid: {submissionid}\n"
+    for k, v in login_info.items():
+        msgbody += f"{k}: {v}\n"
+    msgbody += f"\nHere is the error message:\n{errmsg}"
+
     send_mail(
         mail_from,
         maintainers,
         f"{project_name} Checker - Internal Server Error", 
-        f"{project_name} Checker crashed. Here is the error message:\n{errmsg}", 
+        msgbody, 
         filename = attachment,
         server = mail_server
     )

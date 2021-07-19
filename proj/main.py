@@ -352,6 +352,8 @@ def homepage_error_handler(error):
         maintainers = current_app.maintainers,
         project_name = current_app.project_name,
         attachment = session.get('excel_path'),
+        login_info = session.get('login_info'),
+        submissionid = session.get('submissionid'),
         mail_server = current_app.config['MAIL_SERVER']
     )
     return response
