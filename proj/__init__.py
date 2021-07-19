@@ -6,6 +6,7 @@ from sqlalchemy import create_engine
 from .main import homepage
 from .load import finalsubmit
 from .download import download
+from .scraper import scraper
 from .core.functions import fetch_meta
 from .custom.datalogger import datalogger
 
@@ -69,3 +70,4 @@ app.datasets = {
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
+app.register_blueprint(scraper)

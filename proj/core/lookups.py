@@ -62,7 +62,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
                             row.name,
                             row[x['column_name']], 
                             f"""The value you entered here ({row[x['column_name']]}) does not match the 
-                            <a href=\\\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer={x['foreign_table_name']}\\\"> 
+                            <a href=\\\"/nese/scraper?action=help&layer={x['foreign_table_name']}\\\"> 
                             Lookup List
                             </a>"""
                         ),
@@ -73,7 +73,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
             badcolumn = x['column_name'],
             error_type = "Lookup List Fail",
             is_core_error = True,
-            error_message = f"Item not in the <a href=\"https://smcchecker.sccwrp.org/smc/scraper?action=help&layer={x['foreign_table_name']}\" target=\"blank\">Lookup List</a>"
+            error_message = f"Item not in the <a href=\"/nese/scraper?action=help&layer={x['foreign_table_name']}\" target=\"blank\">Lookup List</a>"
         ) 
         if not 
             dataframe[
