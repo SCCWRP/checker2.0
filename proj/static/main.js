@@ -64,6 +64,9 @@
         if (result.critical_error) {
             // critical_error_handler defined in globals.js
             critical_error_handler(result.contact)
+        } else if (Object.keys(result).includes("user_error_msg")) {
+            alert(result.user_error_msg);
+            window.location = `/${script_root}`;
         }
 
         //show the final submit buttin
