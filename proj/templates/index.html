@@ -45,7 +45,7 @@
           <div class="card inner-container">
             <div class="card-header">
               <div class="card-title">
-                Choose a file or drag and drop to begin
+                Choose a file or drag and drop a file anywhere on the page to begin
               </div>
             </div>
             <div class="card-body">
@@ -132,6 +132,29 @@
                     <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
                   </li>
                 </ul>
+
+                
+                <!--for unsuccessful submissions-->
+                <div class = "container hidden" id="reload-button-container">
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title">
+                        There were errors with your file
+                      </h5>
+                      <h6 class="card-subtitle">
+                        You may click the button below to reload and login again, 
+                        or you may drag and drop a file on the page again
+                      </h6>
+                    </div>
+                    <div class="card-body">
+                      <button class="btn btn-secondary btn-lg btn-block btn-reload">
+                        Reload the application
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+
               </div>
               
               
@@ -229,10 +252,7 @@
               </div>
               
               
-              <!--for unsuccessful submissions-->
-              <div class = "container hidden" id="reload-button-container">
-                <button class="btn btn-secondary btn-lg btn-block btn-reload">Reload the application</button>
-              </div>
+              
               <br>
               
             </div>
@@ -272,8 +292,10 @@
   
   <!--Load js at the end rather than doing something similar to $('document').ready()-->
   <!--tabs.js has a function called tabs which i plan on using in report.js-->
+  <!--main.js needs to be at the bottom-->
   <script src="{{url_for('static', filename='tabs.js')}}"></script>
   <script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
   <script src="{{url_for('static', filename='report.js')}}"></script>
+  <script src="{{url_for('static', filename='dragndrop.js')}}"></script>
   <script src="{{url_for('static', filename='main.js')}}"></script>
   </html>

@@ -17,15 +17,25 @@ homepage = Blueprint('homepage', __name__)
 @homepage.route('/')
 def index():
 
-    # When a request is made, we need to check if they have an active session open or not
-    # If there is an active session (if session.get('submissionid')) then we need to prompt them saying that there is an active session open
-    # and we need to ask if they want to clear it and start a new one
+    # upon new request clear session, reset submission ID, reset submission directory
     session.clear()
 
-    if not session.get('submissionid'):
-        session['submissionid'] = int(time.time())
-        session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
-        os.mkdir(session['submission_dir'])
+    session['submissionid'] = int(time.time())
+    session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
+    os.mkdir(session['submission_dir'])
+
+    assert \
+        len(
+            pd.read_sql(
+                """
+                SELECT table_name FROM information_schema.tables 
+                WHERE table_name IN ('submission_tracking_table','submission_tracking_checksum')
+                """,
+                current_app.eng
+            )
+        ) == 2, \
+        "Database is missing submission_tracking_table and/or submission_tracking_checksum"
+
 
     return render_template('index.html', projectname=current_app.project_name)
 
@@ -44,6 +54,9 @@ def login():
 
     assert "login_email" in login_info.keys(), \
         "No email address found in login form. It should be named login_email since the email notification routine assumes so."
+
+    assert all([str(x).startswith('login_') for x in login_info.keys()]), \
+        "The login form failed for follow the naming convention of having all input names begin with 'login_'"
 
     return jsonify(msg="login successful")
 

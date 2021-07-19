@@ -19,6 +19,15 @@
         document.querySelector("#login-outer-container").style.display = "none";
         document.querySelector(".before-submit").classList.remove("hidden");
 
+        // Add drag and drop event listener only after the user signs in
+        document.querySelector("body").addEventListener('drop', function(event){
+            event.stopPropagation();
+            event.preventDefault();
+            const dropped_files = event.dataTransfer.files;
+            document.querySelector('#file-submission-form input.form-control-file').files = dropped_files;
+            document.querySelector('#file-submission-form').requestSubmit();
+        });
+
     })
     
 
@@ -30,6 +39,7 @@
 
         // an example of how we can put a loader gif
         //document.querySelector(".records-display-inner-container").innerHTML = '<img src="/changerequest/static/loading.gif">';
+        document.querySelector(".after-submit").classList.add("hidden");
         document.querySelector(".before-submit").classList.add("hidden");
         document.getElementById("loader-gif-container").classList.remove("hidden");
         
