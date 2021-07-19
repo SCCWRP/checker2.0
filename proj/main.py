@@ -16,6 +16,7 @@ from .utils.exceptions import default_exception_handler
 homepage = Blueprint('homepage', __name__)
 @homepage.route('/')
 def index():
+    eng = current_app.eng
 
     # upon new request clear session, reset submission ID, reset submission directory
     session.clear()
@@ -31,14 +32,14 @@ def index():
                 SELECT table_name FROM information_schema.tables 
                 WHERE table_name IN ('submission_tracking_table','submission_tracking_checksum')
                 """,
-                current_app.eng
+                eng
             )
         ) == 2, \
         "Database is missing submission_tracking_table and/or submission_tracking_checksum"
 
 
     # insert a record into the submission tracking table
-    current_app.eng.execute(
+    eng.execute(
         f"""
         INSERT INTO submission_tracking_table
         (objectid, submissionid, created_date, last_edited_date, last_edited_user) 
@@ -51,7 +52,6 @@ def index():
         );
         """
     )
-
     return render_template('index.html', projectname=current_app.project_name)
 
 

@@ -23,7 +23,7 @@ app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
 app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
 
 # set the database connection string, database, and type of database we are going to point our application at
-app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
+app.eng = create_engine(environ.get("DB_CONNECTION_STRING"), echo=True)
 
 # Project name
 app.project_name = "NESE"
