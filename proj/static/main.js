@@ -56,10 +56,13 @@
             critical_error_handler(result.contact)
         }
 
+        //show the final submit buttin
         if (Object.keys(result).includes("errs")) {
             if (result['errs'].length == 0){
-                document.querySelector(".final-submit-button-container").classList.remove("hidden");
+                document.querySelector("#final-submit-button-container").classList.remove("hidden");
                 addFinalSubmitListener()
+            } else {
+                document.querySelector("#reload-button-container").classList.remove("hidden");
             }
         }
 

@@ -5,7 +5,17 @@
 body {
     font-family: sans-serif;
 }
-
+body::after {
+    content: "";
+    background: url(lake.png);
+    opacity: 0.7;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;   
+  }
 
 
 
@@ -124,3 +134,5 @@ span.table-not-matched {
 .submission-report-inner-container {
     padding-bottom: 0.5rem;
 }
+
+

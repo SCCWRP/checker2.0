@@ -5,6 +5,7 @@ const addFinalSubmitListener = () => {
     finalSubmit.addEventListener("submit", async function(e) {
         e.preventDefault();
         
+        document.getElementById("final-submit-button-container").style.display = 'none';
         document.querySelector(".submission-report-outer-container.after-submit").classList.add("hidden");
         document.getElementById("loader-gif-container").classList.remove("hidden");
 
@@ -18,6 +19,7 @@ const addFinalSubmitListener = () => {
         console.log(result);
 
         document.getElementById("loader-gif-container").style.display = 'none';
+        
         
         // handling the case where there was a critical error
         if (result.critical_error) {
