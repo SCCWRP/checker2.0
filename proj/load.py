@@ -10,6 +10,8 @@ finalsubmit = Blueprint('finalsubmit', __name__)
 @finalsubmit.route('/load', methods = ['GET','POST'])
 def load():
 
+    assert session.get('submissionid') is not None, "No submissionID, session may have expired"
+
     # Errors and warnings are stored in a directory in a json since it is likely that they will exceed 4kb in many cases
     # For this reason i didnt use the session cookie
     # Also couldnt figure out how to correctly set up a filesystem session.
@@ -100,6 +102,29 @@ def load():
     for tbl, df in all_dfs.items():
         df.to_geodb(tbl, current_app.eng)
         print(f"done loading data to {tbl}")
+
+        current_app.eng.execute(
+            f"""
+            INSERT INTO submission_tracking_checksum
+            (objectid, submissionid, tablename, checksum, excel_rows)
+            VALUES
+            (
+                sde.next_rowid('sde','submission_tracking_checksum'),
+                {session.get('submissionid')},
+                '{tbl}',
+                {
+                    pd.read_sql(
+                        'SELECT COUNT(*) as n_rows FROM {} WHERE submissionid = {}'
+                        .format(tbl, session.get('submissionid')),
+                        eng
+                    )
+                    .n_rows 
+                    .values[0]
+                },
+                {len(df)}
+            )
+            ;"""
+        )
     
     # So we know the massive argument list of the data receipt function, which is like the notification email for successful submission
     #def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, originalfile, tables, eng, mailserver, *args, **kwargs):
@@ -117,6 +142,23 @@ def load():
     )
     
     # TODO Need to move submitted and marked files to a separate directory that stores submitted files
+    # I am having a conversation with myself, but present me, disagrees with past me.
+    # The idea behind this is to move them and wipe out the files directory
+    # but if stuff has to get deleted anyways, just delete only the ones that show up in this query
+    # SELECT submissionid FROM submission_tracking_table WHERE submit != 'yes'
+
+
+    # They are finally done!
+    # Set the submission tracking table record to 'submit = yes'
+    # Put their original filename in the submission tracking table
+    current_app.eng.execute(
+        f"""
+        UPDATE submission_tracking_table 
+        SET submit = 'yes' 
+        WHERE submissionid = {session.get('submissionid')};
+        """
+    )
+
 
     return jsonify(user_notification="Sucessfully loaded data")
 

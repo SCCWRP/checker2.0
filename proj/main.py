@@ -37,6 +37,21 @@ def index():
         "Database is missing submission_tracking_table and/or submission_tracking_checksum"
 
 
+    # insert a record into the submission tracking table
+    current_app.eng.execute(
+        f"""
+        INSERT INTO submission_tracking_table
+        (objectid, submissionid, created_date, last_edited_date, last_edited_user) 
+        VALUES (
+            sde.next_rowid('sde','submission_tracking_table'), 
+            {session.get('submissionid')},
+            '{pd.Timestamp(session.get('submissionid'), unit = 's')}',
+            '{pd.Timestamp(session.get('submissionid'), unit = 's')}',
+            'checker'
+        );
+        """
+    )
+
     return render_template('index.html', projectname=current_app.project_name)
 
 
@@ -57,6 +72,15 @@ def login():
 
     assert all([str(x).startswith('login_') for x in login_info.keys()]), \
         "The login form failed for follow the naming convention of having all input names begin with 'login_'"
+
+    # Update submission tracking, putting their email address in their record
+    current_app.eng.execute(
+        f"""
+        UPDATE submission_tracking_table 
+        SET login_email = '{login_info.get('login_email')}' 
+        WHERE submissionid = {session.get('submissionid')};
+        """
+    )
 
     return jsonify(msg="login successful")
 
@@ -90,6 +114,15 @@ def upload():
 
             # To be accessed later by the upload routine that loads data to the tables
             session['excel_path'] = excel_path
+
+            # Put their original filename in the submission tracking table
+            current_app.eng.execute(
+                f"""
+                UPDATE submission_tracking_table 
+                SET original_filename = '{filename}' 
+                WHERE submissionid = {session.get('submissionid')};
+                """
+            )
 
     else:
         return jsonify(user_error_msg="No file given")
@@ -160,6 +193,15 @@ def upload():
             match_dataset = match_dataset,
             matched_all_tables = False
         )
+    
+    # If they made it this far, a dataset was matched
+    current_app.eng.execute(
+        f"""
+        UPDATE submission_tracking_table 
+        SET datatype = '{match_dataset}' 
+        WHERE submissionid = {session.get('submissionid')};
+        """
+    )
 
 
     # ----------------------------------------- #
