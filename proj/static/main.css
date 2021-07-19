@@ -121,3 +121,6 @@ span.table-not-matched {
     display: inline-block;
 }
 
+.submission-report-inner-container {
+    padding-bottom: 0.5rem;
+}

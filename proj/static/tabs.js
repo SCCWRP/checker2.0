@@ -13,9 +13,10 @@ const tabs = (tabClass, tabIDs) => {
     // hide all tab bodies except the first one
     for (let i = 0; i < tabBodies.length; i++) {
         if (i === 0) {
-            tabBodies[i].classList.remove('hidden')
+            tabBodies[i].classList.remove('hidden');
+            tabHeaders[i].classList.add("active");
         } else {
-            tabBodies[i].classList.add('hidden')
+            tabBodies[i].classList.add('hidden');
 
         }
     }

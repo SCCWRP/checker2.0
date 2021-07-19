@@ -81,15 +81,15 @@
         </div>
         <!--End Loader gif-->
         
-
-
+        
+        
         <!--Submission Report Section (outer container)-->
         <div class="submission-report-outer-container after-submit hidden">
           
           <div class="submission-report-inner-container container">
             <div class="card container">
-
-
+              
+              
               <div class="submission-report-headers row">
                 <div class="col-sm submission-info-tab-header active" id="submission-info-header">
                   Submission Information
@@ -103,7 +103,7 @@
               </div>
               
               
-
+              
               <div class="submission-report-body container card-body">
                 <div id="submission-info-body" class="submission-info-tab-body">
                   <ul>
@@ -117,7 +117,7 @@
                       <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
                     </li>
                     <li class="list-group-item">
-                    <div class="card">
+                      <div class="card">
                       <div class="card-header">
                         <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
                       </div>
@@ -126,124 +126,146 @@
                         </ul>
                       </div>
                     </div>
-                      
-                    </li>
-                    <li class="list-group-item">
-                      <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
-                    </li>
-                  </ul>
-                </div>
-                
-                
+                    
+                  </li>
+                  <li class="list-group-item">
+                    <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
+                  </li>
+                </ul>
+              </div>
               
-
-                
+              
+              
+              
+              
+              
+              <div id="errors-report-body" class="errors-report-body-outer-container container submission-info-tab-body hidden">
+                <div class="card">
                   
-                <div id="errors-report-body" class="errors-report-body-outer-container container submission-info-tab-body hidden">
-                  <div class="card">
-
-
-
-                    <div id="errors-report-tab-headers" class="row tab-header-container container">
-
-                      <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
-                      <div class="errors-tab-header tab-header col-sm"> <!--id="${x.table}-errors-tab-header" -->
-                      </div>
-
+                  
+                  
+                  <div id="errors-report-tab-headers" class="row tab-header-container container">
+                    
+                    <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="errors-tab-header tab-header col-sm"> <!--id="${x.table}-errors-tab-header" -->
                     </div>
-
-                    <div id="errors-report-body-inner-tab-container" class="container">
-
-                      <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
-                      <div class="errors-tab-body"> <!--id would be tablename-errors-tab-body-->
-                            
-                        <div class="row errors-report-header">
-                            <div class="col-sm errors-report-cell">Column(s)</div>
-                            <div class="col-sm errors-report-cell">Error Type</div>
-                            <div class="col-sm errors-report-cell">Error Message</div>
-                            <div class="col-sm errors-report-cell">Row(s)</div>
-                        </div>
-                        
-                        <div class="errors-tab-rows">
-                        </div>
-
+                    
+                  </div>
+                  
+                  <div id="errors-report-body-inner-tab-container" class="container">
+                    
+                    <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="errors-tab-body"> <!--id would be tablename-errors-tab-body-->
+                      
+                      <div class="row errors-report-header">
+                        <div class="col-sm errors-report-cell">Column(s)</div>
+                        <div class="col-sm errors-report-cell">Error Type</div>
+                        <div class="col-sm errors-report-cell">Error Message</div>
+                        <div class="col-sm errors-report-cell">Row(s)</div>
                       </div>
-
+                      
+                      <div class="errors-tab-rows">
+                      </div>
+                      
+                      </div>
+                      
                     </div>
-
-
-
+                    
+                    
+                    
                   </div>
                   
                 </div>
-        
-        
-        
-        
+                
+                
+                
+                
                 <div id="warnings-report-body" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
                   <div class="card">
-
-
-
+                    
+                    
+                    
                     <div id="warnings-report-tab-headers" class="row tab-header-container container">
-
+                      
                       <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
                       <div class="warnings-tab-header tab-header col-sm"> <!--id="${x.table}-warnings-tab-header" -->
                       </div>
-
+                      
                     </div>
-
+                    
                     <div id="warnings-report-body-inner-tab-container" class="container">
-
+                      
                       <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
                       <div class="warnings-tab-body"> <!--id would be tablename-warnings-tab-body-->
-                            
+                        
                         <div class="row warnings-report-header">
-                            <div class="col-sm warnings-report-cell">Column(s)</div>
-                            <div class="col-sm warnings-report-cell">Error Type</div>
-                            <div class="col-sm warnings-report-cell">Error Message</div>
-                            <div class="col-sm warnings-report-cell">Row(s)</div>
+                          <div class="col-sm warnings-report-cell">Column(s)</div>
+                          <div class="col-sm warnings-report-cell">Error Type</div>
+                          <div class="col-sm warnings-report-cell">Error Message</div>
+                          <div class="col-sm warnings-report-cell">Row(s)</div>
                         </div>
                         
                         <div class="warnings-tab-rows">
                         </div>
-
+                        
                       </div>
-
+                      
                     </div>
-
-
-
+                    
+                    
+                    
                   </div>
                   
                 </div>
-                  
-
-
-
                 
-              
-
-
-
-              
+                
+                
+                
+                
+                
+                
+                
+                
+                
               </div>
               
-                
-                
+              
+              
               
               <div class = "container form-container final-submit-button-container hidden">
                 <form id = "final-submit">
-                  <button type="submit">final submit</button>
+                  <button type="submit" class="btn btn-success">Final Submit</button>
                 </form>
               </div>
               
             </div>
           </div>
-
+          
         </div>
         <!--End error Report Section (outer container)-->
-
+ 
+        <!--Loader gif-->
+        <div class="container hidden" id="after-successful-final-submit">
+          <div class="card">
+            <div class="card-header">
+              Success!
+            </div>
+            <div class="card-body loader-gif-card-body">
+              <p>Thank you for taking the time to submit your data. SCCWRP staff have been notified, and you should
+              be receiving an email receipt soon. Thank you!</p>
+              <div class="row">
+                <div class="col-sm">
+                  <button class="btn btn-primary btn-reload">Reload the application</button>
+                </div>
+                <div class="col-sm">
+                  <button class="btn btn-info btn-sccwrp">Go to the SCCWRP webiste</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--End Loader gif-->
+        
       </div>
     </main>
   </body>

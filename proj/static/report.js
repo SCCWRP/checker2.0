@@ -59,6 +59,7 @@ const buildReport = (res) => {
         .innerHTML
         .repeat(errs_tables.length);
 
+
     // put the appropriate ID's on each div ("table")containing the error messages
     let errorsTabBodies = document.querySelectorAll("#errors-report-body-inner-tab-container .errors-tab-body");
     for (let i = 0; i < errorsTabBodies.length; i++) {
@@ -104,7 +105,9 @@ const buildReport = (res) => {
         tabClass = 'errors-tab', 
         tabIDs = tabIDs
     )
-    
+
+
+
     /* 
     I am fully aware that this is a disgusting violation of the DRY (Don't Repeat Yourself) Principle
     But its been 3 weeks of getting this thing done, we are almost there, it needs to get done ASAP, there's only one place where that above errors display routine
@@ -131,6 +134,7 @@ const buildReport = (res) => {
     document.getElementById("warnings-report-body-inner-tab-container").innerHTML = document.getElementById("warnings-report-body-inner-tab-container")
         .innerHTML
         .repeat(warnings_tables.length);
+
 
     // put the appropriate ID's on each div ("table")containing the error messages
     let warningsTabBodies = document.querySelectorAll("#warnings-report-body-inner-tab-container .warnings-tab-body");
