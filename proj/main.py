@@ -128,7 +128,11 @@ def upload():
         return jsonify(user_error_msg="No file given")
 
     # We are assuming filename is an excel file
-    assert '.xls' in filename, f"filename: {filename} appears to not be what we would expect of an excel file"
+    if '.xls' not in filename:
+        errmsg = f"filename: {filename} appears to not be what we would expect of an excel file.\n"
+        errmsg += "As of right now, the application can accept one excel file at a time.\n"
+        errmsg += "If you are submitting data for multiple tables, they should be separate tabs in the excel file."
+        return jsonify(user_error_msg=errmsg)
 
     print("DONE uploading files")
 
@@ -336,11 +340,6 @@ def upload():
     print("DONE with upload routine, returning JSON to browser")
     return jsonify(**returnvals)
 
-
-@homepage.route('/reset', methods = ['GET','POST'])
-def clearsession():
-    session.clear()
-    return jsonify(msg="session cleared")
 
 
 # When an exception happens when the browser is sending requests to the homepage blueprint, this routine runs
