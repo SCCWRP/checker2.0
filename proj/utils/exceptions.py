@@ -15,8 +15,9 @@ def default_exception_handler(mail_from, errmsg, maintainers, project_name, logi
 
     msgbody = f"{project_name} Checker crashed.\n\n"
     msgbody += f"submissionid: {submissionid}\n"
-    for k, v in login_info.items():
-        msgbody += f"{k}: {v}\n"
+    if login_info is not None:
+        for k, v in login_info.items():
+            msgbody += f"{k}: {v}\n"
     msgbody += f"\nHere is the error message:\n{errmsg}"
 
     send_mail(

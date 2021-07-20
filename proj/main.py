@@ -12,82 +12,9 @@ from .utils.excel import mark_workbook
 from .utils.mail import send_mail
 from .utils.exceptions import default_exception_handler
 
-
-homepage = Blueprint('homepage', __name__)
-@homepage.route('/')
-def index():
-    eng = current_app.eng
-
-    # upon new request clear session, reset submission ID, reset submission directory
-    session.clear()
-
-    session['submissionid'] = int(time.time())
-    session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
-    os.mkdir(session['submission_dir'])
-
-    assert \
-        len(
-            pd.read_sql(
-                """
-                SELECT table_name FROM information_schema.tables 
-                WHERE table_name IN ('submission_tracking_table','submission_tracking_checksum')
-                """,
-                eng
-            )
-        ) == 2, \
-        "Database is missing submission_tracking_table and/or submission_tracking_checksum"
-
-
-    # insert a record into the submission tracking table
-    eng.execute(
-        f"""
-        INSERT INTO submission_tracking_table
-        (objectid, submissionid, created_date, last_edited_date, last_edited_user) 
-        VALUES (
-            sde.next_rowid('sde','submission_tracking_table'), 
-            {session.get('submissionid')},
-            '{pd.Timestamp(session.get('submissionid'), unit = 's')}',
-            '{pd.Timestamp(session.get('submissionid'), unit = 's')}',
-            'checker'
-        );
-        """
-    )
-    return render_template('index.html', projectname=current_app.project_name)
-
-
-
-@homepage.route('/login', methods = ['GET','POST'])
-def login():
-
-    login_info = dict(request.form)
-    print(login_info)
-    session['login_info'] = login_info
-
-    # The info from the login form needs to be in the system fields list, otherwise it will throw off the match routine
-    assert set(login_info.keys()).issubset(set(current_app.system_fields)), \
-        f"{','.join(set(login_info.keys()) - set(current_app.system_fields))} not found in the system fields list"
-
-    assert "login_email" in login_info.keys(), \
-        "No email address found in login form. It should be named login_email since the email notification routine assumes so."
-
-    assert all([str(x).startswith('login_') for x in login_info.keys()]), \
-        "The login form failed for follow the naming convention of having all input names begin with 'login_'"
-
-    # Update submission tracking, putting their email address in their record
-    current_app.eng.execute(
-        f"""
-        UPDATE submission_tracking_table 
-        SET login_email = '{login_info.get('login_email')}' 
-        WHERE submissionid = {session.get('submissionid')};
-        """
-    )
-
-    return jsonify(msg="login successful")
-
-
-    
-@homepage.route('/upload',methods = ['GET','POST'])
-def upload():
+upload = Blueprint('upload', __name__)
+@upload.route('/upload',methods = ['GET','POST'])
+def main():
     
     # -------------------------------------------------------------------------- #
 
@@ -342,9 +269,9 @@ def upload():
 
 
 
-# When an exception happens when the browser is sending requests to the homepage blueprint, this routine runs
-@homepage.errorhandler(Exception)
-def homepage_error_handler(error):
+# When an exception happens when the browser is sending requests to the upload blueprint, this routine runs
+@upload.errorhandler(Exception)
+def upload_error_handler(error):
     response = default_exception_handler(
         mail_from = current_app.mail_from,
         errmsg = str(error),

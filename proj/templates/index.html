@@ -19,17 +19,34 @@
             </div>
             <div class="card-body">
               <form id = "main-login-form">
-                <div class = "login-input-container">
+                <div class = "login-input-container form-group">
                   <label for = "login_email">Enter your email address:</label>
-                  <input type = "email" name = "login_email">
+                  <input type="email" name="login_email" class="form-control" placeholder="name@example.com">
                 </div>
                 <br/>
-                <div class = "login-input-container">
-                  <label for = "login_agency">Enter your agency:</label>
-                  <input type = "agency" name = "login_agency">
+                <div class="form-group" id="sitecode-select-container">
+                  <label for="sitecode-select">Select the sitecode which you are submitting for:</label>
+                  <select class="form-control" id="sitecode-select" name="login_sitecode">
+                    <option value="none" selected disabled hidden></option>
+                    {% for s in sitecodes%}
+                      <option value="{{s}}">{{s}}</option>
+                    {%endfor%}
+                  </select>
+                </div>
+                <div class="form-group" id="collectiondate-select-container">
+                  <label for="collectiondate-select">Select collection date:</label>
+                  <select class="form-control" id="collectiondate-select" name="login_collectiondate">
+                    <option value="none" selected disabled hidden></option>
+                  </select>
+                </div>
+                <div class="form-group" id="pendantid-select-container">
+                  <label for="pendantid-select">Select Pendant ID:</label>
+                  <select class="form-control" id="pendantid-select" name="login_pendantid">
+                    <option value="none" selected disabled hidden></option>
+                  </select>
                 </div>
                 <br>
-                <div class = "login-input-container">
+                <div class = "login-input-container form form-group hidden" id="login-form-submit-btn-container">
                   <button class="btn btn-secondary" type="submit">Sign in</button>
                 </div>
               </form>
@@ -299,5 +316,6 @@
   <script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
   <script src="{{url_for('static', filename='report.js')}}"></script>
   <script src="{{url_for('static', filename='dragndrop.js')}}"></script>
+  <script src="{{url_for('static', filename='login.js')}}"></script>
   <script src="{{url_for('static', filename='main.js')}}"></script>
   </html>

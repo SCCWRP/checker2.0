@@ -13,6 +13,15 @@
         console.log(response);
         const result = await response.json();
         console.log(result);
+
+        // handling the case where there was a critical error
+        if (result.critical_error) {
+            // critical_error_handler defined in globals.js
+            critical_error_handler(result.contact)
+        } else if (Object.keys(result).includes("user_error_msg")) {
+            alert(result.user_error_msg);
+            window.location = `/${script_root}`;
+        }
         
         // we can possibly validate the email address on the python side and return a message in "result"
         // and handle the situation accordingly

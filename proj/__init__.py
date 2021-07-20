@@ -3,7 +3,8 @@ from flask import Flask
 from sqlalchemy import create_engine
 
 # import blueprints to register them
-from .main import homepage
+from .main import upload
+from .login import homepage
 from .load import finalsubmit
 from .download import download
 from .scraper import scraper
@@ -39,7 +40,8 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','submissionid','warnings'
+    'login_email','login_agency','submissionid','warnings',
+    'login_pendantid','login_collectiondate','login_sitecode'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
@@ -66,7 +68,7 @@ app.datasets = {
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 
-
+app.register_blueprint(upload)
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
