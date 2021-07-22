@@ -7,6 +7,6 @@ There is a separate private repository called geodb_setup where we have tools fo
 
 Some of those python scripts can potentially be moved here, since they are not necessarily part of any application but rather they are ran through Arc Catalog or Arc Pro. We'll have to think about whether we want to store those separately or in here.
 
-Contributor:
+Contributors:
 - Paul Smith
 - Robert Butler
