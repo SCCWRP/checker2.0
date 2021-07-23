@@ -1,140 +1,222 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <!--This helped so much: https://getbootstrap.com/docs/5.0/components/card/-->
-    <link rel = "stylesheet" href = "{{url_for('static', filename='main.css')}}">
-    <link rel = "stylesheet" href = "{{url_for('static', filename='bootstrap.min.css')}}">
-    <script src="{{url_for('static', filename='globals.js')}}"></script>
-  </head>
-  <body>
-    <main>
-        
-      <div class="container" id="main-outer-container">
 
-        <!--login screen-->
-        <div class = "container" id="login-outer-container">
-          <div class = "card inner-container" id="login-inner-container">
-            <div class="card-header">
-              {{projectname}} Checker
-            </div>
-            <div class="card-body">
-              <form id = "main-login-form">
-                <div class = "login-input-container form-group">
-                  <label for = "login_email">Enter your email address:</label>
+<head>
+  <!--This helped so much: https://getbootstrap.com/docs/5.0/components/card/-->
+  <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+  <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+  <script src="{{url_for('static', filename='globals.js')}}"></script>
+</head>
+
+<body>
+  <main>
+
+    <div class="container" id="main-outer-container">
+
+      <!--login screen-->
+      <div class="container" id="login-outer-container">
+        <div class="card inner-container" id="login-inner-container">
+          <div class="card-header">
+            {{projectname}} Checker
+          </div>
+          <div class="card-body">
+            <div id="data-logger-raw-form-container">
+              <form id="main-login-form">
+                <div class="form-group container" id="datatype-radio-container">
+                  <div class="row datatype-radio-label-container">
+                    <div class="col-sm">
+                      <label for="datatype-radio" id="datatype-radio-label">Select Submission Type:</label>
+                    </div>
+                  </div>
+                  <div class="row">
+                    <div class="row col-sm">
+    
+                      <div class="col-sm">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio1"
+                            value="raw" checked>
+                          <label class="form-check-label" for="datatype-radio1">
+                            Logger Raw Data
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-sm">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio2"
+                            value="calibration">
+                          <label class="form-check-label" for="datatype-radio2">
+                            Calibration
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <br>
+                <div class="login-input-container form-group">
+                  <label for="login_email">Enter your email address:</label>
                   <input type="email" name="login_email" class="form-control" placeholder="name@example.com">
                 </div>
-                <br/>
-                <div class="form-group" id="sitecode-select-container">
+                <br />
+                <div class="form-group calibration-required raw-required form-group-dynamic" id="sitecode-select-container">
                   <label for="sitecode-select">Select the sitecode which you are submitting for:</label>
                   <select class="form-control" id="sitecode-select" name="login_sitecode">
                     <option value="none" selected disabled hidden></option>
                     {% for s in sitecodes%}
-                      <option value="{{s}}">{{s}}</option>
+                    <option value="{{s}}">{{s}}</option>
                     {%endfor%}
                   </select>
                 </div>
-                <div class="form-group" id="collectiondate-select-container">
-                  <label for="collectiondate-select">Select collection date:</label>
-                  <select class="form-control" id="collectiondate-select" name="login_collectiondate">
-                    <option value="none" selected disabled hidden></option>
-                  </select>
+                <br>
+                <div class="form-group container raw-required form-group-dynamic" id="logger-radio-container">
+                  <div class="row logger-radio-label-container">
+                    <div class="col-sm">
+                      <label for="logger-radio" id="logger-radio-label">Select Logger #:</label>
+                    </div>
+                  </div>
+                  <div class="row">
+
+                    <div class="col-sm"></div>
+
+                    <div class="row col-sm">
+
+                      <div class="col-sm">
+                        <div class="form-check form-check-radio">
+                          <input class="form-check-input" type="radio" name="login_loggernumber" id="logger-radio1" value="1" checked>
+                          <label class="form-check-label" for="logger-radio1">
+                            1
+                          </label>
+                        </div>
+                      </div>
+                      <div class="col-sm">
+                        <div class="form-check form-check-radio">
+                          <input class="form-check-input" type="radio" name="login_loggernumber" id="logger-radio2" value="2">
+                          <label class="form-check-label" for="logger-radio2">
+                            2
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="col-sm"></div>
+
+                  </div>
+                  
                 </div>
-                <div class="form-group" id="pendantid-select-container">
+                <br>
+                <div class="form-group raw-required form-group-dynamic" id="pendantid-select-container">
                   <label for="pendantid-select">Select Pendant ID:</label>
                   <select class="form-control" id="pendantid-select" name="login_pendantid">
                     <option value="none" selected disabled hidden></option>
                   </select>
                 </div>
+                
                 <br>
-                <div class = "login-input-container form form-group hidden" id="login-form-submit-btn-container">
+                <div class="form-group raw-required form-group-dynamic" id="startdate-select-container">
+                  <label for="startdate-select">Select start date:</label>
+                  <select class="form-control" id="startdate-select" name="login_start">
+                    <option value="none" selected disabled hidden></option>
+                  </select>
+                </div>
+                <br>
+                <div class="form-group raw-required form-group-dynamic" id="enddate-select-container">
+                  <label for="enddate-select">Select end date:</label>
+                  <select class="form-control" id="enddate-select" name="login_end">
+                    <option value="none" selected disabled hidden></option>
+                  </select>
+                </div>
+                <br>
+                <div class="login-input-container form form-group hidden" id="login-form-submit-btn-container">
                   <button class="btn btn-secondary" type="submit">Sign in</button>
                 </div>
               </form>
             </div>
           </div>
         </div>
-        <!--End login screen-->
-        
+      </div>
+      <!--End login screen-->
 
 
-        <!--File submission form-->
-        <div class = "before-submit container hidden">
-          <div class="card inner-container">
-            <div class="card-header">
-              <div class="card-title">
-                Choose a file or drag and drop a file anywhere on the page to begin
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="row container file-form-container">
-                <form id = "file-submission-form">
-                  <div class="row form-group file-submission-form-row">
-                    <input type = "file" name = "files" class="form-control-file" multiple>
-                  </div>
-                  <div class="row form-group file-submission-form-row">
-                    <button type="submit" class="btn btn-dark">submit data</button>
-                  </div>
-                </form>
-              </div>
 
+      <!--File submission form-->
+      <div class="before-submit container hidden">
+        <div class="card inner-container">
+          <div class="card-header">
+            <div class="card-title">
+              Choose a file or drag and drop a file anywhere on the page to begin
             </div>
           </div>
-        </div>
-        <!--End file submission form-->
-      
-
-
-
-        <!--Loader gif-->
-        <div class="container hidden" id="loader-gif-container">
-          <div class="card">
-            <div class="card-header loader-gif-card-header">
-              Please wait
+          <div class="card-body">
+            <div class="row container file-form-container">
+              <form id="file-submission-form">
+                <div class="row form-group file-submission-form-row">
+                  <input type="file" name="files" class="form-control-file" multiple>
+                </div>
+                <div class="row form-group file-submission-form-row">
+                  <button type="submit" class="btn btn-dark">submit data</button>
+                </div>
+              </form>
             </div>
-            <div class="card-body loader-gif-card-body">
-              <img id="loader-gif" src="{{url_for('static',filename='loader.gif')}}">
-            </div>
+
           </div>
         </div>
-        <!--End Loader gif-->
-        
-        
-        
-        <!--Submission Report Section (outer container)-->
-        <div class="submission-report-outer-container after-submit hidden">
-          
-          <div class="submission-report-inner-container container">
-            <div class="card container">
-              
-              
-              <div class="submission-report-headers row">
-                <div class="col-sm submission-info-tab-header active" id="submission-info-header">
-                  Submission Information
-                </div>
-                <div class="col-sm submission-info-tab-header" id="errors-report-header">
-                  Errors
-                </div>
-                <div class="col-sm submission-info-tab-header" id="warnings-report-header">
-                  Warnings
-                </div>
+      </div>
+      <!--End file submission form-->
+
+
+
+
+      <!--Loader gif-->
+      <div class="container hidden" id="loader-gif-container">
+        <div class="card">
+          <div class="card-header loader-gif-card-header">
+            Please wait
+          </div>
+          <div class="card-body loader-gif-card-body">
+            <img id="loader-gif" src="{{url_for('static',filename='loader.gif')}}">
+          </div>
+        </div>
+      </div>
+      <!--End Loader gif-->
+
+
+
+      <!--Submission Report Section (outer container)-->
+      <div class="submission-report-outer-container after-submit hidden">
+
+        <div class="submission-report-inner-container container">
+          <div class="card container">
+
+
+            <div class="submission-report-headers row">
+              <div class="col-sm submission-info-tab-header active" id="submission-info-header">
+                Submission Information
               </div>
-              
-              
-              
-              <div class="submission-report-body container card-body">
-                <div id="submission-info-body" class="submission-info-tab-body">
-                  <ul>
-                    <li class="list-group-item">
-                      <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
-                    </li>
-                    <li class="list-group-item">
-                      <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
-                    </li>
-                    <li class="list-group-item">
-                      <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span></p>
-                    </li>
-                    <li class="list-group-item">
-                      <div class="card">
+              <div class="col-sm submission-info-tab-header" id="errors-report-header">
+                Errors
+              </div>
+              <div class="col-sm submission-info-tab-header" id="warnings-report-header">
+                Warnings
+              </div>
+            </div>
+
+
+
+            <div class="submission-report-body container card-body">
+              <div id="submission-info-body" class="submission-info-tab-body">
+                <ul>
+                  <li class="list-group-item">
+                    <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span>
+                    </p>
+                  </li>
+                  <li class="list-group-item">
+                    <div class="card">
                       <div class="card-header">
                         <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
                       </div>
@@ -143,23 +225,24 @@
                         </ul>
                       </div>
                     </div>
-                    
+
                   </li>
                   <li class="list-group-item">
-                    <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a></p>
+                    <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report
+                        Markup</a></p>
                   </li>
                 </ul>
 
-                
+
                 <!--for unsuccessful submissions-->
-                <div class = "container hidden" id="reload-button-container">
+                <div class="container hidden" id="reload-button-container">
                   <div class="card">
                     <div class="card-header">
                       <h5 class="card-title">
                         There were errors with your file
                       </h5>
                       <h6 class="card-subtitle">
-                        You may click the button below to reload and login again, 
+                        You may click the button below to reload and login again,
                         or you may drag and drop a file on the page again
                       </h6>
                     </div>
@@ -173,149 +256,157 @@
 
 
               </div>
-              
-              
-              
-              
-              
-              
-              <div id="errors-report-body" class="errors-report-body-outer-container container submission-info-tab-body hidden">
+
+
+
+
+
+
+              <div id="errors-report-body"
+                class="errors-report-body-outer-container container submission-info-tab-body hidden">
                 <div class="card">
-                  
-                  
-                  
+
+
+
                   <div id="errors-report-tab-headers" class="row tab-header-container container">
-                    
+
                     <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
-                    <div class="errors-tab-header tab-header col-sm"> <!--id="${x.table}-errors-tab-header" -->
+                    <div class="errors-tab-header tab-header col-sm">
+                      <!--id="${x.table}-errors-tab-header" -->
                     </div>
-                    
+
                   </div>
-                  
+
                   <div id="errors-report-body-inner-tab-container" class="container">
-                    
+
                     <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
-                    <div class="errors-tab-body"> <!--id would be tablename-errors-tab-body-->
-                      
+                    <div class="errors-tab-body">
+                      <!--id would be tablename-errors-tab-body-->
+
                       <div class="row errors-report-header">
                         <div class="col-sm errors-report-cell">Column(s)</div>
                         <div class="col-sm errors-report-cell">Error Type</div>
                         <div class="col-sm errors-report-cell">Error Message</div>
                         <div class="col-sm errors-report-cell">Row(s)</div>
                       </div>
-                      
+
                       <div class="errors-tab-rows">
                       </div>
-                      
-                      </div>
-                      
+
                     </div>
-                    
-                    
-                    
+
                   </div>
-                  
+
+
+
                 </div>
-                
-                
-                
-                
-                <div id="warnings-report-body" class="warnings-report-body-outer-container container submission-info-tab-body hidden">
-                  <div class="card">
-                    
-                    
-                    
-                    <div id="warnings-report-tab-headers" class="row tab-header-container container">
-                      
-                      <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
-                      <div class="warnings-tab-header tab-header col-sm"> <!--id="${x.table}-warnings-tab-header" -->
-                      </div>
-                      
+
+              </div>
+
+
+
+
+              <div id="warnings-report-body"
+                class="warnings-report-body-outer-container container submission-info-tab-body hidden">
+                <div class="card">
+
+
+
+                  <div id="warnings-report-tab-headers" class="row tab-header-container container">
+
+                    <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="warnings-tab-header tab-header col-sm">
+                      <!--id="${x.table}-warnings-tab-header" -->
                     </div>
-                    
-                    <div id="warnings-report-body-inner-tab-container" class="container">
-                      
-                      <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
-                      <div class="warnings-tab-body"> <!--id would be tablename-warnings-tab-body-->
-                        
-                        <div class="row warnings-report-header">
-                          <div class="col-sm warnings-report-cell">Column(s)</div>
-                          <div class="col-sm warnings-report-cell">Error Type</div>
-                          <div class="col-sm warnings-report-cell">Error Message</div>
-                          <div class="col-sm warnings-report-cell">Row(s)</div>
-                        </div>
-                        
-                        <div class="warnings-tab-rows">
-                        </div>
-                        
-                      </div>
-                      
-                    </div>
-                    
-                    
-                    
+
                   </div>
-                  
+
+                  <div id="warnings-report-body-inner-tab-container" class="container">
+
+                    <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="warnings-tab-body">
+                      <!--id would be tablename-warnings-tab-body-->
+
+                      <div class="row warnings-report-header">
+                        <div class="col-sm warnings-report-cell">Column(s)</div>
+                        <div class="col-sm warnings-report-cell">Error Type</div>
+                        <div class="col-sm warnings-report-cell">Error Message</div>
+                        <div class="col-sm warnings-report-cell">Row(s)</div>
+                      </div>
+
+                      <div class="warnings-tab-rows">
+                      </div>
+
+                    </div>
+
+                  </div>
+
+
+
                 </div>
-                
-                
+
               </div>
-              
-              <!--for successful submissions (final submit)-->
-              <div class = "container form-container hidden" id="final-submit-button-container">
-                <form id = "final-submit">
-                  <button type="submit" class="btn btn-success btn-lg btn-block">Final Submit</button>
-                </form>
-              </div>
-              
-              
-              
-              <br>
-              
+
+
             </div>
+
+            <!--for successful submissions (final submit)-->
+            <div class="container form-container hidden" id="final-submit-button-container">
+              <form id="final-submit">
+                <button type="submit" class="btn btn-success btn-lg btn-block">Final Submit</button>
+              </form>
+            </div>
+
+
+
+            <br>
 
           </div>
 
         </div>
-        <!--End error Report Section (outer container)-->
-        
- 
-        
-        <!--Loader gif-->
-        <div class="container hidden" id="after-successful-final-submit">
-          <div class="card">
-            <div class="card-header" id="after-submit-sucess-card-header">
-              <h5 class="card-title">
-                Success!
-              </h5>
-            </div>
-            <div class="card-body loader-gif-card-body">
-              <p>Thank you for taking the time to submit your data. SCCWRP staff have been notified, and you should
-              be receiving an email receipt soon. Thank you!</p>
-              <div class="row">
-                <div class="col-sm">
-                  <button class="btn btn-primary btn-reload">Reload the application</button>
-                </div>
-                <div class="col-sm">
-                  <button class="btn btn-info btn-sccwrp">Go to the SCCWRP webiste</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!--End Loader gif-->
-        
+
       </div>
-    </main>
-  </body>
-  
-  <!--Load js at the end rather than doing something similar to $('document').ready()-->
-  <!--tabs.js has a function called tabs which i plan on using in report.js-->
-  <!--main.js needs to be at the bottom-->
-  <script src="{{url_for('static', filename='tabs.js')}}"></script>
-  <script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
-  <script src="{{url_for('static', filename='report.js')}}"></script>
-  <script src="{{url_for('static', filename='dragndrop.js')}}"></script>
-  <script src="{{url_for('static', filename='login.js')}}"></script>
-  <script src="{{url_for('static', filename='main.js')}}"></script>
-  </html>
+      <!--End error Report Section (outer container)-->
+
+
+
+      <!--Loader gif-->
+      <div class="container hidden" id="after-successful-final-submit">
+        <div class="card">
+          <div class="card-header" id="after-submit-sucess-card-header">
+            <h5 class="card-title">
+              Success!
+            </h5>
+          </div>
+          <div class="card-body loader-gif-card-body">
+            <p>Thank you for taking the time to submit your data. SCCWRP staff have been notified, and you should
+              be receiving an email receipt soon. Thank you!</p>
+            <div class="row">
+              <div class="col-sm">
+                <button class="btn btn-primary btn-reload">Reload the application</button>
+              </div>
+              <div class="col-sm">
+                <button class="btn btn-info btn-sccwrp">Go to the SCCWRP webiste</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--End Loader gif-->
+
+    </div>
+  </main>
+</body>
+
+<!--Load js at the end rather than doing something similar to $('document').ready()-->
+<!--tabs.js has a function called tabs which i plan on using in report.js-->
+<!--main.js needs to be at the bottom-->
+<script src="{{url_for('static', filename='tabs.js')}}"></script>
+<script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
+<script src="{{url_for('static', filename='report.js')}}"></script>
+<script src="{{url_for('static', filename='dragndrop.js')}}"></script>
+<script src="{{url_for('static', filename='login.js')}}"></script>
+<script src="{{url_for('static', filename='alterform.js')}}"></script>
+<script src="{{url_for('static', filename='main.js')}}"></script>
+
+</html>

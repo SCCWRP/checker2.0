@@ -42,8 +42,19 @@ def index():
         );
         """
     )
+
+    # Only return list of sitecodes which have been revisited
     sitecodes = pd.read_sql(
-            "SELECT DISTINCT sitecode FROM unified_main ORDER BY sitecode;", eng
+            """
+            SELECT
+                sitecode
+            FROM
+                unified_main
+            WHERE
+                sitecode IN 
+                ( SELECT sitecode FROM unified_main GROUP BY sitecode HAVING COUNT(*) > 1 )
+            """,
+            eng                                
         ) \
         .sitecode \
         .tolist()
@@ -91,28 +102,93 @@ def login():
     return jsonify(msg="login successful")
 
 
-@homepage.route('/collectiondates', methods = ['GET','POST'])
-def collectiondates():
+@homepage.route('/startdates', methods = ['GET','POST'])
+def startdates():
     
     eng = current_app.eng
 
     sitecode = request.form.get('login_sitecode')
+    lognum = request.form.get('login_loggernumber')
+    pendantid = request.form.get('login_pendantid')
 
+    # prevent sql injection
     assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM unified_main", eng).sitecode.values, \
-        "Bad request to /collectiondates - sitecode not found in unified_main"
+        f"Bad request to /startdates - sitecode {sitecode} not found in unified_main"
+    assert int(lognum) in (1,2), f"Bad request to /startdates - lognum {lognum} not found in unified_main"
+    assert int(pendantid) in pd.read_sql(f"SELECT l{lognum}_pendent_id::INTEGER AS pendantid FROM unified_main", eng) \
+        .pendantid \
+        .values, \
+        f"Bad request to /startdates - L{lognum} pendantid {pendantid} not found in unified_main"
+    sql = f"""
+            SELECT DISTINCT
+            collectiondate AS startdate 
+        FROM
+            vw_logger_deployment vw 
+        WHERE
+            sitecode = '{sitecode}' 
+            AND l{lognum}_pendent_id :: INTEGER = {pendantid} 
+            AND collectiondate != (
+            SELECT
+            CASE
+                WHEN
+                    ( SELECT 
+                        COUNT ( * ) FROM vw_logger_deployment
+                        WHERE sitecode = '{sitecode}' AND l{lognum}_pendent_id :: INTEGER = {pendantid} AND collectiondate IS NOT NULL ) = 1 
+                THEN
+                    '1000-01-01 00:00:00' 
+                ELSE MAX ( collectiondate ) 
+                END 
+            FROM
+                vw_logger_deployment 
+            WHERE
+                sitecode = '{sitecode}' 
+            AND l{lognum}_pendent_id :: INTEGER = {pendantid} 
+            );
+            """
+    startdates = pd.read_sql(sql, eng) \
+        .startdate \
+        .values
     
-    collectiondates = pd.read_sql(
-            f"""SELECT DISTINCT collectiondate FROM unified_main 
-            WHERE sitecode = '{sitecode}' 
-            AND collectiondate IS NOT NULL""",
+    startdates = [pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S") for x in startdates]
+
+    return jsonify(startdates=startdates)
+
+
+@homepage.route('/enddates', methods = ['GET','POST'])
+def enddates():
+    
+    eng = current_app.eng
+
+    sitecode = request.form.get('login_sitecode')
+    startdate = request.form.get('login_start')
+
+    # prevent sql injection
+    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM unified_main", eng).sitecode.values, \
+        "Bad request to /enddates - sitecode not found in unified_main"
+    try:
+        startdate = pd.Timestamp(startdate).strftime("%Y-%m-%d %H:%M:%S")
+    except Exception as e:
+        print(e)
+        raise Exception(f"startdate form value {startdate} unable to be coerced to timestamp.")
+    
+    enddates = pd.read_sql(
+            f"""
+            SELECT
+                MIN(collectiondate) AS enddate
+            FROM
+                vw_logger_deployment 
+            WHERE  sitecode = '{sitecode}' 
+                and collectiondate > '{startdate}'
+            """,
             eng
         ) \
-        .collectiondate \
-        .tolist()
+        .enddate \
+        .values
     
-    [pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S") for x in collectiondates]
+    # We know it will be one value, but i'll return it as an array anyways
+    enddates = [pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S") for x in enddates if not pd.isnull(x)]
 
-    return jsonify(collectiondates=collectiondates)
+    return jsonify(enddates=enddates)
 
 @homepage.route('/pendantids', methods = ['GET','POST'])
 def pendantids():
@@ -120,36 +196,25 @@ def pendantids():
     eng = current_app.eng
 
     sitecode = request.form.get('login_sitecode')
-    collectiondate = request.form.get('login_collectiondate')
-
-    # Javascript sends it in some kind of weird date format, so we have to reformat it
-    collectiondate = pd.Timestamp(collectiondate).strftime("%Y-%m-%d %H:%M:%S")
+    lognum = request.form.get('login_loggernumber')
 
     assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM unified_main", eng) \
         .sitecode.values, \
         "Bad request to /pendantids - sitecode not found in unified_main"
-    assert collectiondate in pd.read_sql(
-            "SELECT DISTINCT collectiondate FROM unified_main WHERE collectiondate IS NOT NULL", 
-            eng
-        ) \
-        .collectiondate \
-        .apply(lambda x: pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S")) \
-        .values, \
-        "Bad request to /pendantids - collectiondate not found in unified_main"
+    assert int(lognum) in (1,2), "Bad request to /pendantids - loggernumber should be 1 or 2"
     
     pendantids = pd.read_sql(
             # that column name should be pendant id rather than pendent
             f"""
-            SELECT DISTINCT l1_pendent_id FROM unified_main 
+            SELECT DISTINCT l{lognum}_pendent_id FROM unified_main 
             WHERE sitecode = '{sitecode}'
-            AND collectiondate = '{collectiondate}'
             ;""",
             eng
         ) \
-        .l1_pendent_id \
+        [f'l{lognum}_pendent_id'] \
         .tolist()
     
-    return jsonify(pendantids=pendantids)
+    return jsonify(pendantids=[x for x in pendantids if not pd.isnull(x)])
 
 
     

@@ -31,7 +31,7 @@ app.eng = create_engine(environ.get("DB_CONNECTION_STRING"), echo=True)
 app.project_name = "NESE"
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org', 'duyn@sccwrp.org']
+app.maintainers = ['robertb@sccwrp.org'] #, 'duyn@sccwrp.org']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
