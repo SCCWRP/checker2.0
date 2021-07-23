@@ -24,23 +24,23 @@ def collect_error_messages(errs):
             # This will be written to a json and stored in the submission directory
             # to be read in later during the final submission routine, 
             # or in the routine which marks up their excel file
-            "columns"         : w['columns'],
-            "table"           : w['table'],
+            "columns"         : e['columns'],
+            "table"           : e['table'],
             "row_number"      : r['row_number'],
-            "message"         : f"{w['columns']} - {w['error_message']}"
+            "message"         : f"{e['columns']} - {e['error_message']}"
         }
         for e in errs
         for r in e['rows']
     ]
 
-    output = DataFrame(output).groupby(['row_number', 'columns', 'table']) \
+    output = DataFrame(output).groupby(['row_number', 'table']) \
         .apply(
             # .tolist() doesnt work. 
-            lambda x: ';'.join( list(x['message']) ) 
+            lambda x: '; '.join( list(x['message']) ) 
         ).to_dict() 
 
     
-    return [{'row_number': k[0], 'columns': k[1], 'table': k[2], 'message': v} for k, v in output.items()]
+    return [{'row_number': k[0], 'table': k[1], 'message': v} for k, v in output.items()]
 
 
 
