@@ -134,6 +134,11 @@ def main():
         """
     )
 
+    # Something that may or may not be specific for this project, but
+    #  based on the dataset, there are different login fields that are relevant
+    assert match_dataset in current_app.datasets.keys(), f" in main - Match dataset {match_dataset} not found in the keys of the current_app.datasets dictionary in __init__"
+    session['login_info'] = {k: v for k,v in session.get('login_info').items() if k in current_app.datasets.get(match_dataset).get('login_fields')}
+
 
     # ----------------------------------------- #
 

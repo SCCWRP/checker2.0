@@ -55,8 +55,10 @@
                     case 'enddate':
                         // for enddate, set the innerHTML
                         document.getElementById(`${route}-select`).innerHTML = `
-                            <option value="${c}">${c}</option>
+                            <option value="${c}" selected>${c}</option>
                         `
+                        // unhide submit button
+                        document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
                     default:
                         // for the rest of the cases, append to the HTML
                         document.getElementById(`${route}-select`).innerHTML += `
@@ -123,9 +125,6 @@
         document.getElementById('login-form-submit-btn-container').classList.add('hidden');
 
         updateSelectInput('enddate')
-
-        // unhide submit button
-        document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
 
     })
 

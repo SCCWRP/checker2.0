@@ -91,7 +91,7 @@ def load():
             submissionid = session['submissionid']
         ).assign(
             # This will assign all the other necessary columns from the user's login, which typically are appended as columns
-            **session['login_info']
+            **session.get('login_info')
         )
 
 

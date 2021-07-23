@@ -1,6 +1,6 @@
 from json import dump
 from pandas import DataFrame
-
+from inspect import currentframe
 
 
 # a function used to collect the warnings to store in database
@@ -15,11 +15,9 @@ def collect_error_messages(errs):
     if errs == []:
         return []
     assert all([isinstance(x, dict) for x in errs]), "function - collect_warnings - errs list contains non-dictionary objects"
-    assert all(["columns" in x.keys() for x in errs]), "function - collect_warnings - 'columns' not found in keys of a dictionary in the errs list"
-    assert all(["rows" in x.keys() for x in errs]), "function - collect_warnings - 'rows' not found in keys of a dictionary in the errs list"
-    assert all(["table" in x.keys() for x in errs]), "function - collect_warnings - 'table' not found in keys of a dictionary in the errs list"
-    assert all(["error_message" in x.keys() for x in errs]), "function - collect_warnings - 'error_message' not found in keys of a dictionary in the errs list"
-
+    for k in ('columns','rows','table','error_message'):
+        assert all([k in x.keys() for x in errs]), f"function - collect_warnings - '{k}' not found in keys of a dictionary in the errs list"
+    
 
     output = [
         {
@@ -31,8 +29,8 @@ def collect_error_messages(errs):
             "row_number"      : r['row_number'],
             "message"         : f"{w['columns']} - {w['error_message']}"
         }
-        for w in errs
-        for r in w['rows']
+        for e in errs
+        for r in e['rows']
     ]
 
     output = DataFrame(output).groupby(['row_number', 'columns', 'table']) \

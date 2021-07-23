@@ -47,12 +47,9 @@ def index():
     sitecodes = pd.read_sql(
             """
             SELECT
-                sitecode
+                DISTINCT sitecode
             FROM
-                unified_main
-            WHERE
-                sitecode IN 
-                ( SELECT sitecode FROM unified_main GROUP BY sitecode HAVING COUNT(*) > 1 )
+                vw_logger_deployment
             """,
             eng                                
         ) \
@@ -112,18 +109,18 @@ def startdates():
     pendantid = request.form.get('login_pendantid')
 
     # prevent sql injection
-    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM unified_main", eng).sitecode.values, \
-        f"Bad request to /startdates - sitecode {sitecode} not found in unified_main"
-    assert int(lognum) in (1,2), f"Bad request to /startdates - lognum {lognum} not found in unified_main"
-    assert int(pendantid) in pd.read_sql(f"SELECT l{lognum}_pendent_id::INTEGER AS pendantid FROM unified_main", eng) \
+    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM vw_logger_deployment", eng).sitecode.values, \
+        f"Bad request to /startdates - sitecode {sitecode} not found in vw_logger_deployment"
+    assert int(lognum) in (1,2), f"Bad request to /startdates - lognum {lognum} not found in vw_logger_deployment"
+    assert int(pendantid) in pd.read_sql(f"SELECT l{lognum}_pendent_id::INTEGER AS pendantid FROM vw_logger_deployment", eng) \
         .pendantid \
         .values, \
-        f"Bad request to /startdates - L{lognum} pendantid {pendantid} not found in unified_main"
+        f"Bad request to /startdates - L{lognum} pendantid {pendantid} not found in vw_logger_deployment"
     sql = f"""
             SELECT DISTINCT
             collectiondate AS startdate 
         FROM
-            vw_logger_deployment vw 
+            vw_logger_deployment
         WHERE
             sitecode = '{sitecode}' 
             AND l{lognum}_pendent_id :: INTEGER = {pendantid} 
@@ -163,8 +160,8 @@ def enddates():
     startdate = request.form.get('login_start')
 
     # prevent sql injection
-    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM unified_main", eng).sitecode.values, \
-        "Bad request to /enddates - sitecode not found in unified_main"
+    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM vw_logger_deployment", eng).sitecode.values, \
+        "Bad request to /enddates - sitecode not found in vw_logger_deployment"
     try:
         startdate = pd.Timestamp(startdate).strftime("%Y-%m-%d %H:%M:%S")
     except Exception as e:
@@ -174,7 +171,7 @@ def enddates():
     enddates = pd.read_sql(
             f"""
             SELECT
-                MIN(collectiondate) AS enddate
+                DISTINCT MIN(collectiondate) AS enddate
             FROM
                 vw_logger_deployment 
             WHERE  sitecode = '{sitecode}' 
@@ -206,7 +203,7 @@ def pendantids():
     pendantids = pd.read_sql(
             # that column name should be pendant id rather than pendent
             f"""
-            SELECT DISTINCT l{lognum}_pendent_id FROM unified_main 
+            SELECT DISTINCT l{lognum}_pendent_id FROM vw_logger_deployment 
             WHERE sitecode = '{sitecode}'
             ;""",
             eng

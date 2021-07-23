@@ -23,7 +23,7 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
                 {
                     'row_index': r.get('row_number'),
                     'column_index': all_dfs[table].columns.get_loc(str(col).strip()),
-                    'message': r.get('message')
+                    'message': e.get('error_message')
                 }
             )
             for e in errs
@@ -40,7 +40,7 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
                 {
                     'row_index': r.get('row_number'),
                     'column_index': all_dfs[table].columns.get_loc(str(col).strip()),
-                    'message': f"{r.get('message')} (Warning)"
+                    'message': f"{w.get('error_message')} (Warning)"
                 }
             )
             for w in warnings
