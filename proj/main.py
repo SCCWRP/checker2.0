@@ -81,7 +81,7 @@ def main():
         # Note also that only empty cells will be regarded as missing values
         sheet: pd.read_excel(
             excel_path, 
-            sheet_name = sheet, 
+            sheet_name = sheet,
             skiprows = current_app.excel_offset, 
             na_values = ['']
         )
@@ -95,6 +95,8 @@ def main():
         all_dfs[tblname].columns = [x.lower() for x in all_dfs[tblname].columns]
 
     print("DONE - building 'all_dfs' dictionary")
+    
+    assert len(all_dfs) > 0, f"submissionid - {session.get('submissionid')} all_dfs is empty"
 
 
     # -------------------------------------------------------------------------- #
@@ -106,7 +108,7 @@ def main():
     # keys of all_dfs should be no longer the original sheet names but rather the table names that got matched, if any
     # if the tab didnt match any table it will not alter that item in the all_dfs dictionary
     print("Running match tables routine")
-    match_dataset, match_report, all_dfs = match(all_dfs, current_app.eng, current_app.system_fields, current_app.datasets)
+    match_dataset, match_report, all_dfs = match(all_dfs)
     print("DONE - Running match tables routine")
 
     session['datatype'] = match_dataset
@@ -133,11 +135,6 @@ def main():
         WHERE submissionid = {session.get('submissionid')};
         """
     )
-
-    # Something that may or may not be specific for this project, but
-    #  based on the dataset, there are different login fields that are relevant
-    assert match_dataset in current_app.datasets.keys(), f" in main - Match dataset {match_dataset} not found in the keys of the current_app.datasets dictionary in __init__"
-    session['login_info'] = {k: v for k,v in session.get('login_info').items() if k in current_app.datasets.get(match_dataset).get('login_fields')}
 
 
     # ----------------------------------------- #

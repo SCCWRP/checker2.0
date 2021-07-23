@@ -83,8 +83,14 @@
         document.getElementById('pendantid-select')
             .innerHTML = `<option value="none" selected disabled hidden></option>`;
 
-        // since pendantids and collectiondates were reset, we need to hide the submit button again
-        document.getElementById('login-form-submit-btn-container').classList.add('hidden');
+        if (document.querySelector("input[type='radio'][name='login_datatype']:checked").value === 'calibration') {
+            // if they are submitting calibration, the submit button should not be hidden
+            document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
+        } else {
+            // since pendantids and collectiondates were reset, we need to hide the submit button again
+            // also this should only happen if they are not submitting calibration
+            document.getElementById('login-form-submit-btn-container').classList.add('hidden');
+        }
 
         updateSelectInput('pendantid')
 

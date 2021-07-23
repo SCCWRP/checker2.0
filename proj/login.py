@@ -69,8 +69,14 @@ def login():
     
     login_info = dict(request.form)
     print(login_info)
-    session['login_info'] = login_info
 
+    # Something that may or may not be specific for this project, but
+    #  based on the dataset, there are different login fields that are relevant
+    assert login_info.get('login_datatype') in current_app.datasets.keys(), f"login_datatype form field value {login_info.get('login_datatype')} not found in current_app.datasets.keys()"
+    session['login_info'] = {k: v for k,v in login_info.items() if k in current_app.datasets.get(login_info.get('login_datatype')).get('login_fields')}
+    
+    print(session.get('login_info'))
+    
     # The info from the login form needs to be in the system fields list, otherwise it will throw off the match routine
     assert set(login_info.keys()).issubset(set(current_app.system_fields)), \
         f"{','.join(set(login_info.keys()) - set(current_app.system_fields))} not found in the system fields list"
