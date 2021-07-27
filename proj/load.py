@@ -159,6 +159,18 @@ def load():
         """
     )
 
+    # Update the analysis report table
+    current_app.eng.execute(
+        f"""
+        UPDATE analysis_report 
+        SET l{session.get('login_info').get('login_loggernumber')}_submission_status = 'DATA_SUBMITTED',
+        l{session.get('login_info').get('login_loggernumber')}_submission_email = '{session.get('login_info').get('login_email')}',
+        l{session.get('login_info').get('login_loggernumber')}_submission_date = '{pd.Timestamp(int(session['submissionid']), unit = 's')}'
+        WHERE sitecode = '{session.get('login_info').get('login_sitecode')}'
+        AND l{session.get('login_info').get('login_loggernumber')}_pendent_id = {session.get('login_info').get('login_pendantid')}
+        """
+    )
+
 
     return jsonify(user_notification="Sucessfully loaded data")
 
