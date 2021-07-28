@@ -1,11 +1,15 @@
 import pandas as pd
 from copy import deepcopy
-from flask import session
+from flask import session, current_app
 from gc import collect
 from openpyxl import load_workbook
 
 
-def match(all_dfs, eng, system_fields, datasets):
+def match(all_dfs):
+
+    eng = current_app.eng
+    system_fields = current_app.system_fields
+    datasets = current_app.datasets
 
     match_tbls_sql = f"""
         SELECT table_name, column_name 

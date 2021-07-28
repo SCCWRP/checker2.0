@@ -31,15 +31,14 @@ def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_erro
     return {}
         
 
-def get_badrows(df_badrows, errmsg):
+def get_badrows(df_badrows):
     """
     df_badrows is a dataframe filtered down to the rows which DO NOT meet the criteria of the check. 
     errmsg is self explanatory
     """
 
     assert isinstance(df_badrows, DataFrame), "in function get_badrows, df_badrows argument is not a pandas DataFrame"
-    assert isinstance(errmsg, str), f"in function get_badrows, errmsg argument ({errmsg}) is not a string"
-
+    
 
     if df_badrows.empty:
         return []
@@ -49,9 +48,13 @@ def get_badrows(df_badrows, errmsg):
             # row number is the row number in the excel file
             'row_number': int(rownum),
             'value': val if not isnull(val) else '',
-            'message': msg
+            # Individualized error message is mainly for the Lookup list error in core checks
+            # All other checks have generic error messages, and in this case the error message doesnt need to be stored here,
+            # Since this "message" key, value pair in the "rows" dictionary was for error messages which contain the 
+            #  value the user entered
+            'message': ""
         } 
-        for rownum, val, msg in
+        for rownum, val in
         df_badrows \
         .apply(
             lambda row:
@@ -69,8 +72,7 @@ def get_badrows(df_badrows, errmsg):
 
                 # Note that for this "get_badrows" function, it works essentially the same way as the previous checker, 
                 # where the user basically provides a line of code to subset the dataframe, along with an accompanying error message
-                None, 
-                errmsg
+                None
             ),
             axis = 1
         ) \

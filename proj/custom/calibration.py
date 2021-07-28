@@ -1,8 +1,8 @@
-from inspect import currentframe
 from flask import current_app
+from inspect import currentframe
 from .functions import checkData, get_badrows
 
-def datalogger(all_dfs):
+def calibration(all_dfs):
     current_function_name = str(currentframe().f_code.co_name)
     
     # function should be named after the dataset in app.datasets in __init__.py
@@ -17,9 +17,8 @@ def datalogger(all_dfs):
     # we assign dataframes of all_dfs to variables and go from there
     # This is the convention that was followed in the old checker
     
-    # This data type should only have tbl_data_logger_raw
-    # example = all_dfs['tbl_data_logger_raw']
-    datalogger = all_dfs['tbl_data_logger_raw']
+    # This data type should only have tbl_calibration
+    calibration = all_dfs['tbl_calibration']
 
     errs = []
     warnings = []
@@ -27,8 +26,8 @@ def datalogger(all_dfs):
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     args = {
-        "dataframe": datalogger,
-        "tablename": 'tbl_data_logger_raw',
+        "dataframe": calibration,
+        "tablename": 'tbl_calibration',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
@@ -45,23 +44,5 @@ def datalogger(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
-
-
-    args.update({
-        "badrows": get_badrows(datalogger[datalogger.intensity != 5]),
-        "badcolumn": "intensity",
-        "error_type" : "Not 5",
-        "error_message" : "This is a helpful useful message for the user"
-    })
-    warnings = [*warnings, checkData(**args)]
-
-    args.update({
-        "badrows": get_badrows(datalogger[datalogger.temperature != 5]),
-        "badcolumn": "temperature",
-        "error_type" : "Not 5",
-        "error_message" : "The temperature should be 5"
-    })
-    warnings = [*warnings, checkData(**args)]
-        
     
     return {'errors': errs, 'warnings': warnings}

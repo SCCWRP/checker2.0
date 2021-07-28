@@ -33,7 +33,7 @@ div.main-outer-container {
     position: absolute;
     background-color: #f2f2f2;
     left: 30%;
-    top:25%;
+    top:15%;
     box-shadow: 0.3rem 0.3rem 0.3rem rgba(0, 8, 7, 0.5);
     padding: 0.1rem;
     text-align: center;
@@ -144,4 +144,12 @@ span.table-not-matched {
 
 #after-submit-sucess-card-header {
     text-align: center;
+}
+
+.form-check.form-check-radio {
+    display: inline-block;
+}
+
+#logger-radio-label-container {
+    margin-bottom: 0.7rem;
 }

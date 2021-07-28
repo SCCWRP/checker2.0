@@ -3,12 +3,14 @@ from flask import Flask
 from sqlalchemy import create_engine
 
 # import blueprints to register them
-from .main import homepage
+from .main import upload
+from .login import homepage
 from .load import finalsubmit
 from .download import download
 from .scraper import scraper
 from .core.functions import fetch_meta
 from .custom.datalogger import datalogger
+from .custom.calibration import calibration
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -24,7 +26,7 @@ app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
 app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
 
 # set the database connection string, database, and type of database we are going to point our application at
-app.eng = create_engine(environ.get("DB_CONNECTION_STRING"), echo=True)
+app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
 
 # Project name
 app.project_name = "NESE"
@@ -39,7 +41,9 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','submissionid','warnings'
+    'login_email','login_agency','submissionid','warnings',
+    'login_pendantid','login_collectiondate','login_sitecode',
+    'login_end','login_loggernumber','login_datatype','login_start'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
@@ -60,13 +64,21 @@ app.datasets = {
     # offset
     #   Some people like to give the clients excel submission templates with column descriptions in the first row
     #   offset refers to the number of rows to offset, or skip, when reading in the excel file
-    'datalogger': {'tables': ['tbl_data_logger_raw', 'tbl_data_logger_metadata'], 'function': datalogger},
-    'dataloggerraw': {'tables': ['tbl_data_logger_raw'], 'function': datalogger}
+    'calibration': {
+        'tables': ['tbl_calibration'], 
+        'login_fields': ['login_email','login_sitecode'], 
+        'function': calibration
+    },
+    'datalogger': {
+        'tables': ['tbl_data_logger_raw'], 
+        'login_fields': ['login_email','login_sitecode','login_loggernumber','login_pendantid','login_start','login_end'],  
+        'function': datalogger
+    }
 }
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 
-
+app.register_blueprint(upload)
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
