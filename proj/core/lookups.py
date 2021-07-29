@@ -8,6 +8,8 @@ from .functions import checkData
 def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
     #assert dtype in tbl_tablenames.keys(), "Invalid Datatype in checkLookUpCodes function call"
     
+    lu_list_script_root = 'checker2'
+
     lookup_sql = f"""
         SELECT
             kcu.column_name, 
@@ -62,7 +64,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
                             row.name,
                             row[x['column_name']], 
                             f"""The value you entered here ({row[x['column_name']]}) does not match the 
-                            <a href=\\\"/nese/scraper?action=help&layer={x['foreign_table_name']}\\\"> 
+                            <a href=\\\"/{lu_list_script_root}/scraper?action=help&layer={x['foreign_table_name']}\\\"> 
                             Lookup List
                             </a>"""
                         ),
@@ -73,7 +75,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
             badcolumn = x['column_name'],
             error_type = "Lookup List Fail",
             is_core_error = True,
-            error_message = f"Item not in the <a href=\"/nese/scraper?action=help&layer={x['foreign_table_name']}\" target=\"blank\">Lookup List</a>"
+            error_message = f"Item not in the <a href=\"/{lu_list_script_root}/scraper?action=help&layer={x['foreign_table_name']}\" target=\"blank\">Lookup List</a>"
         ) 
         if not 
             dataframe[

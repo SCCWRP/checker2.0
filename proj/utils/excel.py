@@ -3,6 +3,7 @@ from openpyxl import load_workbook
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
 from flask import session
+from math import floor
 
 
 def mark_workbook(all_dfs, excel_path, errs, warnings):
@@ -69,11 +70,20 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
 
     for sheet in wb.sheetnames:
         for coord in errs_cells.get(sheet) if errs_cells.get(sheet) is not None else []:
-            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].fill = redFill 
-            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
+            
+            # the workbook sheet or whatever its called accesses the cells of the excel file not with the numeric indexing like pandas but rather that letter indexing thing
+            # like "Cell A1" and stuff like that
+
+            # So the gigantic disgusting f string f"{chr(65 +  (math.floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"
+            # is to convert from pandas indexing to the letter indexing style thing
+
+            colindex = coord.get('column_index')
+            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"].fill = redFill 
+            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
         for coord in warnings_cells.get(sheet) if warnings_cells.get(sheet) is not None else []:
-            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].fill = yellowFill 
-            wb[sheet][f"{chr(65 + int(coord.get('column_index')))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
+            colindex = coord.get('column_index')
+            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"].fill = yellowFill 
+            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"].comment = Comment(coord.get('message'), "Checker")
 
     wb.save(marked_path)
 

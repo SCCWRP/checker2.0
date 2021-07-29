@@ -36,7 +36,7 @@ def load():
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
         
-        if sheet not in current_app.tabs_to_ignore
+        if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
     }
 
     valid_tables = pd.read_sql(
@@ -91,7 +91,8 @@ def load():
             submissionid = session['submissionid']
         ).assign(
             # This will assign all the other necessary columns from the user's login, which typically are appended as columns
-            **session.get('login_info')
+            # for BMP specifically we dont want to include the login_testsite
+            **{k:v for k,v in session.get('login_info').items() if k != 'login_testsite'}
         )
 
 
@@ -156,18 +157,6 @@ def load():
         UPDATE submission_tracking_table 
         SET submit = 'yes' 
         WHERE submissionid = {session.get('submissionid')};
-        """
-    )
-
-    # Update the analysis report table
-    current_app.eng.execute(
-        f"""
-        UPDATE analysis_report 
-        SET l{session.get('login_info').get('login_loggernumber')}_submission_status = 'DATA_SUBMITTED',
-        l{session.get('login_info').get('login_loggernumber')}_submission_email = '{session.get('login_info').get('login_email')}',
-        l{session.get('login_info').get('login_loggernumber')}_submission_date = '{pd.Timestamp(int(session['submissionid']), unit = 's')}'
-        WHERE sitecode = '{session.get('login_info').get('login_sitecode')}'
-        AND l{session.get('login_info').get('login_loggernumber')}_pendent_id = {session.get('login_info').get('login_pendantid')}
         """
     )
 

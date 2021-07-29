@@ -26,8 +26,7 @@ class GeoDBDataFrame(DataFrame):
         # Thus we will make these assert statements for faster troubleshooting and debugging.
         assert set(self.columns) - set(tbl_cols) == set(), \
             f"Dataframe has columns not found in table {tablename}: {','.join(set(self.columns) - set(tbl_cols))}"
-        assert set(tbl_cols) - set(self.columns) == set(), \
-            f"Table {tablename} has columns not found in Dataframe: {','.join(set(tbl_cols) - set(self.columns))}"
+        
 
         if not self.empty:
             # this used to have ON CONFLICT ON CONSTRAINT (prinary key) DO NOTHING

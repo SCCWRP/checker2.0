@@ -43,25 +43,55 @@ def index():
         """
     )
 
-    # Only return list of sitecodes which have been revisited
-    sitecodes = pd.read_sql(
+
+    # Return array of agencycodes and corresponding names
+    agencies = pd.read_sql(
             """
             SELECT
-                DISTINCT sitecode
+                DISTINCT agencycode, agencyname
             FROM
-                vw_logger_deployment
+                lu_agency
+            WHERE agencyname != 'Not Recorded'
             """,
-            eng                                
+            eng
         ) \
-        .sitecode \
-        .tolist()
+        .values
+    
+    # Make it a dictionary
+    agencies = {a[0]: a[1] for a in agencies}
+
 
     return render_template(
         'index.html', 
         projectname = current_app.project_name,
-        sitecodes = sitecodes
+        agencies = agencies
     )
 
+
+@homepage.route('/testsites', methods = ['GET','POST'])
+def testsites():
+
+    agency = request.form.get('login_agency')
+    eng = current_app.eng
+
+    # Get testsites that have data in unified_testsite
+    testsites = pd.read_sql(
+            f"""
+            SELECT
+                DISTINCT sitename, siteid
+            FROM
+                unified_testsite
+            WHERE login_agency = '{agency}'
+            ORDER BY sitename
+            """,
+            eng                                
+        ) \
+        .values
+
+    # Sitename and SiteID's and key value pairs
+    testsites = [{"sitename": t[0], "siteid": t[1]} for t in testsites]
+
+    return jsonify(testsites=testsites)
 
 
 @homepage.route('/login', methods = ['GET','POST'])
@@ -104,120 +134,6 @@ def login():
 
     return jsonify(msg="login successful")
 
-
-@homepage.route('/startdates', methods = ['GET','POST'])
-def startdates():
-    
-    eng = current_app.eng
-
-    sitecode = request.form.get('login_sitecode')
-    lognum = request.form.get('login_loggernumber')
-    pendantid = request.form.get('login_pendantid')
-
-    # prevent sql injection
-    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM vw_logger_deployment", eng).sitecode.values, \
-        f"Bad request to /startdates - sitecode {sitecode} not found in vw_logger_deployment"
-    assert int(lognum) in (1,2), f"Bad request to /startdates - lognum {lognum} not found in vw_logger_deployment"
-    assert int(pendantid) in pd.read_sql(f"SELECT l{lognum}_pendent_id::INTEGER AS pendantid FROM vw_logger_deployment", eng) \
-        .pendantid \
-        .values, \
-        f"Bad request to /startdates - L{lognum} pendantid {pendantid} not found in vw_logger_deployment"
-    sql = f"""
-            SELECT DISTINCT
-            collectiondate AS startdate 
-        FROM
-            vw_logger_deployment
-        WHERE
-            sitecode = '{sitecode}' 
-            AND l{lognum}_pendent_id :: INTEGER = {pendantid} 
-            AND collectiondate != (
-            SELECT
-            CASE
-                WHEN
-                    ( SELECT 
-                        COUNT ( * ) FROM vw_logger_deployment
-                        WHERE sitecode = '{sitecode}' AND l{lognum}_pendent_id :: INTEGER = {pendantid} AND collectiondate IS NOT NULL ) = 1 
-                THEN
-                    '1000-01-01 00:00:00' 
-                ELSE MAX ( collectiondate ) 
-                END 
-            FROM
-                vw_logger_deployment 
-            WHERE
-                sitecode = '{sitecode}' 
-            AND l{lognum}_pendent_id :: INTEGER = {pendantid} 
-            );
-            """
-    startdates = pd.read_sql(sql, eng) \
-        .startdate \
-        .values
-    
-    startdates = [pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S") for x in startdates]
-
-    return jsonify(startdates=startdates)
-
-
-@homepage.route('/enddates', methods = ['GET','POST'])
-def enddates():
-    
-    eng = current_app.eng
-
-    sitecode = request.form.get('login_sitecode')
-    startdate = request.form.get('login_start')
-
-    # prevent sql injection
-    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM vw_logger_deployment", eng).sitecode.values, \
-        "Bad request to /enddates - sitecode not found in vw_logger_deployment"
-    try:
-        startdate = pd.Timestamp(startdate).strftime("%Y-%m-%d %H:%M:%S")
-    except Exception as e:
-        print(e)
-        raise Exception(f"startdate form value {startdate} unable to be coerced to timestamp.")
-    
-    enddates = pd.read_sql(
-            f"""
-            SELECT
-                DISTINCT MIN(collectiondate) AS enddate
-            FROM
-                vw_logger_deployment 
-            WHERE  sitecode = '{sitecode}' 
-                and collectiondate > '{startdate}'
-            """,
-            eng
-        ) \
-        .enddate \
-        .values
-    
-    # We know it will be one value, but i'll return it as an array anyways
-    enddates = [pd.Timestamp(x).strftime("%Y-%m-%d %H:%M:%S") for x in enddates if not pd.isnull(x)]
-
-    return jsonify(enddates=enddates)
-
-@homepage.route('/pendantids', methods = ['GET','POST'])
-def pendantids():
-    
-    eng = current_app.eng
-
-    sitecode = request.form.get('login_sitecode')
-    lognum = request.form.get('login_loggernumber')
-
-    assert sitecode in pd.read_sql("SELECT DISTINCT sitecode FROM unified_main", eng) \
-        .sitecode.values, \
-        "Bad request to /pendantids - sitecode not found in unified_main"
-    assert int(lognum) in (1,2), "Bad request to /pendantids - loggernumber should be 1 or 2"
-    
-    pendantids = pd.read_sql(
-            # that column name should be pendant id rather than pendent
-            f"""
-            SELECT DISTINCT l{lognum}_pendent_id FROM vw_logger_deployment 
-            WHERE sitecode = '{sitecode}'
-            ;""",
-            eng
-        ) \
-        [f'l{lognum}_pendent_id'] \
-        .tolist()
-    
-    return jsonify(pendantids=[x for x in pendantids if not pd.isnull(x)])
 
 
     

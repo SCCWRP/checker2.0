@@ -1,11 +1,10 @@
-# Dont touch this file! This is intended to be a template for implementing new custom checks
-
-from inspect import currentframe
 from flask import current_app
+from inspect import currentframe
 from .functions import checkData, get_badrows
+from copy import deepcopy
+import pandas as pd
 
-def example(all_dfs):
-    
+def meta(all_dfs):
     current_function_name = str(currentframe().f_code.co_name)
     
     # function should be named after the dataset in app.datasets in __init__.py
@@ -20,8 +19,10 @@ def example(all_dfs):
     # we assign dataframes of all_dfs to variables and go from there
     # This is the convention that was followed in the old checker
     
-    # This data type should only have tbl_example
-    # example = all_dfs['tbl_example']
+    # This data type should have tbl_testsite, bmpinfo, and monitoringstation
+    testsite = all_dfs['tbl_testsite']
+    bmp = all_dfs['tbl_bmpinfo']
+    ms = all_dfs['tbl_monitoringstation']
 
     errs = []
     warnings = []
@@ -29,14 +30,23 @@ def example(all_dfs):
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     args = {
-        "dataframe": df,
-        "tablename": tbl,
+        "dataframe": pd.DataFrame({}),
+        "tablename": 'tbl_test',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
         "is_core_error": False,
         "error_message": ""
     }
+    testsite_args = deepcopy(args)
+    testsite_args.update({"dataframe": testsite, "tablename": 'tbl_testsite'})
+
+    bmp_args = deepcopy(args)
+    bmp_args.update({"dataframe": bmp, "tablename": 'tbl_bmpinfo'})
+
+    ms_args = deepcopy(args)
+    ms_args.update({"dataframe": ms, "tablename": 'tbl_monitoringstation'})
+
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
@@ -46,6 +56,24 @@ def example(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+
+
+    # --- Testsite checks --- #
+
+    # --- End Testsite checks --- #
+
+
+
+    # --- BMP Info checks --- #
+
+    # --- End BMP Info checks --- #
+
+
+
+    # --- Monitoringstation checks --- #
+
+    # --- End Monitoringstation checks --- #
+
 
 
     

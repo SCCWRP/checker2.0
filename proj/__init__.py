@@ -9,8 +9,9 @@ from .load import finalsubmit
 from .download import download
 from .scraper import scraper
 from .core.functions import fetch_meta
-from .custom.datalogger import datalogger
-from .custom.calibration import calibration
+from .custom.bmpmeta import meta
+from .custom.bmpmonitoring import monitoring
+from .custom.watershed import watershed
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -29,10 +30,10 @@ app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
 app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
 
 # Project name
-app.project_name = "NESE"
+app.project_name = "BMP"
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org', 'duyn@sccwrp.org']
+app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
@@ -41,9 +42,8 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','submissionid','warnings',
-    'login_pendantid','login_collectiondate','login_sitecode',
-    'login_end','login_loggernumber','login_datatype','login_start'
+    'login_email','login_agency','login_datatype','submissionid','warnings',
+    'login_testsite', 'msid', 'siteid'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
@@ -52,7 +52,7 @@ app.tabs_to_ignore = []
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
 # NESE offsets by 2 rows
-app.excel_offset = 2
+app.excel_offset = 1
 
 # data sets / groups of tables for datatypes will be defined here in __init__.py
 app.datasets = {
@@ -61,18 +61,20 @@ app.datasets = {
     #   i think they have to be stored here as lists because sets are not json serializable?
     # function
     #   the custom checks function associated with the datatype. Imported up top
-    # offset
-    #   Some people like to give the clients excel submission templates with column descriptions in the first row
-    #   offset refers to the number of rows to offset, or skip, when reading in the excel file
-    'calibration': {
-        'tables': ['tbl_calibration'], 
-        'login_fields': ['login_email','login_sitecode'], 
-        'function': calibration
+    'meta': {
+        'tables': ['tbl_testsite','tbl_bmpinfo','tbl_watershed','tbl_monitoringstation'], 
+        'login_fields': ['login_email','login_agency'], 
+        'function': meta
     },
-    'datalogger': {
-        'tables': ['tbl_data_logger_raw'], 
-        'login_fields': ['login_email','login_sitecode','login_loggernumber','login_pendantid','login_start','login_end'],  
-        'function': datalogger
+    'monitoring': {
+        'tables': ['tbl_precipitation','tbl_ceden_waterquality','tbl_flow'], 
+        'login_fields': ['login_email','login_agency','login_testsite'],
+        'function': monitoring
+    },
+    'watershed': {
+        'tables': ['tbl_watershed'], 
+        'login_fields': ['login_email','login_agency'],  
+        'function': watershed
     }
 }
 

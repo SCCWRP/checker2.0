@@ -28,24 +28,36 @@
                       <label for="datatype-radio" id="datatype-radio-label">Select Submission Type:</label>
                     </div>
                   </div>
+                  <br>
                   <div class="row">
                     <div class="row col-sm">
-    
-                      <div class="col-sm">
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio1"
-                            value="datalogger" checked>
-                          <label class="form-check-label" for="datatype-radio1">
-                            Logger Raw Data
-                          </label>
-                        </div>
-                      </div>
+
                       <div class="col-sm">
                         <div class="form-check form-check-inline">
                           <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio2"
-                            value="calibration">
+                            value="monitoring" checked>
                           <label class="form-check-label" for="datatype-radio2">
-                            Calibration
+                            Monitoring Data
+                          </label>
+                        </div>
+                      </div>
+
+                      <div class="col-sm">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio1"
+                            value="meta">
+                          <label class="form-check-label" for="datatype-radio1">
+                            One Time "Meta Data" submission
+                          </label>
+                        </div>
+                      </div>
+                      
+                      <div class="col-sm">
+                        <div class="form-check form-check-inline">
+                          <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio2"
+                            value="watershed">
+                          <label class="form-check-label" for="datatype-radio2">
+                            Watershed Data
                           </label>
                         </div>
                       </div>
@@ -55,77 +67,27 @@
                 <br>
                 <div class="login-input-container form-group">
                   <label for="login_email">Enter your email address:</label>
-                  <input type="email" name="login_email" class="form-control" placeholder="name@example.com">
+                  <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
                 </div>
                 <br />
-                <div class="form-group calibration-required raw-required form-group-dynamic" id="sitecode-select-container">
-                  <label for="sitecode-select">Select the sitecode which you are submitting for:</label>
-                  <select class="form-control" id="sitecode-select" name="login_sitecode">
+                <div class="form-group meta-required monitoring-required watershed-required form-group-dynamic" id="agency-select-container">
+                  <label for="agency-select">Select Your Agency:</label>
+                  <select class="form-control" id="agency-select" name="login_agency">
                     <option value="none" selected disabled hidden></option>
-                    {% for s in sitecodes%}
-                    <option value="{{s}}">{{s}}</option>
+                    {% for agencycode,agencyname in agencies.items()%}
+                    <option value="{{agencycode}}">{{agencyname}}</option>
                     {%endfor%}
                   </select>
                 </div>
-                <br>
-                <div class="form-group container raw-required form-group-dynamic" id="logger-radio-container">
-                  <div class="row logger-radio-label-container">
-                    <div class="col-sm">
-                      <label for="logger-radio" id="logger-radio-label">Select Logger #:</label>
-                    </div>
-                  </div>
-                  <div class="row">
-
-                    <div class="col-sm"></div>
-
-                    <div class="row col-sm">
-
-                      <div class="col-sm">
-                        <div class="form-check form-check-radio">
-                          <input class="form-check-input" type="radio" name="login_loggernumber" id="logger-radio1" value="1" checked>
-                          <label class="form-check-label" for="logger-radio1">
-                            1
-                          </label>
-                        </div>
-                      </div>
-                      <div class="col-sm">
-                        <div class="form-check form-check-radio">
-                          <input class="form-check-input" type="radio" name="login_loggernumber" id="logger-radio2" value="2">
-                          <label class="form-check-label" for="logger-radio2">
-                            2
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="col-sm"></div>
-
-                  </div>
-                  
-                </div>
-                <br>
-                <div class="form-group raw-required form-group-dynamic" id="pendantid-select-container">
-                  <label for="pendantid-select">Select Pendant ID:</label>
-                  <select class="form-control" id="pendantid-select" name="login_pendantid">
+                <br />
+                <div class="form-group monitoring-required form-group-dynamic"
+                  id="testsite-select-container">
+                  <label for="testsite-select">Select the testsite which you are submitting for:</label>
+                  <select class="form-control" id="testsite-select" name="login_testsite">
                     <option value="none" selected disabled hidden></option>
                   </select>
                 </div>
-                
-                <br>
-                <div class="form-group raw-required form-group-dynamic" id="startdate-select-container">
-                  <label for="startdate-select">Select start date:</label>
-                  <select class="form-control" id="startdate-select" name="login_start">
-                    <option value="none" selected disabled hidden></option>
-                  </select>
-                </div>
-                <br>
-                <div class="form-group raw-required form-group-dynamic" id="enddate-select-container">
-                  <label for="enddate-select">Select end date:</label>
-                  <select class="form-control" id="enddate-select" name="login_end">
-                    <option value="none" selected disabled hidden></option>
-                  </select>
-                </div>
-                <br>
+                <br />
                 <div class="login-input-container form form-group hidden" id="login-form-submit-btn-container">
                   <button class="btn btn-secondary" type="submit">Sign in</button>
                 </div>

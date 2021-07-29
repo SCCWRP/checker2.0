@@ -88,7 +88,7 @@ def main():
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
         
-        if sheet not in current_app.tabs_to_ignore
+        if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
     }
     
     assert len(all_dfs) > 0, f"submissionid - {session.get('submissionid')} all_dfs is empty"

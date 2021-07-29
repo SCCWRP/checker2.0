@@ -87,6 +87,8 @@ def checkDuplicatesInProduction(dataframe, tablename, eng, *args, output = None,
 
     if not current_recs.empty:
 
+        
+
         # merge current recs with a left merge and tack on that "already_in_db" column
         dataframe = dataframe.merge(current_recs, on = pkey, how = 'left')
 

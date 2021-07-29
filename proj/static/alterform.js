@@ -11,11 +11,24 @@
 
             const dtype = document.querySelector("input[type='radio'][name='login_datatype']:checked").value;
             
-            if (dtype === 'calibration') {
-                if (document.querySelector('#sitecode-select').value !== "none") {
-                    document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
-                }
+            switch (dtype) {
+                case 'monitoring':
+                    if (
+                        document.querySelector('#agency-select').value !== "none" & 
+                        document.querySelector('#login_email').value !== "" &
+                        document.querySelector('#testsite-select').value !== "none" 
+                    ) {
+                        document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
+                    }
+                default:
+                    if (
+                        document.querySelector('#agency-select').value !== "none" & 
+                        document.querySelector('#login_email').value !== ""
+                    ) {
+                        document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
+                    }
             }
+
         })
     })
 })()
