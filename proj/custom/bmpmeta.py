@@ -38,14 +38,6 @@ def meta(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-    testsite_args = deepcopy(args)
-    testsite_args.update({"dataframe": testsite, "tablename": 'tbl_testsite'})
-
-    bmp_args = deepcopy(args)
-    bmp_args.update({"dataframe": bmp, "tablename": 'tbl_bmpinfo'})
-
-    ms_args = deepcopy(args)
-    ms_args.update({"dataframe": ms, "tablename": 'tbl_monitoringstation'})
 
 
     # Example of appending an error (same logic applies for a warning)
@@ -58,23 +50,247 @@ def meta(all_dfs):
     # errs = [*errs, checkData(**args)]
 
 
-    # --- Testsite checks --- #
 
-    # --- End Testsite checks --- #
-
-
-
-    # --- BMP Info checks --- #
-
-    # --- End BMP Info checks --- #
-
-
-
-    # --- Monitoringstation checks --- #
-
-    # --- End Monitoringstation checks --- #
-
+    # (1) 
+    # bmp name shouldnt have a comma in it
+    args.update({
+        "dataframe": bmp, 
+        "tablename": 'tbl_bmpinfo',
+        # Commented out code is what i think will work - Robert
+        #"badrows": get_badrows(bmp[bmp.bmpname.apply(lambda x: ',' in x)]),
+        "badrows": get_badrows(bmp[bmp['bmpname'].isin([x for x in bmp.bmpname.values if "," in x])]),
+        "badcolumn": "bmpname",
+        "error_type" : "Invalid BMP Name",
+        "error_message" : "BMP Names may not contain commas."
+    })
+    errs = [*errs, checkData(**args)]
 
 
+    # (2)
+    # Upstream BMP names must be found within the list of BMP names that they are submitting
+    bad_upstreambmp = list(
+        set([x.strip() for item in bmp['upstreambmpnames'].dropna().values for x in item.split(",")])  
+        -
+        set(bmp['bmpname'].values)
+    )
+        
+    df_badrows = bmp[bmp['upstreambmpnames'].isin(
+        set([x for x in bmp['upstreambmpnames'].dropna().values for y in bad_upstreambmp if y in x]) 
+    )]
+    args.update({
+        "dataframe": bmp, 
+        "tablename": 'tbl_bmpinfo',
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "upstreambmpnames",
+        "error_type" : "Invalid BMP Name",
+        "error_message" : "There is a BMP name in your list of upstream BMP names, which did not appear in the BMPName column"
+    })
+    errs = [*errs, checkData(**args)]
+
+
+    # (3)
+
+    # sitecode_measurementtype = {
+    #     tmpsitename: 
+    #     set([
+    #         x.strip() 
+    #         for item in ms[ms.sitename ==tmpsitename].measurementtype.dropna().values  
+    #         for x in item.split(",")
+    #     ]) 
+    #     for tmpsitename in ms.sitename.unique()    
+    # }
+
+    sitecode_measurementtype = {
+        x :
+        set(
+            sum(
+                [
+                    # mtypes = measurementtypes
+                    list(map(lambda mtypes: mtypes.replace(" ",""),mtypes.split(","))) 
+                    for mtypes in y['measurementtype'].values
+                ],
+                []
+            )
+        ) 
+        for x,y in ms.groupby('sitename')
+    }
+    bad_sitename = [x for x in sitecode_measurementtype.keys() if "P" not in sitecode_measurementtype[x]]
+    
+    df_badrows = ms[ms['sitename'].isin(bad_sitename)]
+    args.update({
+        "dataframe": ms, 
+        "tablename": 'tbl_monitoringstation',
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "measurementtype,sitename",
+        "error_type" : "No rain gauge",
+        "error_message" : "This SiteName does not have a rain gauge"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # (4)
+    in_bmp_notin_ms = list(
+        set([(x,y) for x,y in zip(bmp['sitename'],bmp['bmpname'])]) - set([(x,y) for x,y in zip(ms['sitename'],ms['bmpname'])])
+    )
+    df_badrows = bmp[bmp[['sitename','bmpname']].agg(tuple,1).isin(in_bmp_notin_ms)]
+    args.update({
+        "dataframe": bmp,
+        "tablename": "tbl_bmpinfo",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "sitename,bmpname",
+        "error_type" : "No matching sitename,bmpname",
+        "error_message" : "BMP Info and Monitoring Station must have matching sitename-bmpname. "+\
+                          "This sitename-bmpname pair does not exist in Monitoring Station",
+    })
+    errs = [*errs, checkData(**args)]
+    
+    # (5) 
+    in_ms_notin_bmp = list(
+        set([(x,y) for x,y in zip(ms['sitename'],ms['bmpname'])]) - set([(x,y) for x,y in zip(bmp['sitename'],bmp['bmpname'])])
+    )
+    df_badrows = ms[ms[['sitename','bmpname']].agg(tuple,1).isin(in_ms_notin_bmp)]
+    args.update({
+        "dataframe": ms,
+        "tablename": "tbl_monitoringstation",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "sitename,bmpname",
+        "error_type" : "No matching sitename,bmpname",
+        "error_message" : "BMP Info and Monitoring Station must have matching sitename-bmpname. "+\
+                          "This sitename-bmpname pair does not exist in BMP Info"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # (6)
+    df_badrows = testsite[testsite['sitename'].isin(list(set(testsite['sitename']) - set(bmp['sitename'])) )]
+    args.update({
+        "dataframe": testsite,
+        "tablename": "tbl_testsite",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "sitename",
+        "error_type" : "Logic Error",
+        "error_message" : "This test site name did not show up in the BMP Info tab."
+    })
+    errs = [*errs, checkData(**args)]
+
+    # (7)
+
+    args.update({
+        "dataframe": testsite,
+        "tablename": "tbl_testsite",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "sitename",
+        "error_type" : "Logic Error",
+        "error_message" : "This test site name did not show up in the BMP Info tab."
+    })
+    errs = [*errs, checkData(**args)]
+
+    # (8)
+    # We may need to only run this if it passes the logic check 
+    # that each record in monitoringstation has a corresponding record in bmpinfo
+    df_badrows = ms[
+        ms.apply(
+            lambda row: 
+            all([
+                row['stationtype'] =="Bypass",
+                pd.isnull(
+                    bmp[(bmp.bmpname == row['bmpname']) & (bmp.sitename == row['sitename'])].upstreambmpnames.values[0].replace('',pd.NA)
+                ) 
+            ]) 
+            ,
+            axis=1
+        )
+    ]
+    args.update({
+        "dataframe": ms,
+        "tablename": "tbl_monitoringstation",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "stationtype",
+        "error_type" : "Logic Error",
+        "error_message" : (
+            "This Monitoring Station is a bypass " 
+            "but it is associated with a BMP which is in the middle of a treatment train sequence"
+        )
+    })
+    errs = [*errs, checkData(**args)]
+    args.update({
+        "dataframe": ms,
+        "tablename": "tbl_monitoringstation",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "stationtype",
+        "error_type" : "Logic Error",
+        "error_message" : (
+            "This Monitoring Station is a bypass " 
+            "but it is associated with a BMP which is in the middle of a treatment train sequence"
+        )
+    })
+    errs = [*errs, checkData(**args)]
+
+    # (9) in watershed.py
+
+    # (10)
+    sitecode_measurementtype = {
+        x : 
+        set(
+            sum([
+                list(map(lambda x: x.replace(" ",""),x.split(","))) 
+                for x in y['measurementtype'].values 
+            ],[])
+        ) 
+        for x,y in ms.groupby('sitename')
+    }
+    bad_measurement_type = list(
+        set(*sitecode_measurementtype.values()) 
+        -
+        set(pd.read_sql("SELECT measurementtype FROM lu_measurementtype",current_app.eng).measurementtype.values)
+    )
+        
+    ms['badrows'] = ms.apply(
+        lambda row: ",".join([
+            x for x in bad_measurement_type if x in row['measurementtype']
+        ]) 
+        if len([x for x in bad_measurement_type if x in row['measurementtype']]) > 0  
+        else pd.NA, 
+        axis=1
+    )
+    df_badrows = ms[~ms['badrows'].isnull()]
+
+    args.update({
+        "dataframe": ms,
+        "tablename": "tbl_monitoringstation",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "measurementtype",
+        "error_type" : "Lookup Fail",
+        "error_message" : "Entry not found in lookup list."
+    })
+    errs = [*errs, checkData(**args)]
+
+    # (11)
+    duplicate_stationname = {
+        x :
+        [
+            x for x in y['stationname'].values 
+            if y['stationname'].to_list().count(x) > 1
+        ] 
+        for x,y in ms.groupby('sitename')
+    }
+
+    ms['badrows'] = ms.apply(
+        lambda row: 
+        "bad" 
+        if row['stationname'] in duplicate_stationname[row['sitename']] 
+        else pd.NA,
+        axis=1
+    )
+
+    df_badrows = ms[ms['badrows'] == 'bad']
+    ms.drop(columns = 'badrows',inplace=True)
+    args.update({
+        "dataframe": ms,
+        "tablename": "tbl_monitoringstation",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "measurementtype",
+        "error_type" : "Duplicate Submission Error",
+        "error_message" : "Duplicates found for StationName. Monitoring StationNames must be unique for test site."
+    })
+    errs = [*errs, checkData(**args)]
     
     return {'errors': errs, 'warnings': warnings}
