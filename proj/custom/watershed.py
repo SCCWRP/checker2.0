@@ -45,5 +45,22 @@ def watershed(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
-    
+    # (1) 
+
+    lu_insitusoil = pd.read_sql("SELECT * FROM lu_insitusoil", current_app.eng).insitusoil.to_list() 
+    df_badrows = watershed[~watershed['insitusoil'].isnull()][watershed['insitusoil'].isin([
+        x for x in watershed['insitusoil'] if x not in lu_insitusoil
+    ])]
+    args.update({
+        "dataframe": watershed, 
+        "tablename": "tbl_watershed",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "insitusoil",
+        "error_type" : "Lookup Fail",
+        "error_message" : "Entry is not in lookup list."
+    })
+    errs = [*errs, checkData(**args)]
+
+
+
     return {'errors': errs, 'warnings': warnings}
