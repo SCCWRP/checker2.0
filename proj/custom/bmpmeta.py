@@ -106,8 +106,10 @@ def meta(all_dfs):
             sum(
                 [
                     # mtypes = measurementtypes
-                    list(map(lambda mtypes: mtypes.replace(" ",""),mtypes.split(","))) 
-                    for mtypes in y['measurementtype'].values
+                    list(map(lambda mtypes: mtypes.strip(), mtypes.split(","))) 
+                    
+                    # fillna with empty string here since it's making them np.NaN's when we expect a string
+                    for mtypes in y['measurementtype'].fillna('').values
                 ],
                 []
             )
@@ -128,34 +130,50 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (4)
-    in_bmp_notin_ms = list(
-        set([(x,y) for x,y in zip(bmp['sitename'],bmp['bmpname'])]) - set([(x,y) for x,y in zip(ms['sitename'],ms['bmpname'])])
-    )
-    df_badrows = bmp[bmp[['sitename','bmpname']].agg(tuple,1).isin(in_bmp_notin_ms)]
+    df_badrows = bmp[
+        bmp.apply(
+            lambda row:
+            (row['sitename'], row['bmpname'])
+            not in
+            tuple(zip(ms.sitename, ms.bmpname))
+            ,
+            axis = 1
+        )
+    ]
     args.update({
         "dataframe": bmp,
         "tablename": "tbl_bmpinfo",
         "badrows": get_badrows(df_badrows),
         "badcolumn": "sitename,bmpname",
         "error_type" : "No matching sitename,bmpname",
-        "error_message" : "BMP Info and Monitoring Station must have matching sitename-bmpname. "+\
-                          "This sitename-bmpname pair does not exist in Monitoring Station",
+        "error_message" : (
+            "This record did not have a matching record in the MonitoringStation tab. "
+            "Records are matched on SiteName and BMPName"
+        )
     })
     errs = [*errs, checkData(**args)]
     
     # (5) 
-    in_ms_notin_bmp = list(
-        set([(x,y) for x,y in zip(ms['sitename'],ms['bmpname'])]) - set([(x,y) for x,y in zip(bmp['sitename'],bmp['bmpname'])])
-    )
-    df_badrows = ms[ms[['sitename','bmpname']].agg(tuple,1).isin(in_ms_notin_bmp)]
+    df_badrows = ms[
+        ms.apply(
+            lambda row:
+            (row['sitename'], row['bmpname'])
+            not in
+            tuple(zip(bmp.sitename, bmp.bmpname))
+            ,
+            axis = 1
+        )
+    ]
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
         "badrows": get_badrows(df_badrows),
         "badcolumn": "sitename,bmpname",
-        "error_type" : "No matching sitename,bmpname",
-        "error_message" : "BMP Info and Monitoring Station must have matching sitename-bmpname. "+\
-                          "This sitename-bmpname pair does not exist in BMP Info"
+        "error_type" : "Record mismatch",
+        "error_message" : (
+            "This record did not have a matching record in the BMP Info tab. "
+            "Records are matched on SiteName and BMPName"
+        )
     })
     errs = [*errs, checkData(**args)]
 
@@ -190,9 +208,15 @@ def meta(all_dfs):
         ms.apply(
             lambda row: 
             all([
-                row['stationtype'] =="Bypass",
+                row['stationtype'] == "Bypass",
                 pd.isnull(
-                    bmp[(bmp.bmpname == row['bmpname']) & (bmp.sitename == row['sitename'])].upstreambmpnames.values[0].replace('',pd.NA)
+                    bmp[
+                        (bmp.bmpname == row['bmpname']) 
+                        & (bmp.sitename == row['sitename'])
+                    ] \
+                    .upstreambmpnames \
+                    .replace('',pd.NA) \
+                    .values[0]
                 ) 
             ]) 
             ,
@@ -231,8 +255,8 @@ def meta(all_dfs):
         x : 
         set(
             sum([
-                list(map(lambda x: x.replace(" ",""),x.split(","))) 
-                for x in y['measurementtype'].values 
+                list(map(lambda x: x.strip(), x.split(","))) 
+                for x in y['measurementtype'].fillna('').values
             ],[])
         ) 
         for x,y in ms.groupby('sitename')
@@ -273,16 +297,14 @@ def meta(all_dfs):
         for x,y in ms.groupby('sitename')
     }
 
-    ms['badrows'] = ms.apply(
-        lambda row: 
-        "bad" 
-        if row['stationname'] in duplicate_stationname[row['sitename']] 
-        else pd.NA,
-        axis=1
-    )
-
-    df_badrows = ms[ms['badrows'] == 'bad']
-    ms.drop(columns = 'badrows',inplace=True)
+    df_badrows = ms[
+        ms.apply(
+            lambda row: 
+            row['stationname'] in duplicate_stationname[row['sitename']]
+            ,
+            axis=1
+        )
+    ]
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
@@ -292,5 +314,8 @@ def meta(all_dfs):
         "error_message" : "Duplicates found for StationName. Monitoring StationNames must be unique for test site."
     })
     errs = [*errs, checkData(**args)]
+
+    errs = [e for e in errs if len(e) > 0]
+    warnings = [w for w in warnings if len(w) > 0]
     
     return {'errors': errs, 'warnings': warnings}
