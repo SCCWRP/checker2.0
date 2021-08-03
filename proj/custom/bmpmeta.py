@@ -190,14 +190,14 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (7)
-
+    df_badrows = bmp[bmp['sitename'].isin(list(set(bmp['sitename']) - set(testsite['sitename'])) )]
     args.update({
-        "dataframe": testsite,
-        "tablename": "tbl_testsite",
+        "dataframe": bmp,
+        "tablename": "tbl_bmpinfo",
         "badrows": get_badrows(df_badrows),
         "badcolumn": "sitename",
         "error_type" : "Logic Error",
-        "error_message" : "This test site name did not show up in the BMP Info tab."
+        "error_message" : "This test site name did not show up in the Test Site tab."
     })
     errs = [*errs, checkData(**args)]
 
