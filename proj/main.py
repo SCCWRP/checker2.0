@@ -154,6 +154,14 @@ def main():
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
 
+    # add login_dataprovider temporarily since it is part of the primary key for all tables
+    # But it is not in their excel file, rather they entered it in the login form
+    # So core checks needs it to check duplicates
+    for tablename in all_dfs.keys():
+        all_dfs[tablename] = all_dfs[tablename].assign(
+            login_dataprovider = session.get('login_info').get('login_dataprovider')
+        )
+
     # tack on core errors to errors list
     errs.extend(
         # debug = False will cause corechecks to run with multiprocessing, 
@@ -162,6 +170,14 @@ def main():
         #core(all_dfs, current_app.eng, dbmetadata, debug = True)
     )
     print("DONE - Core Checks")
+
+
+    # drop login_dataprovider since it was only needed temporarily for core checks
+    for tablename in all_dfs.keys():
+        all_dfs[tablename] = all_dfs[tablename].drop(
+            'login_dataprovider', axis = 1
+        )
+
 
     # ----------------------------------------- #
 

@@ -1,6 +1,7 @@
 import re
 from pandas import isnull, read_sql, concat
 from .functions import checkData, get_primary_key
+from flask import current_app
 
 # All the functions for the Core Checks should have the dataframe and the datatype as the two main arguments
 # This is to allow the multiprocessing to work, so it can pass in the same args to all the functions
@@ -13,6 +14,10 @@ def checkDuplicatesInSession(dataframe, tablename, eng, *args, output = None, **
     print("BEGIN function - checkDuplicatesInSession")
     
     pkey = get_primary_key(tablename, eng)
+
+    # For duplicates within session, dataprovider is not necessary to check
+    # Since it is assumed that all records within the submission are from the same dataprovider
+    pkey = [col for col in pkey if col not in current_app.system_fields]
 
     # initialize return value
     ret = []
@@ -119,7 +124,7 @@ def checkDuplicatesInProduction(dataframe, tablename, eng, *args, output = None,
                 dataframe = dataframe,
                 tablename = tablename,
                 badrows = badrows,
-                badcolumn = ','.join(pkey),
+                badcolumn = ','.join([col for col in pkey if col not in current_app.system_fields]),
                 error_type = "Duplicate",
                 is_core_error = True,
                 error_message = "This is a record which already exists in the database"

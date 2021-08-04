@@ -11,8 +11,6 @@ from .scraper import scraper
 from .core.functions import fetch_meta
 from .custom.bmpmeta import meta
 from .custom.bmpmonitoring import monitoring
-from .custom.watershed import watershed
-
 
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
@@ -42,7 +40,7 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','login_datatype','submissionid','warnings',
+    'login_email','login_agency','login_datatype','login_dataprovider', 'submissionid','warnings',
     'login_testsite', 'msid', 'siteid'
 ]
 

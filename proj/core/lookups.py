@@ -23,7 +23,9 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
             JOIN information_schema.constraint_column_usage AS ccu
             ON ccu.constraint_name = tc.constraint_name
             AND ccu.table_schema = tc.table_schema
-        WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name='{tablename}';
+        WHERE tc.constraint_type = 'FOREIGN KEY' 
+        AND tc.table_name='{tablename}'
+        AND ccu.table_name LIKE 'lu_%%';
     """
 
     # fkeys = foreign keys
