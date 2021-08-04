@@ -23,7 +23,8 @@ def meta(all_dfs):
     testsite = all_dfs['tbl_testsite']
     bmp = all_dfs['tbl_bmpinfo']
     ms = all_dfs['tbl_monitoringstation']
-
+    watershed = all_dfs['tbl_watershed']
+    
     errs = []
     warnings = []
 
@@ -314,6 +315,36 @@ def meta(all_dfs):
         "error_message" : "Duplicates found for StationName. Monitoring StationNames must be unique for test site."
     })
     errs = [*errs, checkData(**args)]
+
+
+    
+    # I think this code commented out wont work because the second mask is of a greater length than the dataframe it is filtering - Robert
+    # Let me know if that is not clear
+
+    # df_badrows = watershed[
+    #         ~watershed['insitusoil'].isnull()
+    #     ][
+    #         watershed['insitusoil'].isin(
+    #             [x for x in watershed['insitusoil'] if x not in lu_insitusoil]
+    #         )
+    #     ]
+    
+    lu_insitusoil = pd.read_sql("SELECT * FROM lu_insitusoil", current_app.eng).insitusoil.to_list() 
+    df_badrows = watershed[
+            # I replace empty string with none since i dont want an empty string to be falsely interpreted as a non missing value
+            watershed.insitusoil.replace('', None).apply(lambda x: (not pd.isnull(x)) and (x not in lu_insitusoil))
+        ]
+
+    args.update({
+        "dataframe": watershed, 
+        "tablename": "tbl_watershed",
+        "badrows": get_badrows(df_badrows),
+        "badcolumn": "insitusoil",
+        "error_type" : "Lookup Fail",
+        "error_message" : "Entry is not in lookup list (A, B, C, or D)"
+    })
+    errs = [*errs, checkData(**args)]
+
 
     errs = [e for e in errs if len(e) > 0]
     warnings = [w for w in warnings if len(w) > 0]

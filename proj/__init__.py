@@ -67,14 +67,9 @@ app.datasets = {
         'function': meta
     },
     'monitoring': {
-        'tables': ['tbl_precipitation','tbl_ceden_waterquality','tbl_flow'], 
+        'tables': ['tbl_precipitation','tbl_ceden_waterquality','tbl_flow'],
         'login_fields': ['login_email','login_agency','login_testsite'],
         'function': monitoring
-    },
-    'watershed': {
-        'tables': ['tbl_watershed'], 
-        'login_fields': ['login_email','login_agency'],  
-        'function': watershed
     }
 }
 

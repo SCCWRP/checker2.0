@@ -132,7 +132,7 @@ def main():
     current_app.eng.execute(
         f"""
         UPDATE submission_tracking_table 
-        SET datatype = '{match_dataset}' 
+        SET datatype = '{match_dataset}'
         WHERE submissionid = {session.get('submissionid')};
         """
     )
