@@ -2,6 +2,7 @@ import pandas as pd
 import re
 from math import log10
 from .functions import checkData, convert_dtype, fetch_meta, check_precision, check_length, check_scale
+from flask import current_app
 
 
 def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
@@ -66,7 +67,7 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                     ].values[0]
                 )
         )
-        for col in dataframe.columns
+        for col in dataframe.columns if col not in current_app.system_fields
     ]
 
     if output:
@@ -137,7 +138,12 @@ def checkPrecision(dataframe, tablename, eng, meta, *args, output = None, **kwar
                     )
                 )
         )
-        for col in dataframe.columns if col in meta[meta.udt_name == 'numeric'].column_name.values
+        for col in dataframe.columns 
+        if (
+            (col in meta[meta.udt_name == 'numeric'].column_name.values)
+            and (col not in current_app.system_fields)
+        )
+
     ]
 
     if output:
@@ -208,7 +214,11 @@ def checkScale(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
                     )
                 )
         )
-        for col in dataframe.columns if col in meta[meta.udt_name == 'numeric'].column_name.values
+        for col in dataframe.columns 
+        if (
+            (col in meta[meta.udt_name == 'numeric'].column_name.values)
+            and (col not in current_app.system_fields)
+        )
     ]
 
     if output:
@@ -277,7 +287,11 @@ def checkLength(dataframe, tablename, eng, meta, *args, output = None, **kwargs)
                     ].values[0]
                 )
         )
-        for col in dataframe.columns if col in meta[~pd.isnull(meta.character_maximum_length)].column_name.values
+        for col in dataframe.columns 
+        if (
+            (col in meta[~pd.isnull(meta.character_maximum_length)].column_name.values)
+            and (col not in current_app.system_fields)
+        )
     ]
 
     if output:
@@ -322,7 +336,11 @@ def checkNotNull(dataframe, tablename, eng, meta, *args, output = None, **kwargs
             is_core_error = True,
             error_message = f"There is an empty value here, but the column {col} requires a value in all rows"
         )
-        for col in dataframe.columns if col in meta[meta.is_nullable == 'NO'].column_name.values
+        for col in dataframe.columns 
+        if (
+            (col in meta[meta.is_nullable == 'NO'].column_name.values)
+            and (col not in current_app.system_fields)
+        )
     ]
 
     if output:
@@ -401,7 +419,11 @@ def checkIntegers(dataframe, tablename, eng, meta, *args, output = None, **kwarg
                     else "(unexpected error occurred. If you see this, contact it@sccwrp.org)"
                 )
         )
-        for col in dataframe.columns if col in meta[meta.udt_name.isin(['int2','int4','int8'])].column_name.values
+        for col in dataframe.columns 
+        if (
+            (col in meta[meta.udt_name.isin(['int2','int4','int8'])].column_name.values)
+            and (col not in current_app.system_fields)
+        )
     ]
 
     if output:

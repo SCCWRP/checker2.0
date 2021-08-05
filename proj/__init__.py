@@ -57,16 +57,17 @@ app.datasets = {
     # tables
     #   these lists are treated as sets when it does matching.
     #   i think they have to be stored here as lists because sets are not json serializable?
+    #   NOTE BE SURE TO PUT THEM IN THE ORDER YOU NEED THEM TO BE LOADED
     # function
     #   the custom checks function associated with the datatype. Imported up top
     'meta': {
-        'tables': ['tbl_testsite','tbl_bmpinfo','tbl_watershed','tbl_monitoringstation'], 
-        'login_fields': ['login_email','login_agency'], 
+        'tables': ['tbl_testsite','tbl_watershed','tbl_bmpinfo','tbl_monitoringstation'], 
+        'login_fields': ['login_email','login_dataprovider'],
         'function': meta
     },
     'monitoring': {
         'tables': ['tbl_precipitation','tbl_ceden_waterquality','tbl_flow'],
-        'login_fields': ['login_email','login_agency','login_testsite'],
+        'login_fields': ['login_email','login_dataprovider','login_testsite'],
         'function': monitoring
     }
 }

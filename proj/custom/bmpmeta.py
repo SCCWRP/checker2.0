@@ -210,15 +210,17 @@ def meta(all_dfs):
             lambda row: 
             all([
                 row['stationtype'] == "Bypass",
-                pd.isnull(
+                *[
+                    pd.isnull(x) 
+                    for x in
                     bmp[
                         (bmp.bmpname == row['bmpname']) 
                         & (bmp.sitename == row['sitename'])
                     ] \
                     .upstreambmpnames \
                     .replace('',pd.NA) \
-                    .values[0]
-                ) 
+                    .values
+                ]
             ]) 
             ,
             axis=1

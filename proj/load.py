@@ -3,6 +3,8 @@ from .utils.db import GeoDBDataFrame
 from .utils.mail import data_receipt
 from .utils.exceptions import default_exception_handler
 
+from psycopg2.errors import ForeignKeyViolation
+
 import pandas as pd
 import json, os
 
@@ -53,7 +55,7 @@ def load():
     # read in warnings and merge it to tack on the warnings column
     # only if warnings is non empty
     warnings = pd.DataFrame( json.loads(open(os.path.join(session['submission_dir'], 'warnings.json') , 'r').read()) )
-    
+      
     for tbl in all_dfs.keys():
 
         # Lowercase all column names first
@@ -80,7 +82,7 @@ def load():
         else:
             all_dfs[tbl] = all_dfs[tbl].assign(warnings = '')
             
-            
+        print(session.get('login_info'))
         all_dfs[tbl] = all_dfs[tbl].assign(
             objectid = f"sde.next_rowid('sde','{tbl}')",
             globalid = "sde.next_globalid()",
@@ -99,9 +101,32 @@ def load():
 
         all_dfs[tbl] = GeoDBDataFrame(all_dfs[tbl])
 
+
+
+
+    assert set(current_app.datasets.get(session.get('datatype')).get('tables')) == set(all_dfs.keys()), \
+            f"""There is a mismatch between the table names listed in __init__.py current_app.datasets
+            and the keys of all_dfs (datatype: {session.get('datatype')}"""
     
-    for tbl, df in all_dfs.items():
-        df.to_geodb(tbl, current_app.eng)
+    # Foreign Key constraints will make it so that tables need to be loaded in a certain order
+    # META:
+    #  1) tbl_testsite
+    #  2) tbl_bmpinfo
+    #  3) tbl_watershed
+    #  4) tbl_monitoringstation
+    # MONITORING
+    #  1) tbl_precipitation
+    #  2) tbl_ceden_waterquality
+    #  3) tbl_flow
+
+
+    # This will make sure they get loaded in the correct order to not violate foreign key constraints
+    for tbl in current_app.datasets.get(session.get('datatype')).get('tables'):
+        print("Loading Data. Be sure that the tables are in the correct order in __init__.py datasets")
+        print("If foreign key relationships are set, the tables need to be loadede in a particular order")
+        all_dfs[tbl].to_geodb(tbl, current_app.eng)
+ 
+
         print(f"done loading data to {tbl}")
 
         current_app.eng.execute(
@@ -122,7 +147,7 @@ def load():
                     .n_rows 
                     .values[0]
                 },
-                {len(df)}
+                {len(all_dfs[tbl])}
             )
             ;"""
         )
@@ -131,7 +156,7 @@ def load():
     #def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, originalfile, tables, eng, mailserver, *args, **kwargs):
     data_receipt(
         send_from = 'admin@checker.sccwrp.org',
-        always_send_to = ['robertb@sccwrp.org','duyn@sccwrp.org'],
+        always_send_to = current_app.maintainers,
         login_email = session.get('login_info').get('login_email'),
         dtype = session.get('datatype'),
         submissionid = session.get('submissionid'),
