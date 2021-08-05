@@ -5,6 +5,12 @@
     //routine for when the user logs in
     loginForm.addEventListener("submit", async function(e) {
         e.preventDefault();
+        
+        if (document.getElementById('login_email').value === '') {
+            alert("Please enter an email address");
+            return;
+        }
+
         const formData = new FormData(this);
         const response = await fetch(`/${script_root}/login`, {
             method: 'post',
