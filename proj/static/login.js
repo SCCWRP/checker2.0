@@ -11,7 +11,7 @@
             and update the collectiondates input */
             let formData = new FormData();
             formData.append('login_testsite', document.getElementById('testsite-select').value);
-            formData.append('login_agency', document.getElementById('agency-select').value);
+            formData.append('login_dataprovider', document.getElementById('dataprovider-select').value);
             
             let response = await fetch(
                 // all of the routes on the flask app have an 's' at the end
@@ -71,7 +71,7 @@
     When the user selects a agency, startdates should get displayed
     When the sitecode select input changes, the below inputs should be reset
     */
-    document.getElementById("agency-select").addEventListener('change', async function (){
+    document.getElementById("dataprovider-select").addEventListener('change', async function (){
        
         // reset pendantids and collectiondates when they change the sitecode
         document.getElementById('testsite-select')
@@ -96,4 +96,28 @@
         
     })
     
+    
+    document.getElementById("dataprovider-button").addEventListener('click', async function (){
+       
+        let dataprovider = prompt("Enter your name or the name of your agency:");
+        
+        // https://stackoverflow.com/questions/5934113/how-can-i-add-an-option-in-the-beginning
+        const select = document.getElementById('dataprovider-select');
+        const opt = new Option(text = `${dataprovider}`, value = `${dataprovider}`, defaultSelected = false, selected = true);
+        select.insertBefore(opt, select.firstChild);
+
+        // we can get away with this, since the only time after they put in the dataprovider manually is for meta data
+        // after they put it manually, it meets the requirements
+        if (dataprovider !== '') {
+            document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
+            document.getElementById('default-hidden-dataprovider-select').remove();
+
+        }
+        
+    })
+    
+
+
+
+
 })()

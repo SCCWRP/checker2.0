@@ -44,34 +44,24 @@ def index():
     )
 
 
-    # Return array of agencycodes and corresponding names
-    agencies = pd.read_sql(
-            """
-            SELECT
-                DISTINCT agencycode, agencyname
-            FROM
-                lu_agency
-            WHERE agencyname != 'Not Recorded'
-            """,
-            eng
-        ) \
-        .values
+    # Return array of dataproviders
+    dataproviders = pd.read_sql("""SELECT DISTINCT dataprovider FROM unified_testsite""", eng).values
     
     # Make it a dictionary
-    agencies = {a[0]: a[1] for a in agencies}
+    dataproviders = {a[0]: a[1] for a in dataproviders}
 
 
     return render_template(
         'index.html', 
         projectname = current_app.project_name,
-        agencies = agencies
+        dataproviders = dataproviders
     )
 
 
 @homepage.route('/testsites', methods = ['GET','POST'])
 def testsites():
 
-    agency = request.form.get('login_agency')
+    dataprovider = request.form.get('login_dataprovider')
     eng = current_app.eng
 
     # Get testsites that have data in unified_testsite
@@ -81,7 +71,7 @@ def testsites():
                 DISTINCT sitename, siteid
             FROM
                 unified_testsite
-            WHERE login_agency = '{agency}'
+            WHERE dataprovider = '{dataprovider}'
             ORDER BY sitename
             """,
             eng                                
@@ -113,6 +103,8 @@ def login():
 
     assert "login_email" in login_info.keys(), \
         "No email address found in login form. It should be named login_email since the email notification routine assumes so."
+    assert "login_dataprovider" in login_info.keys(), \
+        "No login_dataprovider found in login form"
 
     assert all([str(x).startswith('login_') for x in login_info.keys()]), \
         "The login form failed for follow the naming convention of having all input names begin with 'login_'"

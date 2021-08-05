@@ -166,8 +166,8 @@ def main():
     errs.extend(
         # debug = False will cause corechecks to run with multiprocessing, 
         # but the logs will not show as much useful information
-        core(all_dfs, current_app.eng, dbmetadata, debug = False)
-        #core(all_dfs, current_app.eng, dbmetadata, debug = True)
+        #core(all_dfs, current_app.eng, dbmetadata, debug = False)
+        core(all_dfs, current_app.eng, dbmetadata, debug = True)
     )
     print("DONE - Core Checks")
 

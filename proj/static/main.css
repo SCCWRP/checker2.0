@@ -153,3 +153,11 @@ span.table-not-matched {
 #logger-radio-label-container {
     margin-bottom: 0.7rem;
 }
+
+#dataprovider-button-container {
+    font-size: 0.8rem;
+}
+
+#dataprovider-button {
+    font-size: 0.8rem;
+}

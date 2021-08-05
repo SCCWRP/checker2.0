@@ -14,7 +14,7 @@
             switch (dtype) {
                 case 'monitoring':
                     if (
-                        document.querySelector('#agency-select').value !== "none" & 
+                        document.querySelector('#dataprovider-select').value !== "none" & 
                         document.querySelector('#login_email').value !== "" &
                         document.querySelector('#testsite-select').value !== "none" 
                     ) {
@@ -22,7 +22,7 @@
                     }
                 default:
                     if (
-                        document.querySelector('#agency-select').value !== "none" & 
+                        document.querySelector('#dataprovider-select').value !== "none" & 
                         document.querySelector('#login_email').value !== ""
                     ) {
                         document.getElementById('login-form-submit-btn-container').classList.remove('hidden');

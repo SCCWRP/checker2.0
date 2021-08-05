@@ -70,14 +70,18 @@
                   <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
                 </div>
                 <br />
-                <div class="form-group meta-required monitoring-required watershed-required form-group-dynamic" id="agency-select-container">
-                  <label for="agency-select">Select Your Agency:</label>
-                  <select class="form-control" id="agency-select" name="login_agency">
-                    <option value="none" selected disabled hidden></option>
-                    {% for agencycode,agencyname in agencies.items()%}
-                    <option value="{{agencycode}}">{{agencyname}}</option>
+                <div class="form-group meta-required monitoring-required watershed-required form-group-dynamic" id="dataprovider-select-container">
+                  <label for="dataprovider-select">Select the Data Provider:</label>
+                  <select class="form-control" id="dataprovider-select" name="login_dataprovider">
+                    <option value="none" id="default-hidden-dataprovider-select" selected disabled hidden></option>
+                    {% for dataprovider in dataproviders%}
+                    <option value="{{dataprovider}}">{{dataprovider}}</option>
                     {%endfor%}
                   </select>
+                </div>
+                <br>
+                <div class="form-group form-group-dynamic meta-required hidden" id="dataprovider-button-container">
+                  Not finding yourself or your agency in the above dropdown? <button type="button" class="btn btn-info btn-sm" id="dataprovider-button">Click here</button>
                 </div>
                 <br />
                 <div class="form-group monitoring-required form-group-dynamic"
