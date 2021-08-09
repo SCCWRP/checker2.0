@@ -47,9 +47,15 @@ def index():
     # Return array of dataproviders
     dataproviders = pd.read_sql("""SELECT DISTINCT dataprovider FROM unified_testsite""", eng).values
     
-    # Make it a dictionary
-    dataproviders = {a[0]: a[1] for a in dataproviders}
+    print("type(dataproviders)")
+    print(type(dataproviders))
+    print("dataproviders")
+    print(dataproviders)
 
+    # Make it a flattened list
+    dataproviders = [x[0] for x in dataproviders]
+    #dataproviders = {a[0]: a[1] for a in dataproviders}
+    
 
     return render_template(
         'index.html', 

@@ -159,15 +159,15 @@ def main():
     # So core checks needs it to check duplicates
     for tablename in all_dfs.keys():
         all_dfs[tablename] = all_dfs[tablename].assign(
-            login_dataprovider = session.get('login_info').get('login_dataprovider')
+            dataprovider = session.get('login_info').get('login_dataprovider')
         )
 
     # tack on core errors to errors list
     errs.extend(
         # debug = False will cause corechecks to run with multiprocessing, 
         # but the logs will not show as much useful information
-        #core(all_dfs, current_app.eng, dbmetadata, debug = False)
-        core(all_dfs, current_app.eng, dbmetadata, debug = True)
+        core(all_dfs, current_app.eng, dbmetadata, debug = False)
+        #core(all_dfs, current_app.eng, dbmetadata, debug = True)
     )
     print("DONE - Core Checks")
 
@@ -175,7 +175,7 @@ def main():
     # drop login_dataprovider since it was only needed temporarily for core checks
     for tablename in all_dfs.keys():
         all_dfs[tablename] = all_dfs[tablename].drop(
-            'login_dataprovider', axis = 1
+            'dataprovider', axis = 1
         )
 
 

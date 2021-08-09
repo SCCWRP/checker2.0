@@ -31,7 +31,7 @@ app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
 app.project_name = "BMP"
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org']
+app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','pauls@sccwrp.org']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
@@ -40,7 +40,7 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','login_datatype','login_dataprovider', 'submissionid','warnings',
+    'login_email','login_agency','login_datatype','login_dataprovider', 'dataprovider','submissionid','warnings',
     'login_testsite', 'msid', 'siteid'
 ]
 
