@@ -42,6 +42,7 @@ const buildReport = (res) => {
     
 
     // errors
+    const errs_tables_headers = [...new Set(res.errs.map(e => res.table_to_tab_map[e.table]))]
     const errs_tables = [...new Set(res.errs.map(e => e.table))]
     
     // Create the tab headers, as many as there are unique tables in the error report
@@ -51,7 +52,7 @@ const buildReport = (res) => {
     let errorsHeaders = document.querySelectorAll("#errors-report-tab-headers .errors-tab-header");
     for (let i = 0; i < errorsHeaders.length; i++) {
         errorsHeaders[i].setAttribute('id',`${errs_tables[i]}-errors-tab-header`);
-        errorsHeaders[i].innerText = errs_tables[i];
+        errorsHeaders[i].innerText = errs_tables_headers[i];
     }
     
     // repeat the error tab bodies as much as there are tables with errors
@@ -118,6 +119,7 @@ const buildReport = (res) => {
 
 
     // warnings
+    const warnings_tables_headers = [...new Set(res.warnings.map(e => res.table_to_tab_map[e.table]))]
     const warnings_tables = [...new Set(res.warnings.map(e => e.table))]
 
     // Create the tab headers, as many as there are unique tables in the error report
@@ -127,7 +129,7 @@ const buildReport = (res) => {
     let warningsHeaders = document.querySelectorAll("#warnings-report-tab-headers .warnings-tab-header");
     for (let i = 0; i < warningsHeaders.length; i++) {
         warningsHeaders[i].setAttribute('id',`${warnings_tables[i]}-warnings-tab-header`);
-        warningsHeaders[i].innerText = warnings_tables[i];
+        warningsHeaders[i].innerText = warnings_tables_headers[i];
     }
 
     // repeat the error tab bodies as much as there are tables with warnings

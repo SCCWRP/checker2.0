@@ -12,6 +12,7 @@ from .functions import fetch_meta, multitask
 def core(all_dfs, eng, all_meta, debug = False):
 
     errs = []
+    warnings = []
     for tbl, df in all_dfs.items():
         print(tbl)
         errs.extend(
@@ -22,7 +23,6 @@ def core(all_dfs, eng, all_meta, debug = False):
                 checkNotNull(df, tbl, eng, all_meta[tbl]),
                 checkIntegers(df, tbl, eng, all_meta[tbl]),
                 checkPrecision(df, tbl, eng, all_meta[tbl]),
-                checkScale(df, tbl, eng, all_meta[tbl]),
                 checkLength(df, tbl, eng, all_meta[tbl]),
                 checkDataTypes(df, tbl, eng, all_meta[tbl])
             ]
@@ -38,7 +38,6 @@ def core(all_dfs, eng, all_meta, debug = False):
                     checkNotNull,
                     checkIntegers,
                     checkPrecision,
-                    checkScale,
                     checkLength,
                     checkDataTypes
                 ],
@@ -49,7 +48,18 @@ def core(all_dfs, eng, all_meta, debug = False):
             )
         )
 
-    # flatten the list
+        warnings.extend(
+            [checkScale(df, tbl, eng, all_meta[tbl])]
+            if debug 
+            else
+            multitask([checkScale], df, tbl, eng, all_meta[tbl])
+        )
+
+    # flatten the lists
     print(errs)
-    return [e for sublist in errs for e in sublist if ( e != dict() and e != set() )]
+    print(warnings)
+    return {
+        "core_errors": [e for sublist in errs for e in sublist if ( e != dict() and e != set() )],
+        "core_warnings": [w for sublist in warnings for w in sublist if ( w != dict() and w != set() )]
+    }
     

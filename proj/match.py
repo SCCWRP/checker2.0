@@ -11,6 +11,10 @@ def match(all_dfs):
     system_fields = current_app.system_fields
     datasets = current_app.datasets
 
+    # Key value pairs, keys being the table, values being the excel tab name the user gave us
+    # To be used in the error reporting system on the front end when the app returns the json response to the browser
+    table_to_tab_map = dict()
+
     match_tbls_sql = f"""
         SELECT table_name, column_name 
         FROM information_schema.columns 
@@ -89,6 +93,8 @@ def match(all_dfs):
             # assign the dataframe with a key being the name of the table it matched in the db
             all_dfs[matched_tbl] = all_dfs.pop(sheetname)
 
+            table_to_tab_map[matched_tbl] = sheetname
+
             # Rename the worksheet in the original excel file
             # https://stackoverflow.com/questions/39540789/how-to-rename-the-sheet-name-in-the-spread-sheet-using-python
             # ss = spreadsheet
@@ -133,6 +139,9 @@ def match(all_dfs):
         # which is the name of the dataset
         match_dataset = match_dataset[0]
     
+    # As stated earlier, this is to be used later by the browser to display error messages as associated with the excel tab name
+    # Rather than the database tablename which it matched
+    session['table_to_tab_map'] = table_to_tab_map
 
     return match_dataset, match_report, all_dfs
 

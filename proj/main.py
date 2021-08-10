@@ -1,5 +1,6 @@
 from flask import render_template, request, jsonify, current_app, Blueprint, session
 from werkzeug.utils import secure_filename
+from gc import collect
 import os, time, json
 import pandas as pd
 
@@ -163,12 +164,20 @@ def main():
         )
 
     # tack on core errors to errors list
-    errs.extend(
-        # debug = False will cause corechecks to run with multiprocessing, 
-        # but the logs will not show as much useful information
-        #core(all_dfs, current_app.eng, dbmetadata, debug = False)
-        core(all_dfs, current_app.eng, dbmetadata, debug = True)
-    )
+    
+    # debug = False will cause corechecks to run with multiprocessing, 
+    # but the logs will not show as much useful information
+    #core_output = core(all_dfs, current_app.eng, dbmetadata, debug = False)
+    core_output = core(all_dfs, current_app.eng, dbmetadata, debug = True)
+
+    errs.extend(core_output['core_errors'])
+    warnings.extend(core_output['core_warnings'])
+
+    # clear up some memory space, i never wanted to store the core checks output in memory anyways 
+    # other than appending it to the errors/warnings list
+    del core_output
+    collect()
+
     print("DONE - Core Checks")
 
 
@@ -233,6 +242,9 @@ def main():
     save_errors(errs, os.path.join( session['submission_dir'], "errors.json" ))
     
     # Later we will need to have a way to map the dataframe column names to the column indices
+    # This is one of those lines of code where i dont know why it is here, but i have a feeling it will
+    #   break things if i delete it
+    # Even though i'm the one that put it here... -Robert
     session['col_indices'] = {tbl: {col: df.columns.get_loc(col) for col in df.columns} for tbl, df in all_dfs.items() }
 
 
@@ -278,7 +290,8 @@ def main():
         "warnings": warnings,
         "submissionid": session.get("submissionid"),
         "critical_error": False,
-        "all_datasets": list(current_app.datasets.keys())
+        "all_datasets": list(current_app.datasets.keys()),
+        "table_to_tab_map" : session['table_to_tab_map']
     }
     
     print(returnvals)
