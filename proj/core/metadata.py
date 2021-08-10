@@ -204,7 +204,7 @@ def checkScale(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
             badcolumn = col,
             error_type = "Value too long",
             is_core_error = True,
-            error_message = "The value here has too many decimal places (should have a maximum of {} decimal places)" \
+            error_message = "The value here will be rounded to {} decimal places when it is loaded to the database" \
                 .format(
                     int(
                         meta.iloc[
