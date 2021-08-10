@@ -6,7 +6,7 @@ from flask import current_app
 
 
 def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
-    
+    print("BEGIN checkDataTypes")
     ret = [ 
         checkData(
             dataframe = dataframe,
@@ -72,10 +72,12 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
 
     if output:
         output.put(ret)
+    print("END checkDataTypes")
     return ret
     
 
 def checkPrecision(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
+    print("BEGIN checkPrecision")
         
     ret = \
     [
@@ -148,9 +150,11 @@ def checkPrecision(dataframe, tablename, eng, meta, *args, output = None, **kwar
 
     if output:
         output.put(ret)
+    print("END checkPrecision")
     return ret
 
 def checkScale(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
+    print("BEGIN checkScale")
 
     ret = \
     [
@@ -223,10 +227,12 @@ def checkScale(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
 
     if output:
         output.put(ret) 
+    print("END checkScale")
     return ret
 
 
 def checkLength(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
+    print("BEGIN checkLength")
     
     ret = \
     [
@@ -296,11 +302,13 @@ def checkLength(dataframe, tablename, eng, meta, *args, output = None, **kwargs)
 
     if output:
         output.put(ret) 
+    print("END checkLength")
     return ret
 
 
 
 def checkNotNull(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
+    print("BEGIN checkNotNULL")
 
     ret = \
     [
@@ -346,11 +354,13 @@ def checkNotNull(dataframe, tablename, eng, meta, *args, output = None, **kwargs
     if output:
         output.put(ret) 
 
+    print("END checkNotNULL")
     return ret
 
 
 
 def checkIntegers(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
+    print("BEGIN checkIntegers")
         
     ret = \
     [
@@ -428,4 +438,5 @@ def checkIntegers(dataframe, tablename, eng, meta, *args, output = None, **kwarg
 
     if output:
         output.put(ret)
+    print("END checkIntegers")
     return ret

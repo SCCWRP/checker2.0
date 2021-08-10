@@ -6,6 +6,7 @@ from .functions import checkData, get_badrows
 # multitask function passes in a multiprocessing Queue() as the last argument for each function that gets passed into it
 # therefore to pass a function to the multitask function we would need to allow for that queue to be passed into it
 def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
+    print("BEGIN checkLookupLists")
     #assert dtype in tbl_tablenames.keys(), "Invalid Datatype in checkLookUpCodes function call"
     
     lu_list_script_root = 'checker2'
@@ -77,4 +78,5 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
     if output:
         output.put(out)
 
+    print("END checkLookupLists")
     return out
