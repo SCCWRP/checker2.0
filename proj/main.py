@@ -96,6 +96,8 @@ def main():
 
     for tblname in all_dfs.keys():
         all_dfs[tblname].columns = [x.lower() for x in all_dfs[tblname].columns]
+        if 'dataprovider' in all_dfs[tblname].columns:
+            all_dfs[tblname] = all_dfs[tblname].drop('dataprovider', axis = 1)
 
     print("DONE - building 'all_dfs' dictionary")
     
