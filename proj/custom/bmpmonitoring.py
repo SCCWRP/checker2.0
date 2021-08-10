@@ -122,7 +122,7 @@ def monitoring(all_dfs):
         "is_core_error": False,
         "error_message": "Precipitation OneHourPeakRateUnit should be in/hr, mm/hr, or cm/hr"
     })
-    errs = [*errs, checkData(**args)]
+    #errs = [*errs, checkData(**args)]
     
     
     # (5) WQ records need a corresponding record in precip, either in database or current submission

@@ -1,5 +1,5 @@
 import pandas as pd
-from .functions import checkData
+from .functions import checkData, get_badrows
 
 # q is a multiprocessing.Queue()
 # pass it in in the case that this is done with multiprocessing
@@ -38,65 +38,43 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
     # print(lookup_sql)
 
 
-    out = fkeys.apply(
-        lambda x: 
+    out = [
         checkData(
-            # This code is so hard to understand and follow
-            # Coming from the person who wrote it
-            dataframe = dataframe,
+            dataframe = dataframe, 
             tablename = tablename,
-            badrows = [
-                {
-                    'row_number': int(rownum),
-                    'value': val if not pd.isnull(val) else '',
-                    'message': msg
-                } 
-                for rownum, val, msg in
-                    dataframe[
-                        ~dataframe[x['column_name']] \
-                        .isin(
-                            pd.read_sql(f"SELECT {x['foreign_column_name']} FROM {x['foreign_table_name']};", eng) \
-                            [x['foreign_column_name']] \
-                            .values
-                        )
-                    ] \
-                    .apply(
-                        lambda row:
-                        (
-                            row.name,
-                            row[x['column_name']], 
-                            f"""The value you entered here ({row[x['column_name']]}) does not match the 
-                            <a href=\\\"/{lu_list_script_root}/scraper?action=help&layer={x['foreign_table_name']}\\\"> 
-                            Lookup List
-                            </a>"""
-                        ),
-                        axis = 1
-                    ) \
-                    .values
-            ],
-            badcolumn = x['column_name'],
-            error_type = "Lookup List Fail",
+            badrows = get_badrows(dataframe[dataframe[col] == val]),
+            badcolumn = col,
+            error_type = 'Lookup List Fail',
             is_core_error = True,
-            error_message = f"Item not in the <a href=\"/{lu_list_script_root}/scraper?action=help&layer={x['foreign_table_name']}\" target=\"blank\">Lookup List</a>"
-        ) 
-        if not 
-            dataframe[
-                ~dataframe[x['column_name']] \
-                .isin(
-                    pd.read_sql(f"SELECT {x['foreign_column_name']} FROM {x['foreign_table_name']};", eng) \
-                    [x['foreign_column_name']] \
-                    .values
-                )
-            ].empty
-        else
-            None 
-        , axis = 1
-    ) \
-    .values
-
-    ret = list(filter(lambda x: x is not None, out))
+            error_message = (
+                f'This value you entered ({val}) did not match the lookup list '
+                '<a '
+                f'href="/{lu_list_script_root}/scraper?action=help&layer={fkeys[fkeys.column_name == col].foreign_table_name.values[0]}" '
+                'target="_blank">'
+                f'{fkeys[fkeys.column_name == col].foreign_table_name.values[0]}'
+                '</a>'
+            )
+        )
+            
+        for col in dataframe.columns if col in fkeys.column_name.unique()
+        for val in 
+        dataframe[
+            ~dataframe[col].isin(
+                pd.read_sql(
+                    (
+                        f"SELECT {fkeys[fkeys.column_name == col].foreign_column_name.values[0]} "
+                        f"FROM {fkeys[fkeys.column_name == col].foreign_table_name.values[0]};"
+                    ),
+                    eng
+                )[fkeys[fkeys.column_name == col].foreign_column_name.values[0]] \
+                .values
+            )
+        ][col] \
+        .unique()
+            
+    ]
 
     if output:
-        output.put(ret)
+        output.put(out)
 
-    return ret
+    return out
