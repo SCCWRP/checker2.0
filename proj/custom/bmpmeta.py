@@ -211,7 +211,7 @@ def meta(all_dfs):
             all([
                 row['stationtype'] == "Bypass",
                 *[
-                    pd.isnull(x) 
+                    not pd.isnull(x) 
                     for x in
                     bmp[
                         (bmp.bmpname == row['bmpname']) 
@@ -233,25 +233,27 @@ def meta(all_dfs):
         "badcolumn": "stationtype",
         "error_type" : "Logic Error",
         "error_message" : (
-            "This Monitoring Station is a bypass " 
-            "but it is associated with a BMP which is in the middle of a treatment train sequence"
-        )
-    })
-    errs = [*errs, checkData(**args)]
-    args.update({
-        "dataframe": ms,
-        "tablename": "tbl_monitoringstation",
-        "badrows": get_badrows(df_badrows),
-        "badcolumn": "stationtype",
-        "error_type" : "Logic Error",
-        "error_message" : (
-            "This Monitoring Station is a bypass " 
-            "but it is associated with a BMP which is in the middle of a treatment train sequence"
+            "This Monitoring Station is a bypass, " 
+            "but it seems like it is associated with a BMP which has upstream treatment"
         )
     })
     errs = [*errs, checkData(**args)]
 
     # (9) in watershed.py
+    # df_badrows = watershed[~watershed.insitusoil.isin(pd.read_sql("SELECT insitusoil FROM lu_insitusoil",current_app.eng).insitusoil.values)]
+    # args.update({
+    #     "dataframe": ms,
+    #     "tablename": "tbl_monitoringstation",
+    #     "badrows": get_badrows(df_badrows),
+    #     "badcolumn": "stationtype",
+    #     "error_type" : "Logic Error",
+    #     "error_message" : (
+    #         "This Monitoring Station is a bypass, " 
+    #         "but it seems like it is associated with a BMP which has upstream treatment"
+    #     )
+    # })
+    # errs = [*errs, checkData(**args)]
+
 
     # (10)
     sitecode_measurementtype = {
