@@ -74,7 +74,7 @@ def testsites():
     testsites = pd.read_sql(
             f"""
             SELECT
-                DISTINCT sitename, siteid
+                DISTINCT sitename, globalid AS siteid
             FROM
                 unified_testsite
             WHERE dataprovider = '{dataprovider}'

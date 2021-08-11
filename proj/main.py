@@ -5,6 +5,7 @@ import os, time, json
 import pandas as pd
 
 # custom imports, from local files
+from .preprocess import clean_data
 from .match import match
 from .core.core import core
 from .core.functions import fetch_meta
@@ -12,6 +13,7 @@ from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
 from .utils.mail import send_mail
 from .utils.exceptions import default_exception_handler
+
 
 upload = Blueprint('upload', __name__)
 @upload.route('/upload',methods = ['GET','POST'])
@@ -140,7 +142,42 @@ def main():
         """
     )
 
+    # ----------------------------------------- #
+    # Pre processing data before Core checks
+    #  We want to limit the manual cleaning of the data that the user has to do
+    #  This function will strip whitespace on character fields and fix columns to match lookup lists if they match (case insensitive)
 
+    print("Stripping whitespace and fix case in the columns which tie to lu_lists")
+    all_dfs = clean_data(all_dfs)
+    
+    print("all_dfs")
+    print(all_dfs)
+
+    # write all_dfs again to the same excel path
+    # Below code is not good since it was overwriting the excel file
+    # for tblname in all_dfs.keys():
+    #     all_dfs[tblname].to_excel(excel_path, sheet_name = tblname, startrow = current_app.excel_offset)
+    
+    writer = pd.ExcelWriter(excel_path)
+    for tblname in all_dfs.keys():
+        all_dfs[tblname].to_excel(writer, sheet_name = tblname, startrow = current_app.excel_offset, index=False)
+    writer.save()
+    
+    # Yes this is weird but if we write the all_dfs back to the excel file, and read it back in,
+    # this ensures 100% that the data is loaded exactly in the same state as it was in when it was checked
+    all_dfs = {
+        sheet: pd.read_excel(
+            excel_path, 
+            sheet_name = sheet,
+            skiprows = current_app.excel_offset, 
+            na_values = ['']
+        )
+        for sheet in pd.ExcelFile(excel_path).sheet_names
+        if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
+    }
+    print("all_dfs after read back in")
+    print(all_dfs)
+    
     # ----------------------------------------- #
 
     # Core Checks
@@ -169,8 +206,8 @@ def main():
     
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
-    #core_output = core(all_dfs, current_app.eng, dbmetadata, debug = False)
-    core_output = core(all_dfs, current_app.eng, dbmetadata, debug = True)
+    core_output = core(all_dfs, current_app.eng, dbmetadata, debug = False)
+    #core_output = core(all_dfs, current_app.eng, dbmetadata, debug = True)
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
