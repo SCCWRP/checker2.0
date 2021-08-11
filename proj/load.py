@@ -41,6 +41,7 @@ def load():
         if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
     }
 
+
     valid_tables = pd.read_sql(
             # percent signs are escaped by doubling them, not with a backslash
             # percent signs need to be escaped because otherwise the python interpreter will think you are trying to create a format string
@@ -62,6 +63,10 @@ def load():
         all_dfs[tbl].columns = [x.lower() for x in all_dfs[tbl].columns]
 
         assert not all_dfs[tbl].empty, "Somehow an empty dataframe was about to be submitted"
+        
+        if 'dataprovider' in all_dfs[tbl].columns:
+            all_dfs[tbl] = all_dfs[tbl].drop('dataprovider', axis = 1)
+
 
         if not warnings.empty:
             # warnings
