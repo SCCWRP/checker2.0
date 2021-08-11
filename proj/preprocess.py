@@ -113,7 +113,7 @@ def hardcoded_fixes(all_dfs):
     if 'tbl_ceden_waterquality' in all_dfs.keys():
 
         # hard coded fix for analytename column for water quality
-        all_dfs['tbl_ceden_waterquality'] = all_dfs['tbl_ceden_waterquality'] \
+        all_dfs['tbl_ceden_waterquality']['analytename'] = all_dfs['tbl_ceden_waterquality'] \
             .analytename \
             .apply(
                 lambda x:
