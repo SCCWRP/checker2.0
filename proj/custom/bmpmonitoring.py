@@ -55,7 +55,7 @@ def monitoring(all_dfs):
         "is_core_error": False,
         "error_message": "Volume must be reported in L, ft3, or gal"
     })
-    errs = [*errs, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     args.update({
         "badrows": get_badrows(
@@ -66,7 +66,7 @@ def monitoring(all_dfs):
         ),
         "badcolumn": "bypassvolumeunits",
     })
-    errs = [*errs, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     # (2) Peak Flow Rate should be cubic feet per second
     df_badrows = flow[
@@ -103,7 +103,7 @@ def monitoring(all_dfs):
         "is_core_error": False,
         "error_message": "Precipitation Total Depth should be reported in cm or in"
     })
-    errs = [*errs, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
         
 
     # (4) OneHourPeakRateUnit should be  in / hr   or   cm / hr
@@ -122,7 +122,7 @@ def monitoring(all_dfs):
         "is_core_error": False,
         "error_message": "Precipitation OneHourPeakRateUnit should be in/hr, mm/hr, or cm/hr"
     })
-    #errs = [*errs, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
     
     
     # (5) WQ records need a corresponding record in precip, either in database or current submission
@@ -189,7 +189,7 @@ def monitoring(all_dfs):
         current_app.eng
     )
     df_badrows = flow[
-        ~flow.apply(
+        flow.apply(
             lambda row: 
             (row['sitename'], row['monitoringstation']) 
             not in tuple(zip(unified_ms.sitename, unified_ms.stationname))
@@ -219,7 +219,7 @@ def monitoring(all_dfs):
         current_app.eng
     )
     df_badrows = wq[
-        ~wq.apply(
+        wq.apply(
             lambda row: 
             (row['sitename'], row['stationcode']) 
             not in tuple(zip(unified_ms.sitename, unified_ms.stationname))
