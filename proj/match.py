@@ -97,11 +97,11 @@ def match(all_dfs):
 
             # Rename the worksheet in the original excel file
             # https://stackoverflow.com/questions/39540789/how-to-rename-the-sheet-name-in-the-spread-sheet-using-python
-            # ss = spreadsheet
-            ss = load_workbook(session['excel_path'])
-            ss_sheet = ss[sheetname]
-            ss_sheet.title = matched_tbl
-            ss.save(session['excel_path'])
+            # ss stands for spreadsheet
+            # ss = load_workbook(session['excel_path'])
+            # ss_sheet = ss[sheetname]
+            # ss_sheet.title = matched_tbl
+            # ss.save(session['excel_path'])
 
             match_report.append(
                 {
@@ -141,6 +141,7 @@ def match(all_dfs):
     
     # As stated earlier, this is to be used later by the browser to display error messages as associated with the excel tab name
     # Rather than the database tablename which it matched
+    # NOTE We may also be able to use this to rename the keys of "all_dfs" so that we dont have to alter the excel file's tab names
     session['table_to_tab_map'] = table_to_tab_map
 
     return match_dataset, match_report, all_dfs

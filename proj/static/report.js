@@ -75,7 +75,7 @@ const buildReport = (res) => {
                 let s = `
                     <div class="error-description-list row">
                         <div class="errors-report-cell error-description-list-item col-sm">
-                            ${e.columns.replace(",","<br>")}
+                            ${e.columns.replaceAll(",","<br>")}
                         </div>
                         <!--<div class="errors-report-cell error-description-list-item col-sm">
                             ${e.error_type}
@@ -152,7 +152,7 @@ const buildReport = (res) => {
                 let s = `
                     <div class="error-description-list row">
                         <div class="warnings-report-cell error-description-list-item col-sm">
-                            ${e.columns.replace(",","<br>")}
+                            ${e.columns.replaceAll(",","<br>")}
                         </div>
                         <!--<div class="warnings-report-cell error-description-list-item col-sm">
                             ${e.error_type}

@@ -142,19 +142,26 @@ def main():
         """
     )
 
+
     # ----------------------------------------- #
     # Pre processing data before Core checks
     #  We want to limit the manual cleaning of the data that the user has to do
     #  This function will strip whitespace on character fields and fix columns to match lookup lists if they match (case insensitive)
 
-    print("Stripping whitespace and fix case in the columns which tie to lu_lists")
-    all_dfs = clean_data(all_dfs)
-    
-    print("all_dfs")
-    print(all_dfs)
+    # Now, at this point, since a dataset was matched, we will rename the keys of all_dfs to be the database table names
+    for tbl,tab in session['table_to_tab_map'].items():
+        all_dfs[tbl] = all_dfs.pop(tab)
 
-    # write all_dfs again to the same excel path
+    print("preprocessing and cleaning data")
+    all_dfs = clean_data(all_dfs)
+    print("DONE preprocessing and cleaning data")
     
+    # write all_dfs again to the same excel path
+    # Later, if the data is clean, the loading routine will use the tab names to load the data to the appropriate tables
+    #   There is an assert statement (in load.py) which asserts that the tab names of the excel file match a table in the database
+    #   With the way the code is structured, that should always be the case, but the assert statement will let us know if we messed up or need to fix something 
+    #   Technically we could write it back with the original tab names, and use the tab_to_table_map in load.py,
+    #   But for now, the tab_table_map is mainly used by the javascript in the front end, to display error messages to the user
     writer = pd.ExcelWriter(excel_path)
     for tblname in all_dfs.keys():
         all_dfs[tblname].to_excel(writer, sheet_name = tblname, startrow = current_app.excel_offset, index=False)
@@ -204,9 +211,9 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    core_output = core(all_dfs, current_app.eng, dbmetadata, debug = True)
+    core_output = core(all_dfs, current_app.eng, dbmetadata, debug = False)
     print("Right after core runs")
-    #core_output = core(all_dfs, current_app.eng, dbmetadata, debug = False)
+    #core_output = core(all_dfs, current_app.eng, dbmetadata, debug = True)
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
