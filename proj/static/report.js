@@ -75,16 +75,16 @@ const buildReport = (res) => {
                 let s = `
                     <div class="error-description-list row">
                         <div class="errors-report-cell error-description-list-item col-sm">
-                            ${e.columns}
+                            ${e.columns.replace(",","<br>")}
                         </div>
-                        <div class="errors-report-cell error-description-list-item col-sm">
+                        <!--<div class="errors-report-cell error-description-list-item col-sm">
                             ${e.error_type}
-                        </div>
+                        </div>-->
                         <div class="errors-report-cell error-description-list-item col-sm">
                             ${e.error_message}
                         </div>
                         <div class="errors-report-cell error-description-list-item col-sm">
-                            ${e.rows.map(r => {return `${String(r.row_number)}`}).join(", ") }
+                            ${e.rows.join(", ") }
                         </div>
                     </div>
                 `;
@@ -152,16 +152,16 @@ const buildReport = (res) => {
                 let s = `
                     <div class="error-description-list row">
                         <div class="warnings-report-cell error-description-list-item col-sm">
-                            ${e.columns}
+                            ${e.columns.replace(",","<br>")}
                         </div>
-                        <div class="warnings-report-cell error-description-list-item col-sm">
+                        <!--<div class="warnings-report-cell error-description-list-item col-sm">
                             ${e.error_type}
-                        </div>
+                        </div>-->
                         <div class="warnings-report-cell error-description-list-item col-sm">
                             ${e.error_message}
                         </div>
                         <div class="warnings-report-cell error-description-list-item col-sm">
-                            ${e.rows.map(r => {return `${String(r.row_number)}`}).join(", ") }
+                            ${e.rows.join(", ") }
                         </div>
                     </div>
                 `;

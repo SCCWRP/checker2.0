@@ -44,12 +44,12 @@ def monitoring(all_dfs):
     args.update({
         "dataframe": flow,
         "tablename": 'tbl_flow',
-        "badrows": get_badrows(
+        "badrows": 
             flow[
                 (~flow['volumeunits'].isin(["L","ft3","gal"]))
                 & (~pd.isnull(flow['volumeunits']))
-            ]
-        ),
+            ].index.tolist()
+        ,
         "badcolumn": "volumeunits",
         "error_type": "Value Error",
         "is_core_error": False,
@@ -58,28 +58,28 @@ def monitoring(all_dfs):
     warnings = [*warnings, checkData(**args)]
 
     args.update({
-        "badrows": get_badrows(
+        "badrows": 
             flow[
                 (~flow['bypassvolumeunits'].isin(["L","ft3","gal"]))
                 & (~pd.isnull(flow['bypassvolumeunits']))
-            ]
-        ),
+            ].index.tolist()
+        ,
         "badcolumn": "bypassvolumeunits",
     })
     warnings = [*warnings, checkData(**args)]
 
     # (2) Peak Flow Rate should be cubic feet per second
-    df_badrows = flow[
+    badrows = flow[
             # first get where it's a non missing value
             (~flow['peakflowrate'].isna()) & flow['peakflowrate'] !=-88
         ][
             # Then get where the units aree not what they should be
             ~flow['peakflowunits'].isin(['cfs'])
-        ]
+        ].index.tolist()
     args.update({
         "dataframe": flow,
         "tablename": 'tbl_flow',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "peakflowunits",
         "error_type": "Value Error",
         "is_core_error": False,
@@ -88,16 +88,16 @@ def monitoring(all_dfs):
         
 
     # (3) Precip Total Depth needs to be cm or inches
-    df_badrows = precip[
+    badrows = precip[
             (~precip['totaldepth'].isna()) & precip['totaldepth'] !=-88
         ][
             ~precip['totaldepthunits'].isin(['cm','in'])
-        ]
+        ].index.tolist()
 
     args.update({
         "dataframe": precip,
         "tablename": 'tbl_precipitation',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "totaldepthunits",
         "error_type": "Value Error",
         "is_core_error": False,
@@ -107,16 +107,16 @@ def monitoring(all_dfs):
         
 
     # (4) OneHourPeakRateUnit should be  in / hr   or   cm / hr
-    df_badrows = precip[
+    badrows = precip[
             (~pd.isnull(precip['onehourpeakrate'])) & precip['onehourpeakrate'] !=-88
         ][
             ~precip['onehourpeakrateunit'].isin(['in/hr','cm/hr','mm/h'])
-        ]
+        ].index.tolist()
         
     args.update({
         "dataframe": precip,
         "tablename": 'tbl_precipitation',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "onehourpeakrateunit",
         "error_type": "Value Error",
         "is_core_error": False,
@@ -136,7 +136,7 @@ def monitoring(all_dfs):
     )
 
     # get sitename eventid pairs that are in wq submission but not the unified precipitation table
-    df_badrows = wq[
+    badrows = wq[
         wq.apply(
             lambda row: 
             (row['sitename'], row['eventid']) 
@@ -145,11 +145,11 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )
-    ]
+    ].index.tolist()
     args.update({
         "dataframe": wq,
         "tablename": 'tbl_ceden_waterquality',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "sitename,eventid",
         "error_type": "Logic Error",
         "is_core_error": False,
@@ -158,7 +158,7 @@ def monitoring(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # Check for the same thing in the flow table
-    df_badrows = flow[
+    badrows = flow[
         flow.apply(
             lambda row: 
             (row['sitename'], row['eventid']) 
@@ -170,12 +170,12 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )
-    ]
+    ].index.tolist()
 
     args.update({
         "dataframe": flow,
         "tablename": 'tbl_flow',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
     })
     errs = [*errs, checkData(**args)]
 
@@ -188,7 +188,7 @@ def monitoring(all_dfs):
         "SELECT sitename, stationname FROM unified_monitoringstation WHERE measurementtype = 'Q'",
         current_app.eng
     )
-    df_badrows = flow[
+    badrows = flow[
         flow.apply(
             lambda row: 
             (row['sitename'], row['monitoringstation']) 
@@ -199,11 +199,11 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )  
-    ]
+    ].index.tolist()
     args.update({
         "dataframe": flow,
         "tablename": 'tbl_flow',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "sitename,monitoringstation",
         "error_type": "Logic Error",
         "is_core_error": False,
@@ -218,7 +218,7 @@ def monitoring(all_dfs):
         "SELECT sitename, stationname FROM unified_monitoringstation WHERE measurementtype = 'WQ'",
         current_app.eng
     )
-    df_badrows = wq[
+    badrows = wq[
         wq.apply(
             lambda row: 
             (row['sitename'], row['stationcode']) 
@@ -229,11 +229,11 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )  
-    ]
+    ].index.tolist()
     args.update({
         "dataframe": wq,
         "tablename": 'tbl_ceden_waterquality',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "sitename,stationcode",
         "error_type": "Logic Error",
         "is_core_error": False,

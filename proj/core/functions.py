@@ -3,6 +3,7 @@ import multiprocessing as mp
 import re, time
 from math import log10
 from pandas import DataFrame, isnull
+from functools import lru_cache
 
 def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error = True, error_message = "Error", errors_list = [], q = None):
     if len(badrows) > 0:
@@ -57,6 +58,7 @@ def multitask(functions: list, *args):
 
 
 
+@lru_cache(maxsize=128, typed=True)
 def convert_dtype(t, x):
     try:
         if ((pd.isnull(x)) and (t == int)):
@@ -66,7 +68,7 @@ def convert_dtype(t, x):
     except Exception as e:
         return False
 
-
+@lru_cache(maxsize=128, typed=True)
 def check_precision(x, precision):
     try:
         int(x)
@@ -89,6 +91,7 @@ def check_precision(x, precision):
     right = len(str(frac_part)) if frac_part > 0 else 0
     return True if left + right <= precision else False
 
+@lru_cache(maxsize=128, typed=True)
 def check_scale(x, scale):
     try:
         int(x)
@@ -108,6 +111,7 @@ def check_scale(x, scale):
     right = len(str(frac_part)) if frac_part > 0 else 0
     return True if right <= scale else False
 
+@lru_cache(maxsize=128, typed=True)
 def check_length(x, maxlength):
     if pd.isnull(maxlength):
         return True

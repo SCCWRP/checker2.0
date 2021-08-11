@@ -28,26 +28,7 @@ def checkDuplicatesInSession(dataframe, tablename, eng, *args, output = None, **
 
     if any(dataframe.duplicated(pkey)):
 
-        badrows = [
-            {
-                'row_number': int(rownum),
-                'value': val if not isnull(val) else '',
-                'message': msg
-            } 
-            for rownum, val, msg in
-            dataframe[dataframe.duplicated(pkey, keep = False)] \
-            .apply(
-                lambda row:
-                (
-                    row.name,
-                    None, 
-                    f"This is a duplicated row based on the primary key fields {', '.join(pkey)}"
-                ),
-                axis = 1
-            ) \
-            .values
-        ]
-
+        badrows = dataframe[dataframe.duplicated(pkey, keep = False)].index.tolist()
         ret = [
             checkData(
                 dataframe = dataframe,
@@ -97,24 +78,7 @@ def checkDuplicatesInProduction(dataframe, tablename, eng, *args, output = None,
         # merge current recs with a left merge and tack on that "already_in_db" column
         dataframe = dataframe.merge(current_recs, on = pkey, how = 'left')
 
-        badrows = [
-            {
-                'row_number': int(rownum),
-                'value': val if not isnull(val) else '',
-                'message': msg
-            } 
-            for rownum, val, msg in
-            dataframe[dataframe.already_in_db == True].apply(
-                lambda row:
-                (
-                    row.name,
-                    None, 
-                    "This is a record which already exists in the database"
-                ),
-                axis = 1
-            ) \
-            .values
-        ]
+        badrows = dataframe[dataframe.already_in_db == True].index.tolist()
 
         print("badrows")
         print(badrows)

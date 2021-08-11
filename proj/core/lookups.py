@@ -43,7 +43,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
         checkData(
             dataframe = dataframe, 
             tablename = tablename,
-            badrows = get_badrows(dataframe[dataframe[col] == val]),
+            badrows = dataframe[dataframe[col] == val].index.tolist(),
             badcolumn = col,
             error_type = 'Lookup List Fail',
             is_core_error = True,

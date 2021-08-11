@@ -43,7 +43,7 @@ def meta(all_dfs):
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
-    #   "badrows": get_badrows(df[df.temperature != 'asdf']),
+    #   "badrows": df[df.tmperature != 'asdf']),
     #   "badcolumn": "temperature",
     #   "error_type" : "Not asdf",
     #   "error_message" : "This is a helpful useful message for the user"
@@ -58,8 +58,8 @@ def meta(all_dfs):
         "dataframe": bmp, 
         "tablename": 'tbl_bmpinfo',
         # Commented out code is what i think will work - Robert
-        #"badrows": get_badrows(bmp[bmp.bmpname.apply(lambda x: ',' in x)]),
-        "badrows": get_badrows(bmp[bmp['bmpname'].isin([x for x in bmp.bmpname.values if "," in x])]),
+        #"badrows": bmp[bmpbmpname.apply(lambda x: ',' in x)]),
+        "badrows": bmp[bmp['bmpname'].isin([x for x in bmp.bmpname.values if "," in x])].index.tolist(),
         "badcolumn": "bmpname",
         "error_type" : "Invalid BMP Name",
         "error_message" : "BMP Names may not contain commas."
@@ -75,13 +75,14 @@ def meta(all_dfs):
         set(bmp['bmpname'].values)
     )
         
-    df_badrows = bmp[bmp['upstreambmpnames'].isin(
+    badrows = bmp[bmp['upstreambmpnames'].isin(
         set([x for x in bmp['upstreambmpnames'].dropna().values for y in bad_upstreambmp if y in x]) 
-    )]
+    )].index.tolist()
+
     args.update({
         "dataframe": bmp, 
         "tablename": 'tbl_bmpinfo',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "upstreambmpnames",
         "error_type" : "Invalid BMP Name",
         "error_message" : "There is a BMP name in your list of upstream BMP names, which did not appear in the BMPName column"
@@ -119,11 +120,11 @@ def meta(all_dfs):
     }
     bad_sitename = [x for x in sitecode_measurementtype.keys() if "P" not in sitecode_measurementtype[x]]
     
-    df_badrows = ms[ms['sitename'].isin(bad_sitename)]
+    badrows = ms[ms['sitename'].isin(bad_sitename)].index.tolist()
     args.update({
         "dataframe": ms, 
         "tablename": 'tbl_monitoringstation',
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "measurementtype,sitename",
         "error_type" : "No rain gauge",
         "error_message" : "This SiteName does not have a rain gauge"
@@ -131,7 +132,7 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (4)
-    df_badrows = bmp[
+    badrows = bmp[
         bmp.apply(
             lambda row:
             (row['sitename'], row['bmpname'])
@@ -140,11 +141,11 @@ def meta(all_dfs):
             ,
             axis = 1
         )
-    ]
+    ].index.tolist()
     args.update({
         "dataframe": bmp,
         "tablename": "tbl_bmpinfo",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "sitename,bmpname",
         "error_type" : "No matching sitename,bmpname",
         "error_message" : (
@@ -155,7 +156,7 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
     
     # (5) 
-    df_badrows = ms[
+    badrows = ms[
         ms.apply(
             lambda row:
             (row['sitename'], row['bmpname'])
@@ -164,11 +165,11 @@ def meta(all_dfs):
             ,
             axis = 1
         )
-    ]
+    ].index.tolist()
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "sitename,bmpname",
         "error_type" : "Record mismatch",
         "error_message" : (
@@ -179,11 +180,11 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (6)
-    df_badrows = testsite[testsite['sitename'].isin(list(set(testsite['sitename']) - set(bmp['sitename'])) )]
+    badrows = testsite[testsite['sitename'].isin(list(set(testsite['sitename']) - set(bmp['sitename'])) )].index.tolist()
     args.update({
         "dataframe": testsite,
         "tablename": "tbl_testsite",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "sitename",
         "error_type" : "Logic Error",
         "error_message" : "This test site name did not show up in the BMP Info tab."
@@ -191,11 +192,11 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (7)
-    df_badrows = bmp[bmp['sitename'].isin(list(set(bmp['sitename']) - set(testsite['sitename'])) )]
+    badrows = bmp[bmp['sitename'].isin(list(set(bmp['sitename']) - set(testsite['sitename'])) )].index.tolist()
     args.update({
         "dataframe": bmp,
         "tablename": "tbl_bmpinfo",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "sitename",
         "error_type" : "Logic Error",
         "error_message" : "This test site name did not show up in the Test Site tab."
@@ -205,7 +206,7 @@ def meta(all_dfs):
     # (8)
     # We may need to only run this if it passes the logic check 
     # that each record in monitoringstation has a corresponding record in bmpinfo
-    df_badrows = ms[
+    badrows = ms[
         ms.apply(
             lambda row: 
             all([
@@ -225,11 +226,11 @@ def meta(all_dfs):
             ,
             axis=1
         )
-    ]
+    ].index.tolist()
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "stationtype",
         "error_type" : "Logic Error",
         "error_message" : (
@@ -240,11 +241,11 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (9) in watershed.py
-    # df_badrows = watershed[~watershed.insitusoil.isin(pd.read_sql("SELECT insitusoil FROM lu_insitusoil",current_app.eng).insitusoil.values)]
+    # badrows = watershed[~watershed.insitusoil.isin(pd.read_sql("SELECT insitusoil FROM lu_insitusoil",current_app.eng).insitusoil.values)]
     # args.update({
     #     "dataframe": ms,
     #     "tablename": "tbl_monitoringstation",
-    #     "badrows": get_badrows(df_badrows),
+    #     "badrows": badrows,
     #     "badcolumn": "stationtype",
     #     "error_type" : "Logic Error",
     #     "error_message" : (
@@ -280,12 +281,12 @@ def meta(all_dfs):
         else pd.NA, 
         axis=1
     )
-    df_badrows = ms[~ms['badrows'].isnull()]
+    badrows = ms[~ms['badrows'].isnull()].index.tolist()
 
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "measurementtype",
         "error_type" : "Lookup Fail",
         "error_message" : "Entry not found in lookup list."
@@ -302,18 +303,18 @@ def meta(all_dfs):
         for x,y in ms.groupby('sitename')
     }
 
-    df_badrows = ms[
+    badrows = ms[
         ms.apply(
             lambda row: 
             row['stationname'] in duplicate_stationname[row['sitename']]
             ,
             axis=1
         )
-    ]
+    ].index.tolist()
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "measurementtype",
         "error_type" : "Duplicate Submission Error",
         "error_message" : "Duplicates found for StationName. Monitoring StationNames must be unique for test site."
@@ -325,24 +326,25 @@ def meta(all_dfs):
     # I think this code commented out wont work because the second mask is of a greater length than the dataframe it is filtering - Robert
     # Let me know if that is not clear
 
-    # df_badrows = watershed[
+    # badrows = watershed[
     #         ~watershed['insitusoil'].isnull()
     #     ][
     #         watershed['insitusoil'].isin(
     #             [x for x in watershed['insitusoil'] if x not in lu_insitusoil]
     #         )
-    #     ]
+    #     ].index.tolist()
     
     lu_insitusoil = pd.read_sql("SELECT * FROM lu_insitusoil", current_app.eng).insitusoil.to_list() 
-    df_badrows = watershed[
+    badrows = watershed[
             # I replace empty string with none since i dont want an empty string to be falsely interpreted as a non missing value
             watershed.insitusoil.replace('', None).apply(lambda x: (not pd.isnull(x)) and (x not in lu_insitusoil))
-        ]
+        ] \
+        .index.tolist()
 
     args.update({
         "dataframe": watershed, 
         "tablename": "tbl_watershed",
-        "badrows": get_badrows(df_badrows),
+        "badrows": badrows,
         "badcolumn": "insitusoil",
         "error_type" : "Lookup Fail",
         "error_message" : "Entry is not in lookup list (A, B, C, or D)"

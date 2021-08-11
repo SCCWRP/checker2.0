@@ -29,7 +29,7 @@ def collect_error_messages(errs):
             # or in the routine which marks up their excel file
             "columns"         : e['columns'],
             "table"           : e['table'],
-            "row_number"      : r['row_number'],
+            "row_number"      : r,
             "message"         : f"{e['columns']} - {e['error_message']}"
         }
         for e in errs
@@ -55,19 +55,11 @@ def correct_row_offset(lst, offset):
     # These next few lines of code should correct that
 
     [
-        r.update(
-            {
-                'message'     : r['message'],
-                
-                # to get the actual excel file row number, we must add the number of rows that pandas skipped while first reading in the dataframe,
-                #   and we must add another row to account for the row in the excel file that contains the column headers 
-                #   and another 1 to account for the 1 based indexing of excel vs the zero based indexing of python
-                'row_number'  : r['row_number'] + offset + 1 + 1 ,
-                'value'       : r['value']
-            }
+        e.update(
+            { "rows" : [ r + offset + 1 + 1 for r in e['rows']] }
         )
         for e in lst
-        for r in e['rows']
+        
     ]
 
 
