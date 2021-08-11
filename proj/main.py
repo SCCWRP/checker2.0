@@ -154,9 +154,6 @@ def main():
     print(all_dfs)
 
     # write all_dfs again to the same excel path
-    # Below code is not good since it was overwriting the excel file
-    # for tblname in all_dfs.keys():
-    #     all_dfs[tblname].to_excel(excel_path, sheet_name = tblname, startrow = current_app.excel_offset)
     
     writer = pd.ExcelWriter(excel_path)
     for tblname in all_dfs.keys():
@@ -206,7 +203,9 @@ def main():
     
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
+    print("Right before core runs")
     core_output = core(all_dfs, current_app.eng, dbmetadata, debug = False)
+    print("Right after core runs")
     #core_output = core(all_dfs, current_app.eng, dbmetadata, debug = True)
 
     errs.extend(core_output['core_errors'])

@@ -92,6 +92,7 @@ def fix_case(all_dfs: dict):
         foreignkeys_rawvalues = {x:y for x,y in foreignkeys_rawvalues.items() if len(y)> 0}
         
         # Now we need to make a dictionary to fix the case, something like {col: {wrongvalue:correctvalue} }
+        # this is good indentation, looks good and easy to read - Robert
         fix_case  = {
             col : {
                   item : new_item 
@@ -106,9 +107,42 @@ def fix_case(all_dfs: dict):
     print("END fix_case function")
     return all_dfs
 
+# because every project will have those non-generalizable, one off, "have to hard code" kind of fixes
+# and this project is no exception
+def hardcoded_fixes(all_dfs):
+    if 'tbl_ceden_waterquality' in all_dfs.keys():
+
+        # hard coded fix for analytename column for water quality
+        all_dfs['tbl_ceden_waterquality'] = all_dfs['tbl_ceden_waterquality'] \
+            .analytename \
+            .apply(
+                lambda x:
+                'Nitrogen, Total Kjeldahl'
+                if 'kjeldahl' in str(x).lower()
+
+                else 'Ammonia as N'
+                if 'ammonia' in str(x).lower()
+
+                else 'Nitrogen, Total'
+                if str(x).lower() == 'nitrogen'
+
+                else 'OrthoPhosphate as P'
+                if 'orthophosphate' in str(x).lower()
+                
+                else 'Nitrate + Nitrite as N'
+                if (('nitrate' in str(x).lower()) and ('nitrite' in str(x).lower()))
+
+                else x
+            )
+
+    return all_dfs
+
+
+
 def clean_data(all_dfs):
 
     all_dfs = strip_whitespace(all_dfs)
     all_dfs = fix_case(all_dfs)
+    all_dfs = hardcoded_fixes(all_dfs)
 
     return all_dfs
