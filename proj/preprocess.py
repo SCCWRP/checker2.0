@@ -123,6 +123,18 @@ def hardcoded_fixes(all_dfs):
                 else 'Ammonia as N'
                 if 'ammonia' in str(x).lower()
 
+                else 'Total Organic Carbon'
+                if 'organic carbon' in str(x).lower()
+
+                else 'Hardness as CaCO3'
+                if ('hardness' in str(x).lower()) and ('carbonate' in str(x).lower())
+
+                else 'Nitrate as N'
+                if 'nitrogen, nitrate (no3) as n' in str(x).lower()
+
+                else 'SpecificConductivity'
+                if 'specific conductance' in str(x).lower()
+
                 else 'Nitrogen, Total'
                 if str(x).lower() == 'nitrogen'
 
