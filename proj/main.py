@@ -148,10 +148,6 @@ def main():
     #  We want to limit the manual cleaning of the data that the user has to do
     #  This function will strip whitespace on character fields and fix columns to match lookup lists if they match (case insensitive)
 
-    # Now, at this point, since a dataset was matched, we will rename the keys of all_dfs to be the database table names
-    for tbl,tab in session['table_to_tab_map'].items():
-        all_dfs[tbl] = all_dfs.pop(tab)
-
     print("preprocessing and cleaning data")
     all_dfs = clean_data(all_dfs)
     print("DONE preprocessing and cleaning data")
