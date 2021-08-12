@@ -1,5 +1,6 @@
 import pandas as pd
 from .functions import checkData, get_badrows
+from flask import current_app
 
 # q is a multiprocessing.Queue()
 # pass it in in the case that this is done with multiprocessing
@@ -9,7 +10,7 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
     print("BEGIN checkLookupLists")
     #assert dtype in tbl_tablenames.keys(), "Invalid Datatype in checkLookUpCodes function call"
     
-    lu_list_script_root = 'checker2'
+    lu_list_script_root = current_app.script_root
 
     lookup_sql = f"""
         SELECT

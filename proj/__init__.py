@@ -38,10 +38,11 @@ def teardown_request(exception):
     if hasattr(g, 'eng'):
         g.eng.dispose()
 
-
-
 # Project name
 app.project_name = "BMP"
+
+# script root (for any links we put, mainly lookup lists)
+app.script_root = 'checker2'
 
 # Maintainers
 app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','pauls@sccwrp.org']
