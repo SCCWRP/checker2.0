@@ -47,12 +47,6 @@ def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, or
     mailserver is the server that will be used to send the email
     """
 
-    # .append returns a NoneType
-    always_send_to.append(login_email)
-    send_to = always_send_to
-    print("send_to")
-    print(send_to)
-
     email_subject = f"Successful Data Load - {dtype} -- Submission ID#: {submissionid}"
     email_body = f"SCCWRP has received a successful {dtype} data submission from {login_email}\n"
     email_body += f"Submission ID: {submissionid}\n"
@@ -68,7 +62,7 @@ def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, or
         ]
     )
 
-    send_mail(send_from, send_to, email_subject, email_body, filename = originalfile, server = mailserver)
+    send_mail(send_from, [*always_send_to, login_email], email_subject, email_body, filename = originalfile, server = mailserver)
 
 
 
