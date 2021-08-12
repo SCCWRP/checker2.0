@@ -1,5 +1,5 @@
 from os import environ
-from flask import Flask
+from flask import Flask, g
 from sqlalchemy import create_engine
 
 # import blueprints to register them
@@ -25,7 +25,20 @@ app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
 app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
 
 # set the database connection string, database, and type of database we are going to point our application at
-app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
+#app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
+def connect_db():
+    return create_engine(environ.get("DB_CONNECTION_STRING"))
+
+@app.before_request
+def before_request():
+    g.eng = connect_db()
+
+@app.teardown_request
+def teardown_request(exception):
+    if hasattr(g, 'eng'):
+        g.eng.dispose()
+
+
 
 # Project name
 app.project_name = "BMP"
@@ -79,3 +92,6 @@ app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
 app.register_blueprint(scraper)
+
+
+

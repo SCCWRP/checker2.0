@@ -1,5 +1,5 @@
 from copy import deepcopy
-from flask import current_app
+from flask import current_app, g
 from inspect import currentframe
 from .functions import checkData, get_badrows
 import pandas as pd
@@ -129,7 +129,7 @@ def monitoring(all_dfs):
     # Same applies for flow
     unified_precip = pd.concat(
         [
-            pd.read_sql("SELECT sitename,eventid from unified_precipitation", current_app.eng),
+            pd.read_sql("SELECT sitename,eventid from unified_precipitation", g.eng),
             precip[['sitename','eventid']]
         ],
         ignore_index = True
@@ -186,7 +186,7 @@ def monitoring(all_dfs):
     # They must be registered as having a measurementtypee of 'Q' for flow and 'WQ' for waterquality
     unified_ms = pd.read_sql(
         "SELECT sitename, stationname FROM unified_monitoringstation WHERE measurementtype = 'Q'",
-        current_app.eng
+        g.eng
     )
     badrows = flow[
         flow.apply(
@@ -216,7 +216,7 @@ def monitoring(all_dfs):
 
     unified_ms = pd.read_sql(
         "SELECT sitename, stationname FROM unified_monitoringstation WHERE measurementtype = 'WQ'",
-        current_app.eng
+        g.eng
     )
     badrows = wq[
         wq.apply(

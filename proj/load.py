@@ -1,4 +1,4 @@
-from flask import Blueprint, current_app, session, jsonify
+from flask import Blueprint, current_app, session, jsonify, g
 from .utils.db import GeoDBDataFrame
 from .utils.mail import data_receipt
 from .utils.exceptions import default_exception_handler
@@ -25,7 +25,7 @@ def load():
     # This way, there are not issues with pandas changing data before rewriting the file to excel
     excel_path = session['excel_path']
 
-    eng = current_app.eng
+    eng = g.eng
 
     all_dfs = {
 
@@ -133,12 +133,12 @@ def load():
     for tbl in current_app.datasets.get(session.get('datatype')).get('tables'):
         print("Loading Data. Be sure that the tables are in the correct order in __init__.py datasets")
         print("If foreign key relationships are set, the tables need to be loadede in a particular order")
-        all_dfs[tbl].to_geodb(tbl, current_app.eng)
+        all_dfs[tbl].to_geodb(tbl, g.eng)
  
 
         print(f"done loading data to {tbl}")
 
-        current_app.eng.execute(
+        g.eng.execute(
             f"""
             INSERT INTO submission_tracking_checksum
             (objectid, submissionid, tablename, checksum, excel_rows)
@@ -171,7 +171,7 @@ def load():
         submissionid = session.get('submissionid'),
         originalfile = session.get('excel_path'),
         tables = all_dfs.keys(),
-        eng = current_app.eng,
+        eng = g.eng,
         mailserver = current_app.config['MAIL_SERVER'],
         login_info = session.get('login_info')
     )
@@ -186,7 +186,7 @@ def load():
     # They are finally done!
     # Set the submission tracking table record to 'submit = yes'
     # Put their original filename in the submission tracking table
-    current_app.eng.execute(
+    g.eng.execute(
         f"""
         UPDATE submission_tracking_table 
         SET submit = 'yes' 

@@ -1,6 +1,6 @@
 # This file is for various utilities to preprocess data before core checks
 
-from flask.globals import current_app
+from flask import current_app, g
 import pandas as pd
 
 def strip_whitespace(all_dfs: dict):
@@ -24,7 +24,7 @@ def strip_whitespace(all_dfs: dict):
                 table_name = '{table_name}'
                 AND column_name NOT IN ('{"','".join(current_app.system_fields)}');
             """, 
-            current_app.eng
+             g.eng
         )
         
         meta[meta['udt_name'] == 'varchar']
@@ -63,14 +63,14 @@ def fix_case(all_dfs: dict):
             AND tc.table_name='{table_name}'
             AND ccu.table_name LIKE 'lu_%%';
         """
-        lu_info = pd.read_sql(lookup_sql,current_app.eng)
+        lu_info = pd.read_sql(lookup_sql, g.eng)
            
         # The keys of this dictionary are the column's names in the dataframe, values are their lookup values
         foreignkeys_luvalues = {
             x : y for x,y in zip(
                 lu_info.column_name,
                 [
-                    pd.read_sql(f"SELECT {lu_col} FROM {lu_table}", current_app.eng)[f'{lu_col}'].to_list() 
+                    pd.read_sql(f"SELECT {lu_col} FROM {lu_table}",  g.eng)[f'{lu_col}'].to_list() 
                     for lu_col,lu_table 
                     in zip (lu_info.foreign_column_name, lu_info.foreign_table_name) 
                 ]

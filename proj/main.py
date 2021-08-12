@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, current_app, Blueprint, session
+from flask import render_template, request, jsonify, current_app, Blueprint, session, g
 from werkzeug.utils import secure_filename
 from gc import collect
 import os, time, json
@@ -46,7 +46,7 @@ def main():
             session['excel_path'] = excel_path
 
             # Put their original filename in the submission tracking table
-            current_app.eng.execute(
+            g.eng.execute(
                 f"""
                 UPDATE submission_tracking_table 
                 SET original_filename = '{filename}' 
@@ -134,7 +134,7 @@ def main():
         )
     
     # If they made it this far, a dataset was matched
-    current_app.eng.execute(
+    g.eng.execute(
         f"""
         UPDATE submission_tracking_table 
         SET datatype = '{match_dataset}'
@@ -190,7 +190,7 @@ def main():
 
     # meta data is needed for the core checks to run, to check precision, length, datatypes, etc
     dbmetadata = {
-        tblname: fetch_meta(tblname, current_app.eng)
+        tblname: fetch_meta(tblname, g.eng)
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
 
@@ -207,9 +207,9 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    core_output = core(all_dfs, current_app.eng, dbmetadata, debug = False)
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
     print("Right after core runs")
-    #core_output = core(all_dfs, current_app.eng, dbmetadata, debug = True)
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])

@@ -1,13 +1,13 @@
 import pandas as pd
 from copy import deepcopy
-from flask import session, current_app
+from flask import session, current_app, g
 from gc import collect
 from openpyxl import load_workbook
 
 
 def match(all_dfs):
 
-    eng = current_app.eng
+    eng = g.eng
     system_fields = current_app.system_fields
     datasets = current_app.datasets
 

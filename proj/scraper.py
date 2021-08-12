@@ -1,5 +1,5 @@
 import pandas as pd
-from flask import request, Blueprint, render_template, current_app
+from flask import request, Blueprint, render_template, current_app, g
 from .utils.mail import send_mail
 
 
@@ -17,7 +17,7 @@ def lookuplists():
             if layer.startswith("lu_"):
 
                 # unfortunately readonly user doesnt have access to information_schema
-                eng = current_app.eng # postgresql
+                eng = g.eng # postgresql
 
                 # below should be more sanitized
                 # https://stackoverflow.com/questions/39196462/how-to-use-variable-for-sqlite-table-name?rq=1

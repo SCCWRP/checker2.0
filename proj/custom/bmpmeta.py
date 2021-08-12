@@ -1,4 +1,4 @@
-from flask import current_app
+from flask import current_app, g
 from inspect import currentframe
 from .functions import checkData, get_badrows
 from copy import deepcopy
@@ -241,7 +241,7 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (9) in watershed.py
-    # badrows = watershed[~watershed.insitusoil.isin(pd.read_sql("SELECT insitusoil FROM lu_insitusoil",current_app.eng).insitusoil.values)]
+    # badrows = watershed[~watershed.insitusoil.isin(pd.read_sql("SELECT insitusoil FROM lu_insitusoil",g.eng).insitusoil.values)]
     # args.update({
     #     "dataframe": ms,
     #     "tablename": "tbl_monitoringstation",
@@ -270,7 +270,7 @@ def meta(all_dfs):
     bad_measurement_type = list(
         set(*sitecode_measurementtype.values()) 
         -
-        set(pd.read_sql("SELECT measurementtype FROM lu_measurementtype",current_app.eng).measurementtype.values)
+        set(pd.read_sql("SELECT measurementtype FROM lu_measurementtype",g.eng).measurementtype.values)
     )
         
     ms['badrows'] = ms.apply(
@@ -334,7 +334,7 @@ def meta(all_dfs):
     #         )
     #     ].index.tolist()
     
-    lu_insitusoil = pd.read_sql("SELECT * FROM lu_insitusoil", current_app.eng).insitusoil.to_list() 
+    lu_insitusoil = pd.read_sql("SELECT * FROM lu_insitusoil", g.eng).insitusoil.to_list() 
     badrows = watershed[
             # I replace empty string with none since i dont want an empty string to be falsely interpreted as a non missing value
             watershed.insitusoil.replace('', None).apply(lambda x: (not pd.isnull(x)) and (x not in lu_insitusoil))

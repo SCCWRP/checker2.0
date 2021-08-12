@@ -38,7 +38,7 @@ def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, or
     must be incuded in the email body or subject.
 
     send_from must be a string, like admin@chceker.sccwrp.org
-    always_send_to are the email addresses which will always receive the email
+    always_send_to are the email addresses which will always receive the email, which may or may not always be the maintainers
     login_email is the email the user logged in with
     dtype is the data type they submitted data for
     submissionid is self explanatory

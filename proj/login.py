@@ -1,12 +1,12 @@
 import time, os
 import pandas as pd
-from flask import session, Blueprint, current_app, request, render_template, jsonify
+from flask import session, Blueprint, current_app, request, render_template, jsonify, g
 from .utils.exceptions import default_exception_handler
 
 homepage = Blueprint('homepage', __name__)
 @homepage.route('/', methods = ['GET','POST'])
 def index():
-    eng = current_app.eng
+    eng = g.eng
 
     # upon new request clear session, reset submission ID, reset submission directory
     session.clear()
@@ -68,7 +68,7 @@ def index():
 def testsites():
 
     dataprovider = request.form.get('login_dataprovider')
-    eng = current_app.eng
+    eng = g.eng
 
     # Get testsites that have data in unified_testsite
     testsites = pd.read_sql(
@@ -117,7 +117,7 @@ def login():
 
     # Update submission tracking, putting their email address in their record
     # this assumes that the fields are named exactly the same as the login form
-    current_app.eng.execute(
+    g.eng.execute(
         f"""
         UPDATE submission_tracking_table 
         SET {

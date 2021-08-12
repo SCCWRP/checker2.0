@@ -62,7 +62,6 @@ def correct_row_offset(lst, offset):
         
     ]
 
-
     return lst
 
 
