@@ -15,10 +15,10 @@ RUN pip3 install pandas xlsxwriter numpy openpyxl pandas_access
 RUN pip3 install Werkzeug
 #RUN pip3 install opencv-python
 
-RUN mkdir -p /var/www/checker2/
-WORKDIR /var/www/checker2/
+RUN mkdir -p /var/www/checker/
+WORKDIR /var/www/checker/
 
-CMD ["uwsgi","-s","/tmp/bmpchecker2.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/checker2=run:app","--chmod-socket=666"]
+CMD ["uwsgi","-s","/tmp/bmpchecker.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/checker=run:app","--chmod-socket=666"]
 
 
 # docker container run -it -d --name appname \
