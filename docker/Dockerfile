@@ -10,9 +10,12 @@ RUN pip3 install wheel
 RUN pip3 install uwsgi flask ipython
 RUN pip3 install xlrd flask_session
 RUN pip3 install flask_cors
-RUN pip3 install sqlalchemy
-RUN pip3 install pandas xlsxwriter numpy openpyxl pandas_access
 RUN pip3 install Werkzeug
+RUN pip3 install sqlalchemy
+RUN pip3 install xlsxwriter
+RUN pip3 install openpyxl
+RUN pip3 install numpy 
+RUN pip3 install pandas 
 #RUN pip3 install opencv-python
 
 RUN mkdir -p /var/www/checker/

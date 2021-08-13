@@ -43,7 +43,7 @@ def teardown_request(exception):
 app.project_name = "BMP"
 
 # script root (for any links we put, mainly lookup lists)
-app.script_root = 'checker2'
+app.script_root = 'checker'
 
 # Maintainers
 app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','pauls@sccwrp.org']

@@ -1,4 +1,4 @@
-const script_root = 'checker2';
+const script_root = 'checker';
 const critical_error_handler = (contact) => {
     alert(
 `
