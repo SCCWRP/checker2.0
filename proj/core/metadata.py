@@ -153,7 +153,7 @@ def checkLength(dataframe, tablename, eng, meta, *args, output = None, **kwargs)
                 checkData(
                     dataframe = dataframe,
                     tablename = tablename,
-                    badrows = dataframe[dataframe[col].astype(str).str.len() > maxlen].index.tolist(),
+                    badrows = dataframe[(~pd.isnull(dataframe[col])) & (dataframe[col].astype(str).str.len() > maxlen)].index.tolist(),
                     badcolumn = col,
                     error_type = "Value too long",
                     is_core_error = True,
