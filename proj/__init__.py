@@ -7,6 +7,7 @@ from .main import upload
 from .login import homepage
 from .load import finalsubmit
 from .download import download
+from .clrdemo import clrdemo
 from .scraper import scraper
 from .core.functions import fetch_meta
 from .custom.bmpmeta import meta
@@ -93,6 +94,7 @@ app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
 app.register_blueprint(scraper)
+app.register_blueprint(clrdemo)
 
 
 
