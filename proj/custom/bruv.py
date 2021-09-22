@@ -43,7 +43,7 @@ def bruv(all_dfs):
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
-    #   "badrows": get_badrows(df[df.temperature != 'asdf']),
+    #   "badrows": df[df.temperature != 'asdf'].index.tolist(),
     #   "badcolumn": "temperature",
     #   "error_type" : "Not asdf",
     #   "error_message" : "This is a helpful useful message for the user"
@@ -53,10 +53,10 @@ def bruv(all_dfs):
     args.update({
         "dataframe": bruvdata,
         "tablename": "tbl_bruv_data",
-        "badrows": get_badrows(bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)]),
-        "badcolumn": "temperature",
-        "error_type" : "Not asdf",
-        "error_message" : "This is a helpful useful message for the user"
+        "badrows": bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
+        "badcolumn": "maxnspecies",
+        "error_type" : "Value out of range",
+        "error_message" : "Max number of species should be between 0 and 100"
     })
     errs = [*errs, checkData(**args)]
 

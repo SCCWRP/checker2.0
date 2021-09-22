@@ -289,7 +289,7 @@ def main():
     # instead we can just dump it to a json file
     save_errors(warnings, os.path.join( session['submission_dir'], "warnings.json" ))
     save_errors(errs, os.path.join( session['submission_dir'], "errors.json" ))
-    
+    print("ASDF")
     # Later we will need to have a way to map the dataframe column names to the column indices
     # This is one of those lines of code where i dont know why it is here, but i have a feeling it will
     #   break things if i delete it
