@@ -95,11 +95,9 @@ def main():
     }
     
     assert len(all_dfs) > 0, f"submissionid - {session.get('submissionid')} all_dfs is empty"
-
+    
     for tblname in all_dfs.keys():
         all_dfs[tblname].columns = [x.lower() for x in all_dfs[tblname].columns]
-        if 'dataprovider' in all_dfs[tblname].columns:
-            all_dfs[tblname] = all_dfs[tblname].drop('dataprovider', axis = 1)
 
     print("DONE - building 'all_dfs' dictionary")
     
@@ -115,6 +113,25 @@ def main():
     # if the tab didnt match any table it will not alter that item in the all_dfs dictionary
     print("Running match tables routine")
     match_dataset, match_report, all_dfs = match(all_dfs)
+    
+    print("match(all_dfs)")
+    #print(match(all_dfs))
+
+    print("match_dataset")
+    print(match_dataset)
+    print("match_report")
+    print(match_report)
+    print("all_dfs")
+    print(all_dfs)
+
+    #NOTE if all tabs in all_dfs matched a database table, but there is still no match_dataset
+    # then the problem probably lies in __init__.py
+
+    # need an assert statement
+    # an assert statement makes sense because in this would be an issue on our side rather than the user's
+
+
+
     print("DONE - Running match tables routine")
 
     session['datatype'] = match_dataset
@@ -148,9 +165,11 @@ def main():
     #  We want to limit the manual cleaning of the data that the user has to do
     #  This function will strip whitespace on character fields and fix columns to match lookup lists if they match (case insensitive)
 
-    print("preprocessing and cleaning data")
-    all_dfs = clean_data(all_dfs)
-    print("DONE preprocessing and cleaning data")
+    #print("preprocessing and cleaning data")
+    # We are not sure if we want to do this
+    # some projects like bight prohibit this
+    #all_dfs = clean_data(all_dfs)
+    #print("DONE preprocessing and cleaning data")
     
     # write all_dfs again to the same excel path
     # Later, if the data is clean, the loading routine will use the tab names to load the data to the appropriate tables
@@ -194,22 +213,15 @@ def main():
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
 
-    # add login_dataprovider temporarily since it is part of the primary key for all tables
-    # But it is not in their excel file, rather they entered it in the login form
-    # So core checks needs it to check duplicates
-    for tablename in all_dfs.keys():
-        all_dfs[tablename] = all_dfs[tablename].assign(
-            dataprovider = session.get('login_info').get('login_dataprovider')
-        )
-
+   
     # tack on core errors to errors list
     
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
     print("Right after core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
@@ -221,12 +233,6 @@ def main():
 
     print("DONE - Core Checks")
 
-
-    # drop login_dataprovider since it was only needed temporarily for core checks
-    for tablename in all_dfs.keys():
-        all_dfs[tablename] = all_dfs[tablename].drop(
-            'dataprovider', axis = 1
-        )
 
 
     # ----------------------------------------- #
@@ -257,6 +263,8 @@ def main():
 
         # The custom checks function is stored in __init__.py in the datasets dictionary and accessed and called accordingly
         custom_output = current_app.datasets.get(match_dataset).get('function')(all_dfs)
+        print("custom_output: ")
+        print(custom_output)
 
         assert isinstance(custom_output, dict), \
             "custom output is not a dictionary. custom function is not written correctly"

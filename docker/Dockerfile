@@ -21,7 +21,7 @@ RUN pip3 install pandas
 RUN mkdir -p /var/www/checker/
 WORKDIR /var/www/checker/
 
-CMD ["uwsgi","-s","/tmp/bmpchecker.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/checker=run:app","--chmod-socket=666"]
+CMD ["uwsgi","-s","/tmp/empachecker.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/checker=run:app","--chmod-socket=666"]
 
 
 # docker container run -it -d --name appname \

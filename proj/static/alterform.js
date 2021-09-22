@@ -9,7 +9,7 @@
                 inp.classList.remove('hidden');
             });
 
-            const dtype = document.querySelector("input[type='radio'][name='login_datatype']:checked").value;
+            const dtype = document.querySelector("#datatype-select").value;
             
             switch (dtype) {
                 case 'monitoring':

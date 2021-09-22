@@ -42,52 +42,20 @@ def index():
         );
         """
     )
-
-
-    # Return array of dataproviders
-    dataproviders = pd.read_sql("""SELECT DISTINCT dataprovider FROM unified_testsite""", eng).values
     
-    print("type(dataproviders)")
-    print(type(dataproviders))
-    print("dataproviders")
-    print(dataproviders)
 
-    # Make it a flattened list
-    dataproviders = [x[0] for x in dataproviders]
-    #dataproviders = {a[0]: a[1] for a in dataproviders}
-    
+    agencies = pd.read_sql("SELECT agencyname, agencycode FROM lu_agency", eng)
+    agencies = {a[0]:a[1] for a in agencies.values}
+    print(agencies)
+
 
     return render_template(
         'index.html', 
         projectname = current_app.project_name,
-        dataproviders = dataproviders
+        agencies = agencies
     )
 
 
-@homepage.route('/testsites', methods = ['GET','POST'])
-def testsites():
-
-    dataprovider = request.form.get('login_dataprovider')
-    eng = g.eng
-
-    # Get testsites that have data in unified_testsite
-    testsites = pd.read_sql(
-            f"""
-            SELECT
-                DISTINCT sitename, globalid AS siteid
-            FROM
-                unified_testsite
-            WHERE dataprovider = '{dataprovider}'
-            ORDER BY sitename
-            """,
-            eng                                
-        ) \
-        .values
-
-    # Sitename and SiteID's and key value pairs
-    testsites = [{"sitename": t[0], "siteid": t[1]} for t in testsites]
-
-    return jsonify(testsites=testsites)
 
 
 @homepage.route('/login', methods = ['GET','POST'])
@@ -109,8 +77,7 @@ def login():
 
     assert "login_email" in login_info.keys(), \
         "No email address found in login form. It should be named login_email since the email notification routine assumes so."
-    assert "login_dataprovider" in login_info.keys(), \
-        "No login_dataprovider found in login form"
+   
 
     assert all([str(x).startswith('login_') for x in login_info.keys()]), \
         "The login form failed for follow the naming convention of having all input names begin with 'login_'"

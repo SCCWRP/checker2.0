@@ -22,39 +22,21 @@
           <div class="card-body">
             <div id="data-logger-raw-form-container">
               <form id="main-login-form">
-                <div class="form-group container" id="datatype-radio-container">
-                  <div class="row datatype-radio-label-container">
-                    <div class="col-sm">
-                      <label for="datatype-radio" id="datatype-radio-label">Select Submission Type:</label>
-                    </div>
-                  </div>
-                  <br>
-                  <div class="row">
-                    <div class="row col-sm">
-
-                      <div class="col-sm">
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio2"
-                            value="monitoring" checked>
-                          <label class="form-check-label" for="datatype-radio2">
-                            Monitoring Data
-                          </label>
-                        </div>
-                      </div>
-
-                      <div class="col-sm">
-                        <div class="form-check form-check-inline">
-                          <input class="form-check-input" type="radio" name="login_datatype" id="datatype-radio1"
-                            value="meta">
-                          <label class="form-check-label" for="datatype-radio1">
-                            One Time "Meta Data" submission
-                          </label>
-                        </div>
-                      </div>
-                      
-                      
-                    </div>
-                  </div>
+                <div class="login-input-container form-group" id="datatype-select-container">
+                  <label for="datatype-select">Select the Submission Type:</label>
+                  <select class="form-control" id="datatype-select" name="login_datatype">
+                    <option value="sav">SAV</option>
+                    <option value="bruv">BRUV</option>
+                    <option value="fishseines">Fish Seines</option>
+                    <option value="crabtrap">Crab Trap</option>
+                    <option value="vegetation">Vegetation</option>
+                    <option value="nutrients">Nutrients</option>
+                    <option value="edna">eDNA</option>
+                    <option value="feldspar">Feldspar</option>
+                    <option value="sedimentgrainsize">Sediment Grain Size</option>
+                    <option value="discretewq">Discrete Water Quality</option>
+                    <option value="benthicinfauna">Benthic Infauna</option>
+                  </select>
                 </div>
                 <br>
                 <div class="login-input-container form-group">
@@ -62,27 +44,18 @@
                   <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
                 </div>
                 <br />
-                <div class="form-group meta-required monitoring-required watershed-required form-group-dynamic" id="dataprovider-select-container">
-                  <label for="dataprovider-select">Select the Data Provider:</label>
-                  <select class="form-control" id="dataprovider-select" name="login_dataprovider">
-                    <option value="none" id="default-hidden-dataprovider-select" selected disabled hidden></option>
-                    {% for dataprovider in dataproviders%}
-                    <option value="{{dataprovider}}">{{dataprovider}}</option>
+                <div class="form-group form-group-dynamic" id="agency-select-container">
+                  <label for="agency-select">Select your agency:</label>
+                  <select class="form-control" id="agency-select" name="login_agency">
+                    <option value="none" id="default-hidden-agency-select" selected disabled hidden></option>
+                    {% for agencyname, agencycode in agencies.items() %}
+                    <option value="{{agencycode}}">{{agencyname}}</option>
                     {%endfor%}
                   </select>
                 </div>
                 <br>
-                <div class="form-group form-group-dynamic meta-required hidden" id="dataprovider-button-container">
-                  Not finding yourself or your agency in the above dropdown? <button type="button" class="btn btn-info btn-sm" id="dataprovider-button">Click here</button>
-                </div>
                 <br />
-                <div class="form-group monitoring-required form-group-dynamic"
-                  id="testsite-select-container">
-                  <label for="testsite-select">Select the testsite which you are submitting for:</label>
-                  <select class="form-control" id="testsite-select" name="login_testsite">
-                    <option value="none" selected disabled hidden></option>
-                  </select>
-                </div>
+               
                 <br />
                 <div class="login-input-container form form-group hidden" id="login-form-submit-btn-container">
                   <button class="btn btn-secondary" type="submit">Sign in</button>
@@ -344,10 +317,7 @@
                 <button class="btn btn-primary btn-reload">Reload the application</button>
               </div>
               <div class="col-sm">
-                <button class="btn btn-info btn-shiny">Go to the BMP Effectiveness Calculator</button>
-              </div>
-              <div class="col-sm">
-                <button class="btn btn-info btn-sccwrp">Go to the SCCWRP webiste</button>
+                <button class="btn btn-info btn-sccwrp">Go to the SCCWRP website</button>
               </div>
             </div>
           </div>

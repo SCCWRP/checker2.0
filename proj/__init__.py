@@ -7,11 +7,19 @@ from .main import upload
 from .login import homepage
 from .load import finalsubmit
 from .download import download
-from .clrdemo import clrdemo
 from .scraper import scraper
 from .core.functions import fetch_meta
-from .custom.bmpmeta import meta
-from .custom.bmpmonitoring import monitoring
+from .custom.sav import sav #def fcn in .py
+from .custom.bruv import bruv #def fcn in .py
+from .custom.fishseines import fishseines #def fcn in .py
+from .custom.crabtrap import crabtrap
+from .custom.vegetation import vegetation #def fcn in .py
+from .custom.nutrients import nutrients #def fcn in .py
+from .custom.edna import edna #def fcn in .py
+from .custom.sedimentgrainsize import sedimentgrainsize #def fcn in .py
+from .custom.discretewq import discretewq #def fcn in .py
+from .custom.benthicinfauna import benthicinfauna #def fcn in .py
+from .custom.feldspar import feldspar #def fcn in .py
 
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
@@ -40,13 +48,13 @@ def teardown_request(exception):
         g.eng.dispose()
 
 # Project name
-app.project_name = "BMP"
+app.project_name = "EMPA"
 
 # script root (for any links we put, mainly lookup lists)
 app.script_root = 'checker'
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','pauls@sccwrp.org']
+app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org'] #,'pauls@sccwrp.org']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
@@ -55,17 +63,16 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','login_datatype','login_dataprovider', 'dataprovider','submissionid','warnings',
-    'login_testsite', 'msid', 'siteid'
+    'login_email','login_agency','login_datatype','submissionid','warnings'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
-app.tabs_to_ignore = []
+app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists']
 
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
 # NESE offsets by 2 rows
-app.excel_offset = 1
+app.excel_offset = 0
 
 # data sets / groups of tables for datatypes will be defined here in __init__.py
 app.datasets = {
@@ -75,15 +82,61 @@ app.datasets = {
     #   NOTE BE SURE TO PUT THEM IN THE ORDER YOU NEED THEM TO BE LOADED
     # function
     #   the custom checks function associated with the datatype. Imported up top
-    'meta': {
-        'tables': ['tbl_testsite','tbl_watershed','tbl_bmpinfo','tbl_monitoringstation'], 
-        'login_fields': ['login_email','login_dataprovider'],
-        'function': meta
+    'sav':{
+        'tables': ['tbl_protocol_metadata','tbl_sav_metadata','tbl_savpercentcover_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': sav
     },
-    'monitoring': {
-        'tables': ['tbl_precipitation','tbl_ceden_waterquality','tbl_flow'],
-        'login_fields': ['login_email','login_dataprovider','login_testsite'],
-        'function': monitoring
+    'bruv':{
+        'tables': ['tbl_protocol_metadata','tbl_bruv_metadata','tbl_bruv_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': bruv
+    },
+    'fishseines':{
+        'tables': ['tbl_protocol_metadata','tbl_fish_sample_metadata','tbl_fish_abundance_data','tbl_fish_length_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': fishseines
+    },
+    'crabtrap': {
+        'tables': ['tbl_protocol_metadata','tbl_crabtrap_metadata','tbl_crabfishinvert_abundance','tbl_crabbiomass_length'], 
+        'login_fields': ['login_email','login_agency'],
+        'function': crabtrap
+    },
+    'vegetation':{
+        'tables': ['tbl_protocol_metadata','tbl_vegetation_sample_metadata','tbl_vegetativecover_data','tbl_epifauna_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': vegetation
+    },
+    'nutrients':{
+        'tables': ['tbl_protocol_metadata','tbl_nutrients_metadata','tbl_nutrients_labbatch_data','tbl_nutrients_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': nutrients
+    },
+    'edna':{
+        'tables': ['tbl_protocol_metadata','tbl_edna_metadata','tbl_edna_water_labbatch_data','tbl_edna_sed_labbatch_data','tbl_edna_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': edna
+    },
+    'sedimentgrainsize':{
+        'tables': ['tbl_sav_metadata'],
+        #'tables': ['tbl_protocol_metadata','tbl_sedgrainsize_metadata','tbl_sedimentgrainsize_labbatch_data','tbl_sedgrainsize_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': sedimentgrainsize
+    },
+    'discretewq':{
+        'tables': ['tbl_protocol_metadata','tbl_waterquality_metadata','tbl_waterquality_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': discretewq
+    },
+    'benthicinfauna':{
+        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
+        'login_fields': ['login_email','login_agency'],
+        'function': benthicinfauna
+    },
+    'feldspar':{
+        'tables': ['tbl_protocol_metadata','tbl_feldspar_metadata','tbl_feldspar_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': feldspar
     }
 }
 
@@ -94,7 +147,5 @@ app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
 app.register_blueprint(scraper)
-app.register_blueprint(clrdemo)
-
 
 

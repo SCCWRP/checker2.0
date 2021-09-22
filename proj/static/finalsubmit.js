@@ -53,11 +53,4 @@ const addFinalSubmitListener = () => {
         })
     }
     
-    // not like there are going to be more than one button for this, but eh, why not right?
-    const shinyButtons = document.querySelectorAll('.btn-shiny');
-    for (let i = 0; i < shinyButtons.length; i++) {
-        shinyButtons[i].addEventListener('click', function () {
-            window.location = `https://sccwrp.shinyapps.io/bmp_eval_2021/`;
-        })
-    }
 })()

@@ -63,9 +63,6 @@ def load():
         all_dfs[tbl].columns = [x.lower() for x in all_dfs[tbl].columns]
 
         assert not all_dfs[tbl].empty, "Somehow an empty dataframe was about to be submitted"
-        
-        if 'dataprovider' in all_dfs[tbl].columns:
-            all_dfs[tbl] = all_dfs[tbl].drop('dataprovider', axis = 1)
 
 
         if not warnings.empty:
@@ -101,12 +98,6 @@ def load():
             # for BMP specifically we dont want to include the login_testsite
             **{k:v for k,v in session.get('login_info').items() if k != 'login_testsite'}
         )
-
-        # Login dataprovider should be a column name because it comes from the login form
-        # However, in the tbl tables (and all tables) it should be called dataprovider
-        assert 'login_dataprovider' in all_dfs[tbl].columns, f"login_dataprovider not found in all_dfs[{tbl}]"
-        all_dfs[tbl] = all_dfs[tbl].rename(columns = {'login_dataprovider':'dataprovider'})    
-
 
         all_dfs[tbl] = GeoDBDataFrame(all_dfs[tbl])
 
