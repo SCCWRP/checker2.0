@@ -23,6 +23,10 @@ def discretewq(all_dfs):
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
 
+    
+    watermeta=all_dfs=['tbl_waterquality_metadata']
+    waterdata=all_dfs['tbl_waterquality_data']
+
     errs = []
     warnings = []
 
