@@ -23,6 +23,10 @@ def nutrients(all_dfs):
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
 
+    nutrilab = all_dfs['tbl_nutrients_labbatch_data']
+    nutridata= all_dfs['tbl_nutrients_data']
+    nutrimeta = all_dfs['tbl_nutrients_metadata']
+    
     errs = []
     warnings = []
 
