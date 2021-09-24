@@ -22,7 +22,12 @@ def fishseines(all_dfs):
     
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
+    
+    fishabud = all_dfs['tbl_fish_abudance_data']
+    fishdata = all_dfs['tbl_fish_length_data']
+    fishmeta = all_dfs['tbl_fish_sample_metadata']
 
+   
     errs = []
     warnings = []
 
