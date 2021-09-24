@@ -23,6 +23,13 @@ def edna(all_dfs):
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
 
+    # These are the dataframes that got submitted for edna
+
+    ednased = all_dfs['tbl_edna_sed_labbatch_data']
+    ednawater = all_dfs['tbl_edna_water_labbatch_data']
+    ednameta = all_dfs['tbl_edna_metadata']
+    ednadata= all_dfs['tbl_edna_data']
+
     errs = []
     warnings = []
 
