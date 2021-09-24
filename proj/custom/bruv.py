@@ -22,6 +22,7 @@ def bruv(all_dfs):
     # This is the convention that was followed in the old checker
     
     # These are the dataframes that got submitted for bruv
+
     #protocol = all_dfs['tbl_protocol_metadata']
     bruvmeta = all_dfs['tbl_bruv_metadata']
     bruvdata = all_dfs['tbl_bruv_data']
@@ -32,10 +33,10 @@ def bruv(all_dfs):
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     # Im just initializing the args dictionary
-    
+
     args = {
         "dataframe": pd.DataFrame({}),
-        "tablename": '',
+        "tablename": 'tbl_test',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
@@ -53,19 +54,22 @@ def bruv(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
     
+    #(1) Range Check for maxnspecies [0, 100]
     args.update({
-        "dataframe":bruvdata,
-        "tablename":"tbl_bruv_data",
-        "badrows":bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
+        "dataframe": bruvdata,
+        "tablename": 'tbl_bruv_data',
+        "badrows": bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
         "badcolumn":"maxnspecies",
         "error_type":"Value out of range",
         "error_message":"Max number of species should be between 0 and 100"
     })
-    errs = [*errs, checkData(**args)]
+    #errs = [*errs, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     print("errs: ")
     print(errs)
-    
+
+    '''
     args.update({
         "dataframe":bruvdata,
         "tablename":"tbl_bruv_data",
@@ -119,5 +123,5 @@ def bruv(all_dfs):
 
     print("what does errs look like? ")
     print(errs)
-    
+    '''
     return {'errors': errs, 'warnings': warnings}
