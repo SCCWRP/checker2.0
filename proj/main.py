@@ -313,6 +313,7 @@ def main():
 
     # Mark up the excel workbook
     print("Marking Excel file")
+    print(session.get('excel_path'))
 
     # mark_workbook function returns the file path to which it saved the marked excel file
     session['marked_excel_path'] = mark_workbook(

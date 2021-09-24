@@ -16,6 +16,9 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
     # copy the excel file and have "marked" in the name, and we will mark this excel file
     shutil.copy(excel_path, marked_path)
 
+    # No empty errors allowed otherwise it crashes
+    errs = [e for e in errs if len(e) > 0]
+
     errs_cells = dict()
     for table in set([e.get('table') for e in errs]):
         errs_cells[table] = []

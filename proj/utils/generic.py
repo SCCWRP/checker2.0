@@ -53,12 +53,17 @@ def correct_row_offset(lst, offset):
     # Therefore the row number in the errors and warnings will only match with their excel file's row if the column headers are actually in 
     #   the first row of the excel file.
     # These next few lines of code should correct that
+    print("lst: ")
+    print(lst)
+    print("offset: ")
+    print(offset)
 
     [
         e.update(
             { "rows" : [ r + offset + 1 + 1 for r in e['rows']] }
         )
         for e in lst
+        if len(e) > 0
         
     ]
 
