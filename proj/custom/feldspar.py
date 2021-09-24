@@ -23,6 +23,9 @@ def feldspar(all_dfs):
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
 
+    felddata = all_dfs['tbl_feldspar_data']
+    feldmeta = all_dfs['tbl_feldspar_metadata']
+
     errs = []
     warnings = []
 
