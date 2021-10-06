@@ -54,7 +54,7 @@ app.project_name = "EMPA"
 app.script_root = 'checker'
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org'] #,'pauls@sccwrp.org']
+app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','nataliem@sccwrp.org'] #,'pauls@sccwrp.org']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'

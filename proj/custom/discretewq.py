@@ -2,6 +2,7 @@
 
 from inspect import currentframe
 from flask import current_app
+import pandas as pd
 from .functions import checkData, get_badrows
 
 def discretewq(all_dfs):
@@ -32,17 +33,17 @@ def discretewq(all_dfs):
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
-    '''
+    
     args = {
-        "dataframe": df,
-        "tablename": tbl,
+        "dataframe": pd.DataFrame({}),
+        "tablename":'',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
         "is_core_error": False,
         "error_message": ""
     }
-    '''
+    
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
@@ -53,6 +54,24 @@ def discretewq(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
-
+    args.update({
+        "dataframe": watermeta,
+        "tablename": 'tbl_waterquality_metadata',
+        "badrows":watermeta[(watermeta['depth_m'] < 0)].index.tolist(),
+        "badcolumn": "depth_m",
+        "error_type" : "Value out of range",
+        "error_message" : "Your depth value must be larger than 0."
+    })
+    errs = [*errs, checkData(**args)]
+    
+    args.update({
+        "dataframe": watermeta,
+        "tablename": 'tbl_waterquality_metadata',
+        "badrows":watermeta['samplecollectiontime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M:%S') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badcolumn": "samplecollectiontime",
+        "error_type" : "Value out of range",
+        "error_message" : "Your time input is out of range."
+    })
+    errs = [*errs, checkData(**args)]
     
     return {'errors': errs, 'warnings': warnings}

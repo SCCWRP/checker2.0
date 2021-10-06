@@ -36,12 +36,17 @@ def collect_error_messages(errs):
         for r in e['rows']
     ]
 
+    print("output from generic.py before groupby: ")
+    print(output)
+
     output = DataFrame(output).groupby(['row_number', 'table']) \
         .apply(
             # .tolist() doesnt work. 
             lambda x: '; '.join( list(x['message']) ) 
         ).to_dict() 
 
+    print("output from generic.py after groupby: ")
+    print(output)
     
     return [{'row_number': k[0], 'table': k[1], 'message': v} for k, v in output.items()]
 

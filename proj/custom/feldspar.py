@@ -2,6 +2,9 @@
 
 from inspect import currentframe
 from flask import current_app
+import datetime as dt
+import pandas as pd
+from datetime import date
 from .functions import checkData, get_badrows
 
 def feldspar(all_dfs):
@@ -31,17 +34,17 @@ def feldspar(all_dfs):
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
-    '''
+    
     args = {
-        "dataframe": df,
-        "tablename": tbl,
+        "dataframe": pd.DataFrame({}),
+        "tablename": '',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
         "is_core_error": False,
         "error_message": ""
     }
-    '''
+    
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
@@ -52,6 +55,24 @@ def feldspar(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
-
+    args.update({
+        "dataframe": felddata,
+        "tablename": "tbl_feldspar_data",
+        "badrows":felddata['samplecollectiondate'] == felddata['samplecollectiondate'].dt.date.index.tolist(),
+        "badcolumn": "samplecollectiondate",
+        "error_type" : "Date Value out of range",
+        "error_message" : "Your Date format is not correct, must be YYYY-MM-DD."
+    })
+    errs = [*warnings, checkData(**args)]
+    
+    args.update({
+        "dataframe": feldmeta,
+        "tablename": "tbl_feldspar_metadata",
+        "badrows":feldmeta['samplecollectiondate'] == feldmeta['samplecollectiondate'].dt.date.index.tolist(),
+        "badcolumn": "samplecollectiondate",
+        "error_type" : "Date Value out of range",
+        "error_message" : "Your Date format is not correct, must be YYYY-MM-DD."
+    })
+    errs = [*warnings, checkData(**args)]
     
     return {'errors': errs, 'warnings': warnings}

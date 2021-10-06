@@ -2,6 +2,7 @@
 
 from inspect import currentframe
 from flask import current_app
+import pandas as pd
 from .functions import checkData, get_badrows
 
 def fishseines(all_dfs):
@@ -33,17 +34,17 @@ def fishseines(all_dfs):
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
-    '''
+    
     args = {
-        "dataframe": df,
-        "tablename": tbl,
+        "dataframe": pd.DataFrame({}),
+        "tablename": '',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
         "is_core_error": False,
         "error_message": ""
     }
-    '''
+    
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
@@ -53,6 +54,67 @@ def fishseines(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+
+    args.update({
+        "dataframe": fishabud,
+        "tablename": "tbl_fish_abudance_data",
+        "badrows":fishabud[(fishabud['abundance'] < 0) | (fishabud['abundance'] > 1000)].index.tolist(),
+        "badcolumn": "abundance",
+        "error_type" : "Value out of range",
+        "error_message" : "Your abundance value must be between 0 to 1000."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": fishmeta,
+        "tablename": "tbl_fish_sample_metadata",
+        "badrows":fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%I:%M %p') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badcolumn": "starttime",
+        "error_type" : "Start time is not in the correct format.",
+        "error_message" : "Start time format should be 12 HR AM/PM."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": fishmeta,
+        "tablename": "tbl_fish_sample_metadata",
+        "badrows":fishmeta['endtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%I:%M %p') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badcolumn": "endtime",
+        "error_type" : "End time is not in the correct format",
+        "error_message" : "End time format should be 12 HR AM/PM."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": fishmeta,
+        "tablename": "tbl_fish_sample_metadata",
+        "badrows":fishmeta[fishmeta['starttime'].apply(pd.Timestamp) > fishmeta['endtime'].apply(pd.Timestamp)].index.tolist(),
+        "badcolumn": "starttime, endtime",
+        "error_type" : "Start time value is out of range.",
+        "error_message" : "Start time should be before end time"
+    })
+    errs = [*warnings, checkData(**args)] 
+
+    args.update({
+        "dataframe": fishmeta,
+        "tablename": "tbl_fish_sample_metadata",
+        "badrows":fishmeta[(fishmeta['netbeginlongitude'] < -114.0430560959) | (fishmeta['netendlongitude'] > -124.5020404709)].index.tolist(),
+        "badcolumn": "netbeginlatitude,netbeginlongitude",
+        "error_type" : "Longitude is out of range",
+        "error_message" : "Your longitude coordinates are outside of california, check your minus sign in your longitude data."
+    })
+    errs = [*warnings, checkData(**args)] 
+
+    args.update({
+        "dataframe": fishmeta,
+        "tablename": "tbl_fish_sample_metadata",
+        "badrows":fishmeta[(fishmeta['netbeginlatitude'] < 32.5008497379) | (fishmeta['netendlatitude'] > 41.9924715343)].index.tolist(),
+        "badcolumn": "netendlatitude,netendlongitude",
+        "error_type" : "Latitude is out of range",
+        "error_message" : "Your latitude coordinates are outside of california."
+    })
+    errs = [*warnings, checkData(**args)] 
+
 
 
     

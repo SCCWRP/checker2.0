@@ -13,6 +13,10 @@ from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
 from .utils.mail import send_mail
 from .utils.exceptions import default_exception_handler
+from .custom.fish_visual_map import fish_visual_map
+from .custom.bruv_visual_map import bruv_visual_map
+from .custom.veg_visual_map import veg_visual_map
+from .custom.sav_visual_map import sav_visual_map
 
 
 upload = Blueprint('upload', __name__)
@@ -219,9 +223,16 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False) 
     print("Right after core runs")
+    #print("all_dfs")
+    #print(all_dfs)
+    #print("g.eng")
+    #print(g.eng)
+    #print("dbmetadata")
+    #print(dbmetadata)
     core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    #print("after core_output, debug TRUE")
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
@@ -265,6 +276,8 @@ def main():
         custom_output = current_app.datasets.get(match_dataset).get('function')(all_dfs)
         print("custom_output: ")
         print(custom_output)
+        #example
+        #map_output = current_app.datasets.get(match_dataset).get('map_function')(all_dfs)
 
         assert isinstance(custom_output, dict), \
             "custom output is not a dictionary. custom function is not written correctly"
@@ -279,6 +292,63 @@ def main():
         print("DONE - Custom Checks")
 
     # End Custom Checks section    
+
+    # Begin Visual Map Checks:
+    # There are visual map checks for SAV, BRUV, Fish and Vegetation:
+
+    #veg_map_output = current_app.datasets.get(match_dataset).get('veg_visual_map')(all_dfs)
+
+    def test_please(filepath):
+        veg_map = veg_visual_map(session.get('filepath'))
+        f = open(os.path.join(session.get('submission_dir'),'veg_map.html'),'w')
+        f.write(veg_map._repr_html())
+        f.close()
+
+        fish_map = fish_visual_map(session.get('filepath'))
+
+        f1 = open(os.path.join(session.get('submission_dir'), 'fish_map.html'), 'w')
+        f1.write(fish_map._repr_html())
+        f1.close()
+
+        sav_map = sav_visual_map(session.get('filepath'))
+
+        f2 = open(os.path.join(session.get('submission_dir'), 'sav_map.html'), 'w')
+        f2.write(sav_map._repr_html())
+        f2.close()
+
+        bruv_map = bruv_visual_map(session.get('filepath'))
+
+        f3 = open(os.path.join(session.get('submission_dir'), 'bruv_map.html'), 'w')
+        f3.write(bruv_map._repr_html())
+        f3.close()
+
+        return jsonify(message="Please Work.")
+
+
+    @upload.route('/vegmap')
+    def vegmap(): 
+        veghtml = open(os.path.join(session.get['submission_dir'], 'veg_map.html'),'r').read()
+        return render_template('vegtemplate.html', veg_map=veghtml)
+
+    @upload.route('/fishmap')
+    def fishmap(): 
+        fishhtml = open(os.path.join(session.get['submission_dir'], 'fish_map.html'),'r').read()
+        return render_template('fishtemplate.html', fish_map=fishhtml)
+
+    @upload.route('/bruvmap')
+    def bruvmap(): 
+        bruvhtml = open(os.path.join(session.get['submission_dir'], 'bruv_map.html'),'r').read()
+        return render_template('bruvtemplate.html', bruv_map=bruvhtml)
+
+    @upload.route('/savmap')
+    def savhtml(): 
+        fish_map = open(os.path.join(session.get['submission_dir'], 'sav_map.html'),'r').read()
+        return render_template('savtemplate.html', sav_map=savhtml)
+
+
+        
+
+
 
 
     # ---------------------------------------------------------------- #

@@ -53,22 +53,22 @@ def crabtrap(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-
+    print('Compare deployment time to retrieval time')
     args.update({
         "dataframe": crabmeta,
-        "tablename": "tbl_crabtrap_metadata",
+        "tablename": 'tbl_crabtrap_metadata',
         # I changed badrows to 'deploymenttime > retrivaltime' because of the error_message
-        "badrows":crabmeta[crabmeta.deploymenttime.apply(pd.Timestamp) > crabmeta.retrievaltime.apply(pd.Timestamp)].index.tolist(),
+        "badrows":crabmeta[crabmeta.deploymenttime > crabmeta.retrievaltime].index.tolist(),
         "badcolumn":"deploymenttime,retrievaltime",
         "error_type": "Date Value out of range",
         "error_message" : "Deployment time should be before retrieval time."
     })
     errs = [*errs, checkData(**args)]
-    
+    print('Finished: Compare deployment time to retrieval time')
     args.update({
         "dataframe": crabinvert,
-        "tablename": "tbl_crabfishinvert_abundance",
-        "badrows":crabinvert[(crabinvert['abundance'] < 0) | (crabinvert['abundance'] > 100)].index.tolist(),
+        "tablename": 'tbl_crabfishinvert_abundance',
+        "badrows":crabinvert[crabinvert['abundance'] != -88][(crabinvert['abundance'] < 0) | (crabinvert['abundance'] > 100)].index.tolist(),
         "badcolumn": "abundance",
         "error_type": "Value out of range",
         "error_message": "Your abundance value must be between 0 to 100."

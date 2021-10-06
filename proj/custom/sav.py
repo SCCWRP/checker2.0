@@ -2,6 +2,7 @@
 
 from inspect import currentframe
 from flask import current_app
+import pandas as pd
 from .functions import checkData, get_badrows
 
 def sav(all_dfs):
@@ -22,22 +23,25 @@ def sav(all_dfs):
     
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
-
+    
+    savmeta = all_dfs['tbl_sav_metadata']
+    savper = all_dfs['tbl_savpercentcover_data']
+    
     errs = []
     warnings = []
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     
-    # args = {
-    #     "dataframe": df,
-    #     "tablename": tbl,
-    #     "badrows": [],
-    #     "badcolumn": "",
-    #     "error_type": "",
-    #     "is_core_error": False,
-    #     "error_message": ""
-    # }
+    args = {
+        "dataframe":pd.DataFrame({}),
+         "tablename": '',
+         "badrows": [],
+         "badcolumn": "",
+         "error_type": "",
+         "is_core_error": False,
+         "error_message": ""
+     }
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
@@ -48,6 +52,14 @@ def sav(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
-
+    args.update({
+        "dataframe": savmeta,
+        "tablename": "tbl_sav_metadata",
+        "badrows":savmeta[(savmeta['transectlength_m'] < 0) | (savmeta['transectlength_m'] > 50)].index.tolist(),
+        "badcolumn": "transectlength_m",
+        "error_type" : "Value out of range",
+        "error_message" : "Your abundance value must be between 0 to 50."
+    })
+    errs = [*warnings, checkData(**args)]
     
     return {'errors': errs, 'warnings': warnings}

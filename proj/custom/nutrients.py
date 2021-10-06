@@ -2,6 +2,7 @@
 
 from inspect import currentframe
 from flask import current_app
+import pandas as pd
 from .functions import checkData, get_badrows
 
 def nutrients(all_dfs):
@@ -32,18 +33,46 @@ def nutrients(all_dfs):
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
-    '''
+    
     args = {
-        "dataframe": df,
-        "tablename": tbl,
+        "dataframe": pd.DataFrame({}),
+        "tablename": '',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
         "is_core_error": False,
         "error_message": ""
     }
-    '''
-
+    
+    args.update({
+        "dataframe": nutridata,
+        "tablename": "tbl_nutrients_data",
+        "badrows":nutridata['analysisdate'].apply(lambda x: pd.Timestamp(str(x)).strftime('%Y-%m-%d') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badcolumn": "analysisdate",
+        "error_type" : "Value out of range",
+        "error_message" : "Your time input is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+    
+    args.update({
+        "dataframe": nutrilab,
+        "tablename": "tbl_nutrients_labbatch_data",
+        "badrows":nutrilab['preparationtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M:%S') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badcolumn": "preparationtime",
+        "error_type" : "Value out of range",
+        "error_message" : "Your time input is out of range."
+    })
+    errs = [*errs, checkData(**args)]
+    
+    args.update({
+        "dataframe": nutridata,
+        "tablename": "tbl_nutrients_data",
+        "badrows":nutridata['samplecollectiontime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M:%S') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badcolumn": "samplecollectiontime",
+        "error_type" : "Value out of range",
+        "error_message" : "Your time input is out of range."
+    })
+    errs = [*errs, checkData(**args)]
     # Example of appending an error (same logic applies for a warning)
     # args.update({
     #   "badrows": get_badrows(df[df.temperature != 'asdf']),

@@ -2,7 +2,9 @@
 
 from inspect import currentframe
 from flask import current_app
+import pandas as pd
 from .functions import checkData, get_badrows
+from .veg_visual_map import veg_map
 
 def vegetation(all_dfs):
     
@@ -22,23 +24,54 @@ def vegetation(all_dfs):
     
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
-
+    
+    vegmeta = all_dfs['tbl_vegetation_sample_metadata']
+    vegdata = all_dfs['tbl_vegetative_coverdata']
     errs = []
     warnings = []
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
-    ''' #commented out since df is a placeholder variable for DataFrame
+    
     args = {
-        "dataframe": df,
-        "tablename": tbl,
+        "dataframe":pd.DataFrame({}),
+        "tablename":'',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
         "is_core_error": False,
         "error_message": ""
     }
-    '''
+    
+    args.update({
+        "dataframe": vegdata,
+        "tablename": "tbl_vegetative_coverdata",
+        "badrows":vegdata[(vegdata['tallestplantheight_cm']<0) | (vegdata['tallestplantheight_cm'] > 300)].index.tolist(),
+        "badcolumn": "tallestplantheight_cm",
+        "error_type" : "Value is out of range.",
+        "error_message" : "Height should be between 0 to 3 metres"
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": vegmeta,
+        "tablename": "tbl_vegetation_sample_metadata",
+        "badrows":vegmeta[(vegmeta['transectbeginlongitude'] < -114.0430560959) | (vegmeta['transectendlongitude'] > -124.5020404709)].index.tolist(),
+        "badcolumn": "transectbeginlongitude,transectendlongitude",
+        "error_type" : "Value out of range",
+        "error_message" : "Your longitude coordinates are outside of california, check your minus sign in your longitude data."
+    })
+    errs = [*warnings, checkData(**args)]
+    
+    args.update({
+        "dataframe": vegmeta,
+        "tablename": "tbl_vegetation_sample_metadata",
+        "badrows":vegmeta[(vegmeta['transectbeginlongitude'] < 32.5008497379) | (vegmeta['transectendlongitude'] > 41.9924715343)].index.tolist(),
+        "badcolumn": "transectbeginlatitude,transectendlatitude",
+        "error_type" : "Value out of range",
+        "error_message" : "Your latitude coordinates are outside of california."
+    })
+    errs = [*warnings, checkData(**args)]
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({

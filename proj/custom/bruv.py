@@ -22,10 +22,9 @@ def bruv(all_dfs):
     # This is the convention that was followed in the old checker
     
     # These are the dataframes that got submitted for bruv
-
     #protocol = all_dfs['tbl_protocol_metadata']
-    bruvmeta = all_dfs['tbl_bruv_metadata']
-    bruvdata = all_dfs['tbl_bruv_data']
+    #bruvmeta = all_dfs['tbl_bruv_metadata']
+    #bruvdata = all_dfs['tbl_bruv_data']
 
     errs = []
     warnings = []
@@ -33,10 +32,10 @@ def bruv(all_dfs):
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     # Im just initializing the args dictionary
-
+    
     args = {
         "dataframe": pd.DataFrame({}),
-        "tablename": 'tbl_test',
+        "tablename": '',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
@@ -53,26 +52,36 @@ def bruv(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-    
-    #(1) Range Check for maxnspecies [0, 100]
-    args.update({
-        "dataframe": bruvdata,
-        "tablename": 'tbl_bruv_data',
-        "badrows": bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
-        "badcolumn":"maxnspecies",
-        "error_type":"Value out of range",
-        "error_message":"Max number of species should be between 0 and 100"
-    })
-    #errs = [*errs, checkData(**args)]
-    warnings = [*warnings, checkData(**args)]
-
-    print("errs: ")
-    print(errs)
-
     '''
+    #(1) maxnspecies is nonnegative
     args.update({
         "dataframe":bruvdata,
-        "tablename":"tbl_bruv_data",
+        "tablename":'tbl_bruv_data',
+        #"badrows":bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
+        "badrows":bruvdata[bruvdata['maxnspecies'] < 0].index.tolist(),
+        "badcolumn":"maxnspecies",
+        "error_type":"Value out of range",
+        #"error_message":"Max number of species should be between 0 and 100"
+        "error_message":"Max number of species must be nonnegative."
+    })
+    errs = [*errs, checkData(**args)]
+
+    #(2) maxnspecies should not exceed 100 (warning)
+    args.update({
+        "dataframe":bruvdata,
+        "tablename":'tbl_bruv_data',
+        #"badrows":bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
+        "badrows":bruvdata[bruvdata['maxnspecies'] < 0].index.tolist(),
+        "badcolumn":"maxnspecies",
+        "error_type":"Value out of range",
+        "error_message":"Max number of species should NOT exceed 100."
+    })
+    warnings = [*warnings, checkData(**args)]
+
+    
+    args.update({
+        "dataframe":bruvdata,
+        "tablename":'tbl_bruv_data',
         "badrows":bruvdata[bruvdata.foventeredtime.apply(pd.Timestamp) > bruvdata.fovlefttime.apply(pd.Timestamp)].index.tolist(),
         "badcolumn":"foventeredtime,fovlefttime",
         "error_type": "Value out of range",
@@ -83,7 +92,7 @@ def bruv(all_dfs):
     
     args.update({
         "dataframe": bruvmeta,
-        "tablename": "tbl_bruv_metadata",
+        "tablename": 'tbl_bruv_metadata',
         "badrows": bruvmeta[bruvmeta.bruvintime.apply(pd.Timestamp) > bruvmeta.bruvouttime.apply(pd.Timestamp)].index.tolist(),
         "badcolumn": "bruvintime,bruvouttime",
         "error_type" : "Time format out of range",
@@ -93,7 +102,7 @@ def bruv(all_dfs):
     
     args.update({
         "dataframe": bruvmeta,
-        "tablename": "tbl_bruv_metadata",
+        "tablename": 'tbl_bruv_metadata',
         "badrows": bruvmeta[(bruvmeta['depth_m'] < 0)].index.tolist(),
         "badcolumn": "depth_m",
         "error_type" : "Value out of range",
@@ -103,7 +112,7 @@ def bruv(all_dfs):
     
     args.update({
         "dataframe": bruvmeta,
-        "tablename": "tbl_bruv_metadata",
+        "tablename": 'tbl_bruv_metadata',
         "badrows": bruvmeta[(bruvmeta['longitude'] < -114.0430560959) | (bruvmeta['longitude'] > -124.5020404709)].index.tolist(),
         "badcolumn": "longitude",
         "error_type" : "Value out of range",
@@ -113,15 +122,15 @@ def bruv(all_dfs):
 
     args.update({
         "dataframe": bruvmeta,
-        "tablename": "tbl_bruv_metadata",
+        "tablename": 'tbl_bruv_metadata',
         "badrows": bruvmeta[(bruvmeta['latitude'] < 32.5008497379) | (bruvmeta['latitude'] > 41.9924715343)].index.tolist(),
         "badcolumn": "latitude",
         "error_type" : "Value out of range",
         "error_message" : "Your coordinates incidate you are out of California. Check your latitude range"
     })
     errs = [*errs, checkData(**args)]
-
+    '''
     print("what does errs look like? ")
     print(errs)
-    '''
+    
     return {'errors': errs, 'warnings': warnings}
