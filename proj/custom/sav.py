@@ -1,7 +1,7 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
 
@@ -51,15 +51,28 @@ def sav(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-
+    
+    #(1) transectlength_m is nonnegative # tested
     args.update({
         "dataframe": savmeta,
         "tablename": "tbl_sav_metadata",
-        "badrows":savmeta[(savmeta['transectlength_m'] < 0) | (savmeta['transectlength_m'] > 50)].index.tolist(),
+        "badrows":savmeta[(savmeta['transectlength_m'] < 0) & (savmeta['transectlength_m'] != -88)].index.tolist(),
         "badcolumn": "transectlength_m",
         "error_type" : "Value out of range",
-        "error_message" : "Your abundance value must be between 0 to 50."
+        "error_message" : "Your transect length must be nonnegative."
     })
-    errs = [*warnings, checkData(**args)]
+    errs = [*errs, checkData(**args)]
+
+    #(2) transectlength_m range check [0, 50] #tested
+    args.update({
+        "dataframe": savmeta,
+        "tablename": "tbl_sav_metadata",
+        "badrows":savmeta[((savmeta['transectlength_m'] < 0) | (savmeta['transectlength_m'] > 50)) & (savmeta['transectlength_m'] != -88)].index.tolist(),
+        "badcolumn": "transectlength_m",
+        "error_type" : "Value out of range",
+        "error_message" : "Your transect length exceeds 50 m. A value over 50 will be accepted, but is not expected."
+    })
+    warnings = [*warnings, checkData(**args)]
+    
     
     return {'errors': errs, 'warnings': warnings}
