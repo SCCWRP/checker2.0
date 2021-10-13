@@ -73,6 +73,34 @@ def sav(all_dfs):
         "error_message" : "Your transect length exceeds 50 m. A value over 50 will be accepted, but is not expected."
     })
     warnings = [*warnings, checkData(**args)]
+
+    #(3) mulitcolumn check for species (scientificname, commonname, status) for tbl_savpercentcover_data
+
+    def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+        
+        lookup_df = lookup_df.assign(match="yes")
+        merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
+
+    lookup_sql = f"SELECT * FROM lu_plantspecies;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+
+    badrows = multicol_lookup_check(savper, lu_species, check_cols, lookup_cols)
     
+    args.update({
+        "dataframe": savper,
+        "tablename": "tbl_savpercentcover_data",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type" : "Multicolumn Lookup Error",
+        "error_message" : "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
     
     return {'errors': errs, 'warnings': warnings}
