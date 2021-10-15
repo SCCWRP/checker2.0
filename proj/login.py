@@ -48,15 +48,21 @@ def index():
     agencies = {a[0]:a[1] for a in agencies.values}
     print(agencies)
 
-    estuaries = pd.read_sql("SELECT estuary_name FROM mobile_estuary_info", eng).estuary_name.to_list()
-    fake_estuaries = ["Klamath_River","other","Big_River","Ten_Mile"]
-    estuaries = [x for x in estuaries if x not in fake_estuaries]
-    
+    estuaries = pd.read_sql("SELECT DISTINCT estuary_name FROM mobile_estuary_info", eng).estuary_name.to_list()
+    notinmsf_estuaries = pd.read_sql(
+        """
+        SELECT DISTINCT estuary_name FROM mobile_estuary_info
+        WHERE estuary_name NOT IN 
+        (SELECT DISTINCT(estuary_name) FROM msf_site_metadata)
+        """, eng).estuary_name.to_list()
+    #estuaries = [x for x in estuaries if x not in fake_estuaries]
+
     return render_template(
         'index.html', 
         projectname = current_app.project_name,
         agencies = agencies,
-        estuaries = estuaries
+        estuaries = estuaries,
+        notinmsf_estuaries = notinmsf_estuaries
     )
 
 

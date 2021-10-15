@@ -58,9 +58,13 @@
                 <div class="form-group form-group-dynamic" id="estuary-select-container">
                   <label for="estuary-select">Select the estuary:</label>
                   <select class="form-control" id="estuary-select" name="login_estuary">
-                    <!-- <option value="none" id="default-hidden-estuary-select" selected disabled hidden></option> -->
+                    <option value="none" id="default-hidden-estuary-select" selected disabled hidden></option>
                     {% for estuary in estuaries %}
-                    <option value="{{estuary}}">{{estuary}}</option>
+                      {% if estuary in notinmsf_estuaries %}
+                        <option value="{{estuary}}" disabled="disabled">{{estuary}}</option>
+                      {% else %}
+                        <option value="{{estuary}}">{{estuary}}</option>
+                      {% endif %}
                     {%endfor%}
                   </select>
                 </div>
