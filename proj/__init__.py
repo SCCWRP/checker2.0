@@ -1,5 +1,5 @@
 from os import environ
-from flask import Flask, g
+from flask import Flask,current_app, g
 from sqlalchemy import create_engine
 
 # import blueprints to register them
@@ -67,7 +67,7 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','login_datatype','submissionid','warnings'
+    'login_email','login_agency','login_datatype','login_estuary','submissionid','warnings'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
