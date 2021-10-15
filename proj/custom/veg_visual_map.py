@@ -3,9 +3,6 @@ import geopandas
 import json
 from shapely.geometry import Point
 import folium
-from flask import render_template, request, jsonify, current_app, Blueprint, session, g
-from werkzeug.utils import secure_filename
-from gc import collect
 import os, time, json
 import pandas as pd
 from folium import plugins
@@ -15,11 +12,11 @@ from inspect import currentframe
 from flask import current_app
 from .functions import checkData, get_badrows
 
-def veg_visual_map(filepath):
+def veg_visual_map(all_dfs, spatialtable):
     """
     takes pandas dataframe, converts to geopandas GeoDataFrame
     """
-    testdf = pd.excel_file(filepath,sheet_name="vegmeta")
+    testdf = all_dfs.get(spatialtable)
     
     testdf1=testdf.dropna(subset=['transectbeginlatitude', 'transectbeginlongitude']) #dropNA
     testdf1.drop(testdf1[(testdf1['transectbeginlatitude'] ==-88) & (testdf1['transectbeginlongitude']==-88)].index) #get rid of -88

@@ -12,8 +12,8 @@ from flask import current_app
 from .functions import checkData, get_badrows
 
 
-def bruv_visual_map(filepath):
-    testdf = pd.excel_file(filepath, sheet_name="bruv_meta")
+def bruv_visual_map(all_dfs, spatialtable):
+    testdf = all_dfs.get(spatialtable)
 
     testdf1=testdf.dropna(subset=['latitude', 'longitude']) #dropNA
     testdf1.drop(testdf1[(testdf1['latitude'] ==-88) & (testdf1['longitude']==-88)].index) #drop -88s
@@ -58,18 +58,19 @@ def bruv_visual_map(filepath):
 </div>
 {% endmacro %}
 """
-legend = branca.element.MacroElement()
-legend._template = branca.element.Template(legend_html)
+    legend = branca.element.MacroElement()
+    legend._template = branca.element.Template(legend_html)
 
-for i in range(0,len(gdf1)):
-   folium.Marker(
-      location=[gdf1.iloc[i]['latitude'], gdf1.iloc[i]['longitude']],
-      popup=[gdf1.iloc[i]['estuaryname'],(gdf1.iloc[i]['latitude'], gdf1.iloc[i]['longitude'])],
-      icon=folium.Icon(color='black',icon_color='#FFFF00'),
-   ).add_to(map)
-bruv_map.get_root().add_child(legend)
-bruv_map.get_root().html.add_child(folium.Element(title_html))
+    for i in range(0,len(gdf1)):
+        folium.Marker(
+            location=[gdf1.iloc[i]['latitude'], gdf1.iloc[i]['longitude']],
+            popup=[gdf1.iloc[i]['estuaryname'],(gdf1.iloc[i]['latitude'], gdf1.iloc[i]['longitude'])],
+            icon=folium.Icon(color='black',icon_color='#FFFF00'),
+        ).add_to(map)
 
-return bruv_map
+    bruv_map.get_root().add_child(legend)
+    bruv_map.get_root().html.add_child(folium.Element(title_html))
+
+    return bruv_map
 
 

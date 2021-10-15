@@ -54,8 +54,18 @@
                   </select>
                 </div>
                 <br>
+                <!-- Duy starts to make the drop down for estuary'names -->
+                <div class="form-group form-group-dynamic" id="estuary-select-container">
+                  <label for="estuary-select">Select the estuary:</label>
+                  <select class="form-control" id="estuary-select" name="login_estuary">
+                    <!-- <option value="none" id="default-hidden-estuary-select" selected disabled hidden></option> -->
+                    {% for estuary in estuaries %}
+                    <option value="{{estuary}}">{{estuary}}</option>
+                    {%endfor%}
+                  </select>
+                </div>
                 <br />
-               
+               <!---------->
                 <br />
                 <div class="login-input-container form form-group hidden" id="login-form-submit-btn-container">
                   <button class="btn btn-secondary" type="submit">Sign in</button>
@@ -128,6 +138,9 @@
               </div>
               <div class="col-sm submission-info-tab-header" id="warnings-report-header">
                 Warnings
+              </div>
+              <div class="col-sm submission-info-tab-header" id="map-report-header">
+                Map
               </div>
             </div>
 
@@ -275,6 +288,13 @@
 
 
                 </div>
+
+              </div>
+
+
+              <div id="map-report-body" class="map-report-body-outer-container container submission-info-tab-body hidden">
+                
+                <iframe id="visual-map" width="1100" height="900" src="" ></iframe>
 
               </div>
 

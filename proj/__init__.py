@@ -20,6 +20,10 @@ from .custom.sedimentgrainsize import sedimentgrainsize #def fcn in .py
 from .custom.discretewq import discretewq #def fcn in .py
 from .custom.benthicinfauna import benthicinfauna #def fcn in .py
 from .custom.feldspar import feldspar #def fcn in .py
+from .custom.bruv_visual_map import bruv_visual_map
+from .custom.sav_visual_map import sav_visual_map
+from .custom.veg_visual_map import veg_visual_map
+from .custom.fish_visual_map import fish_visual_map
 
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
@@ -54,7 +58,7 @@ app.project_name = "EMPA"
 app.script_root = 'checker'
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','nataliem@sccwrp.org'] #,'pauls@sccwrp.org']
+app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','nataliem@sccwrp.org' ,'minan@sccwrp.org', 'delaramm@sccwrp.org'] #,'pauls@sccwrp.org']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
@@ -85,17 +89,25 @@ app.datasets = {
     'sav':{
         'tables': ['tbl_protocol_metadata','tbl_sav_metadata','tbl_savpercentcover_data'],
         'login_fields': ['login_email','login_agency'],
-        'function': sav
+        'function': sav,
+        'map_func': sav_visual_map,
+        'spatialtable': 'tbl_sav_metadata'
     },
+    #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
     'bruv':{
-        'tables': ['tbl_protocol_metadata','tbl_bruv_metadata','tbl_bruv_data'],
+        #'tables': ['tbl_protocol_metadata','tbl_bruv_metadata','tbl_bruv_data'],
+        'tables': ['tbl_protocol_metadata','tbl_bruv_metadata'],
         'login_fields': ['login_email','login_agency'],
-        'function': bruv
+        'function': bruv,
+        'map_func': bruv_visual_map,
+        'spatialtable': 'tbl_bruv_metadata'
     },
     'fishseines':{
         'tables': ['tbl_protocol_metadata','tbl_fish_sample_metadata','tbl_fish_abundance_data','tbl_fish_length_data'],
         'login_fields': ['login_email','login_agency'],
-        'function': fishseines
+        'function': fishseines,
+        'map_func': fish_visual_map,
+        'spatialtable': 'tbl_fish_sample_metadata'
     },
     'crabtrap': {
         'tables': ['tbl_protocol_metadata','tbl_crabtrap_metadata','tbl_crabfishinvert_abundance','tbl_crabbiomass_length'], 
@@ -105,7 +117,9 @@ app.datasets = {
     'vegetation':{
         'tables': ['tbl_protocol_metadata','tbl_vegetation_sample_metadata','tbl_vegetativecover_data','tbl_epifauna_data'],
         'login_fields': ['login_email','login_agency'],
-        'function': vegetation
+        'function': vegetation,
+        'map_func': veg_visual_map,
+        'spatialtable': 'tbl_vegetation_sample_metadata'
     },
     'nutrients':{
         'tables': ['tbl_protocol_metadata','tbl_nutrients_metadata','tbl_nutrients_labbatch_data','tbl_nutrients_data'],

@@ -4,7 +4,6 @@ from inspect import currentframe
 from flask import current_app
 import pandas as pd
 from .functions import checkData, get_badrows
-from .veg_visual_map import veg_map
 
 def vegetation(all_dfs):
     

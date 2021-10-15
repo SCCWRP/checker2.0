@@ -11,13 +11,13 @@ def collect_error_messages(errs):
     offset is the number of rows the excel files are offsetted, based on how the people set up their data submission templates
     """
 
-
     assert isinstance(errs, list), "function - collect_warnings - errs object is not a list"
+    errs = [e for e in errs if len(e) > 0]
     if errs == []:
         return []
     assert all([isinstance(x, dict) for x in errs]), "function - collect_warnings - errs list contains non-dictionary objects"
     
-    errs = [e for e in errs if len(e) > 0]
+    
     for k in ('columns','rows','table','error_message'):
         assert all([k in x.keys() for x in errs]), f"function - collect_warnings - '{k}' not found in keys of a dictionary in the errs list"
     

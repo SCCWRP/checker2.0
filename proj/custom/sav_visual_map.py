@@ -12,8 +12,8 @@ from inspect import currentframe
 from flask import current_app
 from .functions import checkData, get_badrows
 
-def sav_visual_map(filepath):
-    testdf = pd.excel_file(filepath, sheet_name="sav_meta")
+def sav_visual_map(all_dfs, spatialtable):
+    testdf = all_dfs.get(spatialtable)
 
     testdf1=testdf.dropna(subset=['savbedc1latitude', 'savbedc1longitude']) #dropNA
     testdf1.drop(testdf1[(testdf1['savbedc1latitude'] ==-88) & (testdf1['savbedc1longitude']==-88)].index)
@@ -97,61 +97,62 @@ def sav_visual_map(filepath):
 {% endmacro %}
 """
 
-legend = branca.element.MacroElement()
-legend._template = branca.element.Template(legend_html)
+    legend = branca.element.MacroElement()
+    legend._template = branca.element.Template(legend_html)
 
-for i in range(0,len(gdf1)):
-   folium.Marker(
-      location=[gdf1.iloc[i]['savbedc1latitude'], gdf1.iloc[i]['savbedc1longitude']],
-      popup=[gdf1.iloc[i]['estuaryname'],(gdf1.iloc[i]['savbedc1latitude'], gdf1.iloc[i]['savbedc1longitude'])],
-      icon=folium.Icon(color='black',icon_color='#FFFF00'),
-   ).add_to(sav_map)
+    for i in range(0,len(gdf1)):
+        folium.Marker(
+            location=[gdf1.iloc[i]['savbedc1latitude'], gdf1.iloc[i]['savbedc1longitude']],
+            popup=[gdf1.iloc[i]['estuaryname'],(gdf1.iloc[i]['savbedc1latitude'], gdf1.iloc[i]['savbedc1longitude'])],
+            icon=folium.Icon(color='black',icon_color='#FFFF00'),
+        ).add_to(sav_map)
 
-for i in range(0,len(gdf2)):
-   folium.Marker(
-      location=[gdf2.iloc[i]['savbedc2latitude'], gdf2.iloc[i]['savbedc2longitude']],
-      popup=[gdf2.iloc[i]['estuaryname'],(gdf2.iloc[i]['savbedc2latitude'], gdf2.iloc[i]['savbedc2longitude'])],
-      icon=folium.Icon(color='orange',icon_color='#000000')
-   ).add_to(sav_map)
+    for i in range(0,len(gdf2)):
+        folium.Marker(
+            location=[gdf2.iloc[i]['savbedc2latitude'], gdf2.iloc[i]['savbedc2longitude']],
+            popup=[gdf2.iloc[i]['estuaryname'],(gdf2.iloc[i]['savbedc2latitude'], gdf2.iloc[i]['savbedc2longitude'])],
+            icon=folium.Icon(color='orange',icon_color='#000000')
+        ).add_to(sav_map)
 
-for i in range(0,len(gdf3)):
-   folium.Marker(
-      location=[gdf3.iloc[i]['savbedc3latitude'], gdf3.iloc[i]['savbedc3longitude']],
-      popup=[gdf3.iloc[i]['estuaryname'],(gdf3.iloc[i]['savbedc3latitude'], gdf3.iloc[i]['savbedc3longitude'])],
-      icon=folium.Icon(color='darkblue',icon_color='#FFFF00')
-   ).add_to(sav_map)
+    for i in range(0,len(gdf3)):
+        folium.Marker(
+            location=[gdf3.iloc[i]['savbedc3latitude'], gdf3.iloc[i]['savbedc3longitude']],
+            popup=[gdf3.iloc[i]['estuaryname'],(gdf3.iloc[i]['savbedc3latitude'], gdf3.iloc[i]['savbedc3longitude'])],
+            icon=folium.Icon(color='darkblue',icon_color='#FFFF00')
+        ).add_to(sav_map)
 
-for i in range(0,len(gdf4)):
-   folium.Marker(
-      location=[gdf4.iloc[i]['savbedc4latitude'], gdf4.iloc[i]['savbedc4longitude']],
-      popup=[gdf4.iloc[i]['estuaryname'],(gdf4.iloc[i]['savbedc4latitude'], gdf4.iloc[i]['savbedc4longitude'])],
-      icon=folium.Icon(color='lightred',icon_color='#000000')
-   ).add_to(sav_map)
+    for i in range(0,len(gdf4)):
+        folium.Marker(
+            location=[gdf4.iloc[i]['savbedc4latitude'], gdf4.iloc[i]['savbedc4longitude']],
+            popup=[gdf4.iloc[i]['estuaryname'],(gdf4.iloc[i]['savbedc4latitude'], gdf4.iloc[i]['savbedc4longitude'])],
+            icon=folium.Icon(color='lightred',icon_color='#000000')
+        ).add_to(sav_map)
 
-for i in range(0,len(gdf5)):
-   folium.Marker(
-      location=[gdf5.iloc[i]['savbedcenterlatitude'], gdf5.iloc[i]['savbedcenterlongitude']],
-      popup=[gdf5.iloc[i]['estuaryname'],(gdf5.iloc[i]['savbedcenterlatitude'], gdf5.iloc[i]['savbedcenterlongitude'])],
-      icon=folium.Icon(color='green',icon_color='#000000')
-   ).add_to(sav_map)
+    for i in range(0,len(gdf5)):
+        folium.Marker(
+            location=[gdf5.iloc[i]['savbedcenterlatitude'], gdf5.iloc[i]['savbedcenterlongitude']],
+            popup=[gdf5.iloc[i]['estuaryname'],(gdf5.iloc[i]['savbedcenterlatitude'], gdf5.iloc[i]['savbedcenterlongitude'])],
+            icon=folium.Icon(color='green',icon_color='#000000')
+        ).add_to(sav_map)
 
-for i in range(0,len(gdf6)):
-   folium.Marker(
-      location=[gdf6.iloc[i]['transectbeginlatitude'], gdf6.iloc[i]['transectbeginlongitude']],
-      popup=[gdf6.iloc[i]['estuaryname'],(gdf6.iloc[i]['transectbeginlatitude'], gdf6.iloc[i]['transectbeginlongitude'])],
-      icon=folium.Icon(color='lightgray',icon_color='#FFFF00')
-   ).add_to(sav_map)
+    for i in range(0,len(gdf6)):
+        folium.Marker(
+            location=[gdf6.iloc[i]['transectbeginlatitude'], gdf6.iloc[i]['transectbeginlongitude']],
+            popup=[gdf6.iloc[i]['estuaryname'],(gdf6.iloc[i]['transectbeginlatitude'], gdf6.iloc[i]['transectbeginlongitude'])],
+            icon=folium.Icon(color='lightgray',icon_color='#FFFF00')
+        ).add_to(sav_map)
 
-for i in range(0,len(gdf7)):
-   folium.Marker(
-      location=[gdf7.iloc[i]['transectendlatitude'], gdf7.iloc[i]['transectendlongitude']],
-      popup=[gdf7.iloc[i]['estuaryname'],(gdf7.iloc[i]['transectendlatitude'], gdf7.iloc[i]['transectendlongitude'])],
-      icon=folium.Icon(color='darkred',icon_color='#FFFF00')
-   ).add_to(sav_map)
-sav_map.get_root().add_child(legend)
+    for i in range(0,len(gdf7)):
+        folium.Marker(
+            location=[gdf7.iloc[i]['transectendlatitude'], gdf7.iloc[i]['transectendlongitude']],
+            popup=[gdf7.iloc[i]['estuaryname'],(gdf7.iloc[i]['transectendlatitude'], gdf7.iloc[i]['transectendlongitude'])],
+            icon=folium.Icon(color='darkred',icon_color='#FFFF00')
+        ).add_to(sav_map)
 
-sav_map.get_root().html.add_child(folium.Element(title_html))
+    sav_map.get_root().add_child(legend)
 
-return sav_map
+    sav_map.get_root().html.add_child(folium.Element(title_html))
+
+    return sav_map
 
 

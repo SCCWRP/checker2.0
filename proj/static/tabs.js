@@ -36,7 +36,8 @@ tabs(
     tabIDs = {
         'submission-info-header':'submission-info-body',
         'errors-report-header':'errors-report-body',
-        'warnings-report-header':'warnings-report-body'
+        'warnings-report-header':'warnings-report-body',
+        'map-report-header':'map-report-body'
     }
 )
 

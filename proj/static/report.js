@@ -70,6 +70,7 @@ const buildReport = (res) => {
     // Now append the rows with the error information
     errs_tables.map(tblname => {
         let tbl = document.querySelector(`#${tblname}-errors-tab-body div.errors-tab-rows`);
+        
         tbl.innerHTML = res.errs.map(e => {
             if (e.table === tblname) {
                 let s = `
@@ -184,6 +185,9 @@ const buildReport = (res) => {
         tabIDs = tabIDs
     )
 
+
+    // display the map if applicable
+    document.getElementById('visual-map').setAttribute('src',`/${script_root}/map/${res.submissionid}/${res.match_dataset}`)
 
 
 

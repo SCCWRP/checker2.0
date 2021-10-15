@@ -22,9 +22,9 @@ def bruv(all_dfs):
     # This is the convention that was followed in the old checker
     
     # These are the dataframes that got submitted for bruv
-    #protocol = all_dfs['tbl_protocol_metadata']
-    #bruvmeta = all_dfs['tbl_bruv_metadata']
-    #bruvdata = all_dfs['tbl_bruv_data']
+    protocol = all_dfs['tbl_protocol_metadata']
+    bruvmeta = all_dfs['tbl_bruv_metadata']
+    bruvdata = all_dfs['tbl_bruv_data']
 
     errs = []
     warnings = []
@@ -52,12 +52,11 @@ def bruv(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-    '''
+    
     #(1) maxnspecies is nonnegative
     args.update({
         "dataframe":bruvdata,
         "tablename":'tbl_bruv_data',
-        #"badrows":bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
         "badrows":bruvdata[bruvdata['maxnspecies'] < 0].index.tolist(),
         "badcolumn":"maxnspecies",
         "error_type":"Value out of range",
@@ -70,8 +69,7 @@ def bruv(all_dfs):
     args.update({
         "dataframe":bruvdata,
         "tablename":'tbl_bruv_data',
-        #"badrows":bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
-        "badrows":bruvdata[bruvdata['maxnspecies'] < 0].index.tolist(),
+        "badrows":bruvdata[(bruvdata['maxnspecies'] < 0) | (bruvdata['maxnspecies'] > 100)].index.tolist(),
         "badcolumn":"maxnspecies",
         "error_type":"Value out of range",
         "error_message":"Max number of species should NOT exceed 100."
@@ -129,7 +127,7 @@ def bruv(all_dfs):
         "error_message" : "Your coordinates incidate you are out of California. Check your latitude range"
     })
     errs = [*errs, checkData(**args)]
-    '''
+    
     print("what does errs look like? ")
     print(errs)
     

@@ -289,67 +289,30 @@ def main():
         errs.extend(custom_output.get('errors'))
         warnings.extend(custom_output.get('warnings'))
 
+        errs = [e for e in errs if len(e) > 0]
+        warnings = [w for w in warnings if len(w) > 0]
+
+        print("errs")
+        print(errs)
+        print("warnings")
+        print(warnings)
+
         print("DONE - Custom Checks")
 
     # End Custom Checks section    
 
     # Begin Visual Map Checks:
-    # There are visual map checks for SAV, BRUV, Fish and Vegetation:
 
-    #veg_map_output = current_app.datasets.get(match_dataset).get('veg_visual_map')(all_dfs)
+    # Run only if they passed Core Checks
+    if errs == []:
+        # There are visual map checks for SAV, BRUV, Fish and Vegetation:
 
-    def test_please(filepath):
-        veg_map = veg_visual_map(session.get('filepath'))
-        f = open(os.path.join(session.get('submission_dir'),'veg_map.html'),'w')
-        f.write(veg_map._repr_html())
-        f.close()
-
-        fish_map = fish_visual_map(session.get('filepath'))
-
-        f1 = open(os.path.join(session.get('submission_dir'), 'fish_map.html'), 'w')
-        f1.write(fish_map._repr_html())
-        f1.close()
-
-        sav_map = sav_visual_map(session.get('filepath'))
-
-        f2 = open(os.path.join(session.get('submission_dir'), 'sav_map.html'), 'w')
-        f2.write(sav_map._repr_html())
-        f2.close()
-
-        bruv_map = bruv_visual_map(session.get('filepath'))
-
-        f3 = open(os.path.join(session.get('submission_dir'), 'bruv_map.html'), 'w')
-        f3.write(bruv_map._repr_html())
-        f3.close()
-
-        return jsonify(message="Please Work.")
-
-
-    @upload.route('/vegmap')
-    def vegmap(): 
-        veghtml = open(os.path.join(session.get['submission_dir'], 'veg_map.html'),'r').read()
-        return render_template('vegtemplate.html', veg_map=veghtml)
-
-    @upload.route('/fishmap')
-    def fishmap(): 
-        fishhtml = open(os.path.join(session.get['submission_dir'], 'fish_map.html'),'r').read()
-        return render_template('fishtemplate.html', fish_map=fishhtml)
-
-    @upload.route('/bruvmap')
-    def bruvmap(): 
-        bruvhtml = open(os.path.join(session.get['submission_dir'], 'bruv_map.html'),'r').read()
-        return render_template('bruvtemplate.html', bruv_map=bruvhtml)
-
-    @upload.route('/savmap')
-    def savhtml(): 
-        fish_map = open(os.path.join(session.get['submission_dir'], 'sav_map.html'),'r').read()
-        return render_template('savtemplate.html', sav_map=savhtml)
-
-
-        
-
-
-
+        map_func = current_app.datasets.get(match_dataset).get('map_func')
+        if map_func is not None:
+            map_output = map_func(all_dfs, current_app.datasets.get(match_dataset).get('spatialtable'))
+            f = open(os.path.join(session.get('submission_dir'),f'{match_dataset}_map.html'),'w')
+            f.write(map_output._repr_html_())
+            f.close()
 
     # ---------------------------------------------------------------- #
 
@@ -418,6 +381,20 @@ def main():
 
     print("DONE with upload routine, returning JSON to browser")
     return jsonify(**returnvals)
+
+
+@upload.route('/map/<submissionid>/<datatype>')
+def getmap(submissionid, datatype):
+    datatype = str(datatype)
+    if datatype not in ('sav','bruv','fishseines','vegetation'):
+        return "Map not found ¯\_(ツ)_/¯"
+
+    map_path = os.path.join(os.getcwd(), "files", str(submissionid), f'{datatype}_map.html')
+    if os.path.exists(map_path):
+        html = open(map_path,'r').read()
+        return render_template(f'map_template.html', map=html)
+    else:
+        return "Map not found ¯\_(ツ)_/¯"
 
 
 
