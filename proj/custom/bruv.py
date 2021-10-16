@@ -2,9 +2,10 @@
 
 from inspect import currentframe
 import pandas as pd
-from flask import current_app
+from flask import current_app, g
 from .functions import checkData, get_badrows
 
+#define new function called 'bruvlab' for lab data dataset - 
 def bruv(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
@@ -24,7 +25,7 @@ def bruv(all_dfs):
     # These are the dataframes that got submitted for bruv
     protocol = all_dfs['tbl_protocol_metadata']
     bruvmeta = all_dfs['tbl_bruv_metadata']
-    bruvdata = all_dfs['tbl_bruv_data']
+    #bruvdata = all_dfs['tbl_bruv_data'] #leaving tbl_bruv_data out for later, this is lab data and will not be submitted with the metadata tables - Zaib
 
     errs = []
     warnings = []
@@ -54,6 +55,7 @@ def bruv(all_dfs):
     # errs = [*errs, checkData(**args)]
     
     #(1) maxnspecies is nonnegative
+    '''
     args.update({
         "dataframe":bruvdata,
         "tablename":'tbl_bruv_data',
@@ -86,8 +88,11 @@ def bruv(all_dfs):
         "error_message":"FOV entered time must be before FOV left time"
     })
     errs = [*errs, checkData(**args)]
+    '''
     
-    
+    #(1) tbl_bruv_metadata - time format check HH:MM AM
+    ## commenting out time checks for now - need to check in with Jan - Zaib 
+    '''
     args.update({
         "dataframe": bruvmeta,
         "tablename": 'tbl_bruv_metadata',
@@ -101,34 +106,52 @@ def bruv(all_dfs):
     args.update({
         "dataframe": bruvmeta,
         "tablename": 'tbl_bruv_metadata',
-        "badrows": bruvmeta[(bruvmeta['depth_m'] < 0)].index.tolist(),
+        "badrows": bruvmeta[bruvmeta.bruvintime.apply(pd.Timestamp) > bruvmeta.bruvouttime.apply(pd.Timestamp)].index.tolist(),
+        "badcolumn": "bruvintime,bruvouttime",
+        "error_type" : "Time format out of range",
+        "error_message" : "Bruvintime must be before bruvouttime"
+    })
+    errs = [*errs, checkData(**args)]
+    '''
+    #() depth_m is positive for tbl_bruv_metadata 
+    args.update({
+        "dataframe": bruvmeta,
+        "tablename": 'tbl_bruv_metadata',
+        "badrows": bruvmeta[(bruvmeta['depth_m'] < 0) & (bruvmeta['depth_m'] != -88)].index.tolist(),
         "badcolumn": "depth_m",
         "error_type" : "Value out of range",
-        "error_message" : "Depth measurement should not be a negative number, must be greater than 0"
+        "error_message" : "Depth measurement should not be a negative number, must be greater than 0."
     })
     errs = [*warnings, checkData(**args)]
-    
-    args.update({
-        "dataframe": bruvmeta,
-        "tablename": 'tbl_bruv_metadata',
-        "badrows": bruvmeta[(bruvmeta['longitude'] < -114.0430560959) | (bruvmeta['longitude'] > -124.5020404709)].index.tolist(),
-        "badcolumn": "longitude",
-        "error_type" : "Value out of range",
-        "error_message" : "Your coordinates incidate you are out of California. Check minus signs for your longitude range"
-    })
-    errs = [*errs, checkData(**args)]
+
+    #tbl_bruv_data will have the species column check, yet to be tested
+    def multicol_lookup_check(df_to_check,lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+
+        lookup_df = lookup_df.assign(match="yes")
+        merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
+    '''
+    lookup_sql = f"SELECT * from lu_fishmacroplantspecies;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+
+    badrows = multicol_lookup_check(bruvdata, lu_species, check_cols, lookup_cols)
 
     args.update({
-        "dataframe": bruvmeta,
-        "tablename": 'tbl_bruv_metadata',
-        "badrows": bruvmeta[(bruvmeta['latitude'] < 32.5008497379) | (bruvmeta['latitude'] > 41.9924715343)].index.tolist(),
-        "badcolumn": "latitude",
-        "error_type" : "Value out of range",
-        "error_message" : "Your coordinates incidate you are out of California. Check your latitude range"
+        "dataframe": bruvdata,
+        "tablename": "tbl_bruv_data",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type" : "Multicolumn Lookup Error",
+        "error_message" : "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
     })
     errs = [*errs, checkData(**args)]
-    
-    print("what does errs look like? ")
-    print(errs)
-    
+    '''
+
     return {'errors': errs, 'warnings': warnings}
+    
