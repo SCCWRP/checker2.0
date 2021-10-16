@@ -4,8 +4,8 @@ import pandas as pd
 import json
 import os
 from shapely.geometry import Point
-from matplotlib import colors
 import branca
+from folium import plugins
 from .bruv import bruv
 from inspect import currentframe
 from flask import current_app
@@ -66,7 +66,7 @@ def bruv_visual_map(all_dfs, spatialtable):
             location=[gdf1.iloc[i]['latitude'], gdf1.iloc[i]['longitude']],
             popup=[gdf1.iloc[i]['estuaryname'],(gdf1.iloc[i]['latitude'], gdf1.iloc[i]['longitude'])],
             icon=folium.Icon(color='black',icon_color='#FFFF00'),
-        ).add_to(map)
+        ).add_to(bruv_map)
 
     bruv_map.get_root().add_child(legend)
     bruv_map.get_root().html.add_child(folium.Element(title_html))
