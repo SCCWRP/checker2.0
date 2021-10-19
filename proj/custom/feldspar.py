@@ -1,7 +1,7 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 import datetime as dt
 import pandas as pd
 from datetime import date

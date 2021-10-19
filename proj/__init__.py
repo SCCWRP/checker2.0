@@ -79,6 +79,11 @@ app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists']
 app.excel_offset = 0
 
 # data sets / groups of tables for datatypes will be defined here in __init__.py
+## (Zaib) Changes to make to the dataset: 
+## Split datatypes that have field and lab data templates split (see Teams 'Final Templates')
+## into <datatype>meta and <datatype>data for field and lab, respectively. 
+## Adjust the functions within the <datatype>.py files to split the field and lab checks. 
+## 
 app.datasets = {
     # tables
     #   these lists are treated as sets when it does matching.
@@ -94,6 +99,7 @@ app.datasets = {
         'spatialtable': 'tbl_sav_metadata'
     },
     #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
+    # change to bruvmeta
     'bruv':{
         #'tables': ['tbl_protocol_metadata','tbl_bruv_metadata','tbl_bruv_data'],
         'tables': ['tbl_protocol_metadata','tbl_bruv_metadata'],
@@ -102,6 +108,13 @@ app.datasets = {
         'map_func': bruv_visual_map,
         'spatialtable': 'tbl_bruv_metadata'
     },
+    '''
+    'bruvlab':{
+        'tables': ['tbl_bruv_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': bruvlab,
+    },
+    '''
     'fishseines':{
         'tables': ['tbl_protocol_metadata','tbl_fish_sample_metadata','tbl_fish_abundance_data','tbl_fish_length_data'],
         'login_fields': ['login_email','login_agency'],

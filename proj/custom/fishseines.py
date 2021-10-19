@@ -1,7 +1,7 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
 
@@ -95,26 +95,45 @@ def fishseines(all_dfs):
     })
     errs = [*warnings, checkData(**args)] 
 
-    args.update({
-        "dataframe": fishmeta,
-        "tablename": "tbl_fish_sample_metadata",
-        "badrows":fishmeta[(fishmeta['netbeginlongitude'] < -114.0430560959) | (fishmeta['netendlongitude'] > -124.5020404709)].index.tolist(),
-        "badcolumn": "netbeginlatitude,netbeginlongitude",
-        "error_type" : "Longitude is out of range",
-        "error_message" : "Your longitude coordinates are outside of california, check your minus sign in your longitude data."
-    })
-    errs = [*warnings, checkData(**args)] 
+    def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+
+        lookup_df = lookup_df.assign(match="yes")
+        merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
+    lookup_sql = f"SELECT * FROM lu_fishmacroplantspecies;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+
+    badrows = multicol_lookup_check(fishabud, lu_species, check_cols, lookup_cols)
 
     args.update({
-        "dataframe": fishmeta,
-        "tablename": "tbl_fish_sample_metadata",
-        "badrows":fishmeta[(fishmeta['netbeginlatitude'] < 32.5008497379) | (fishmeta['netendlatitude'] > 41.9924715343)].index.tolist(),
-        "badcolumn": "netendlatitude,netendlongitude",
-        "error_type" : "Latitude is out of range",
-        "error_message" : "Your latitude coordinates are outside of california."
+        "dataframe": fishabud,
+        "tablename": "tbl_fish_abundance_data",
+        "badrows": badrows,
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        
     })
-    errs = [*warnings, checkData(**args)] 
 
+    errs = [*errs, checkData(**args)]
+
+    badrows = multicol_lookup_check(fishdata, lu_species, check_cols, lookup_cols)
+
+    args.update({
+        "dataframe": fishdata,
+        "tablename": "tbl_fish_length_data",
+        "badrows": badrows,
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+
+    })
+
+    errs = [*errs, checkData(**args)]
 
 
     

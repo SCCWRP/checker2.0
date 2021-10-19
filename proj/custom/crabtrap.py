@@ -75,7 +75,43 @@ def crabtrap(all_dfs):
     })
     errs = [*errs, checkData(**args)]
 
-    print("what does errs look like? ")
-    print(errs)
-    
+
+    def multicol_lookup_check(df_tocheck, lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_tocheck.columns)), "columns do not exist in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+        lookup_df = lookup_df.assign(match="yes")
+        merged = pd.merge(df_tocheck, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
+    lookup_sql = f"SELECT * FROM lu_fishmacroplantspecies;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+
+    badrows = multicol_lookup_check(crabinvert,lu_species, check_cols, lookup_cols)
+
+    args.update({
+        "dataframe": crabinvert,
+        "tablename": "tbl_crabfishinvert_abundance",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
+
+    badrows = multicol_lookup_check(crabmass, lu_species, check_cols, lookup_cols)
+
+    args.update({
+        "dataframe": crabmass,
+        "tablename": "tbl_crabbiomass_length",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
+
+
     return {'errors': errs, 'warnings': warnings}

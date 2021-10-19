@@ -1,7 +1,7 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
 
@@ -62,7 +62,7 @@ def discretewq(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your depth value must be larger than 0."
     })
-    errs = [*errs, checkData(**args)]
+    errs = [*warnings, checkData(**args)]
     
     args.update({
         "dataframe": watermeta,
@@ -72,6 +72,86 @@ def discretewq(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your time input is out of range."
     })
-    errs = [*errs, checkData(**args)]
-    
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['conductivity_mscm'] < 0) | (waterdata['conductivity_mscm'] > waterdata)) & (waterdata['conductivity_mscm'] != -88)],
+        "badcolumn": "conductivity_mscm",
+        "error_type": "Value out of range",
+        "error_message" : "Your conductivity value is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['tds_ppt'] < 0) | (waterdata['tds_ppt'] > 100)) & (waterdata['tds_ppt'] != -88)],
+        "badcolumn": "tds_ppt",
+        "error_type": "Value Out of range",
+        "error_message" : "Your ppt is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['ph_teststrip'] < 1) | (waterdata['ph_teststrip'] > 14)) & (waterdata['ph_teststrip'] != -88)],
+        "badcolumn": "ph_teststrip",
+        "error_type": "Value Out of range",
+        "error_message" : "Your ph_teststrip value is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['ph_probe'] < 1) | (waterdata['ph_probe'] > 14)) & (waterdata['ph_probe'] != -88)].index.tolist(),
+        "badcolumn": "ph_probe",
+        "error_type": "Value Out of range",
+        "error_message" : "Your pH probe value is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['salinity_ppt'] < 0) | (waterdata['salinity_ppt'] > 100)) & (waterdata['salinity_ppt'] != -88)],
+        "badcolumn": "salinity_pppt",
+        "error_type": "Value Out of range",
+        "error_message" : "Your sality ppt value is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['do_mgl'] < 0) | (waterdata['do_mgl'] > 20)) & (waterdata['do_mgl'] != -88)],
+        "badcolumn": "do_mgl",
+        "error_type": "Value Out of range",
+        "error_message" : "Your DO mgL value is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['airtemp_c'] < 0) | (waterdata['airtemp_c'] > 50)) & (waterdata['airtemp_c'] != -88)],
+        "badcolumn": "airtemp_c",
+        "error_type": "Value Out of range",
+        "error_message" : "Your air temp value is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
+    args.update({
+        "dataframe": waterdata,
+        "tablename": 'tbl_waterquality_data',
+        "badrows": waterdata[((waterdata['h2otemp_c'] < 0) | (waterdata['h2otemp_c'] > 50)) & (waterdata['h2otemp_c'] != -88)],
+        "badcolumn": "h2otemp_c",
+        "error_type": "Value Out of range",
+        "error_message" : "Your H2o temp value is out of range."
+    })
+    errs = [*warnings, checkData(**args)]
+
     return {'errors': errs, 'warnings': warnings}

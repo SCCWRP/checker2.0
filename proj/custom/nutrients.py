@@ -1,7 +1,7 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
 
@@ -82,6 +82,42 @@ def nutrients(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
+    def multicol_lookup_check(df_to_check, lookup_df, check_cols,lookup_cols):
+        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exist in data drame"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
 
-    
+        lookup_df= lookup_df.assign(match="yes")
+        merged= pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
+    lookup_sql = f"SELECT * FROM lu_nutrientsanalytes;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+
+    badrows = multicol_lookup_check(nutrilab, lu_species, check_cols, lookup_cols)
+
+    args.update({
+        "dataframe": nutrilab,
+        "tablename": "tbl_nutrients_labbatch_data",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type" : "Multicolumn Lookup Error",
+        "error_message" : "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
+
+    badrows = multicol_lookup_check(nutridata, lu_species, check_cols, lookup_cols)
+
+    args.update({
+        "dataframe": nutridata,
+        "tablename": "tbl_nutrients_data",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type" : "Multicolumn Lookup Error",
+        "error_message" : "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
+
     return {'errors': errs, 'warnings': warnings}
