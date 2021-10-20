@@ -172,8 +172,8 @@ def main():
     #print("preprocessing and cleaning data")
     # We are not sure if we want to do this
     # some projects like bight prohibit this
-    #all_dfs = clean_data(all_dfs)
-    #print("DONE preprocessing and cleaning data")
+    all_dfs = clean_data(all_dfs)
+    print("DONE preprocessing and cleaning data")
     
     # write all_dfs again to the same excel path
     # Later, if the data is clean, the loading routine will use the tab names to load the data to the appropriate tables
