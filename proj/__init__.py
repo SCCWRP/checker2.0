@@ -108,13 +108,13 @@ app.datasets = {
         'map_func': bruv_visual_map,
         'spatialtable': 'tbl_bruv_metadata'
     },
-    '''
-    'bruvlab':{
-        'tables': ['tbl_bruv_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': bruvlab,
-    },
-    '''
+    # '''
+    # 'bruvlab':{
+    #     'tables': ['tbl_bruv_data'],
+    #     'login_fields': ['login_email','login_agency'],
+    #     'function': bruvlab,
+    # },
+    # '''
     'fishseines':{
         'tables': ['tbl_protocol_metadata','tbl_fish_sample_metadata','tbl_fish_abundance_data','tbl_fish_length_data'],
         'login_fields': ['login_email','login_agency'],
