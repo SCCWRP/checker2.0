@@ -61,7 +61,7 @@
                     <option value="none" id="default-hidden-estuary-select" selected disabled hidden></option>
                     {% for estuary in estuaries %}
                       {% if estuary in notinmsf_estuaries %}
-                        <option value="{{estuary}}" disabled="disabled">{{estuary}}</option>
+                        <option value="{{estuary}}" disabled="disabled" title="Please submit the metadata for this estuary using the Microsoft Form">{{estuary}}</option>
                       {% else %}
                         <option value="{{estuary}}">{{estuary}}</option>
                       {% endif %}
