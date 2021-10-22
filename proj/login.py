@@ -113,6 +113,29 @@ def login():
     return jsonify(msg="login successful")
 
 
+@homepage.route('/startdates', methods = ['GET','POST'])
+def startdates():
+    
+    #eng = current_app.eng
+
+    estuary_name = request.form.get('login_estuary')
+
+    print("estuary_name")
+    print(estuary_name)
+    
+    startdates = pd.read_sql(
+        f"""
+            SELECT DISTINCT estuary_date 
+            FROM mobile_estuary_info
+            WHERE estuary_name IN ('{estuary_name}')
+        """,
+        g.eng
+    ).estuary_date.to_list()
+
+    startdates = [pd.Timestamp(x).strftime("%Y-%m-%d") for x in startdates]
+    print("startdates")
+    print(startdates)
+    return jsonify(startdates=startdates)
 
     
 # When an exception happens when the browser is sending requests to the homepage blueprint, this routine runs
