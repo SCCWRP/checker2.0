@@ -67,7 +67,7 @@ app.mail_from = 'admin@checker.sccwrp.org'
 app.system_fields = [
     'objectid','globalid','created_date','created_user',
     'last_edited_date','last_edited_user',
-    'login_email','login_agency','login_datatype','login_estuary','login_startdate','submissionid','warnings'
+    'login_email','login_agency','login_datatype','login_estuary','login_startdate','login_enddate','submissionid','warnings'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
