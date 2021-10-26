@@ -14,12 +14,13 @@ from .custom.bruv import bruv #def fcn in .py
 from .custom.fishseines import fishseines #def fcn in .py
 from .custom.crabtrap import crabtrap
 from .custom.vegetation import vegetation #def fcn in .py
-from .custom.nutrients import nutrients #def fcn in .py
+from .custom.nutrients import nutrients_field, nutrients_lab #def fcn in .py
 from .custom.edna import edna #def fcn in .py
 from .custom.sedimentgrainsize import sedimentgrainsize #def fcn in .py
 from .custom.discretewq import discretewq #def fcn in .py
 from .custom.benthicinfauna import benthicinfauna #def fcn in .py
 from .custom.feldspar import feldspar #def fcn in .py
+from .custom.logger import logger #def fcn in .py
 from .custom.bruv_visual_map import bruv_visual_map
 from .custom.sav_visual_map import sav_visual_map
 from .custom.veg_visual_map import veg_visual_map
@@ -98,6 +99,26 @@ app.datasets = {
         'map_func': sav_visual_map,
         'spatialtable': 'tbl_sav_metadata'
     },
+    
+    # --- SOP 2: Water Quality --- #
+    'discretewq':{
+        'tables': ['tbl_protocol_metadata','tbl_waterquality_metadata','tbl_waterquality_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': discretewq
+    },
+    
+    # --- SOP 3: Nutrients --- #
+    'nutrients_lab':{
+        'tables': ['tbl_protocol_metadata','tbl_nutrients_labbatch_data','tbl_nutrients_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': nutrients_lab
+    },
+    'nutrients_field':{
+        'tables': ['tbl_protocol_metadata','tbl_nutrients_metadata'],
+        'login_fields': ['login_email','login_agency'],
+        'function': nutrients_field
+    },
+
     #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
     # change to bruvmeta
     'bruv':{
@@ -134,11 +155,6 @@ app.datasets = {
         'map_func': veg_visual_map,
         'spatialtable': 'tbl_vegetation_sample_metadata'
     },
-    'nutrients':{
-        'tables': ['tbl_protocol_metadata','tbl_nutrients_metadata','tbl_nutrients_labbatch_data','tbl_nutrients_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': nutrients
-    },
     'edna':{
         'tables': ['tbl_protocol_metadata','tbl_edna_metadata','tbl_edna_water_labbatch_data','tbl_edna_sed_labbatch_data','tbl_edna_data'],
         'login_fields': ['login_email','login_agency'],
@@ -150,11 +166,6 @@ app.datasets = {
         'login_fields': ['login_email','login_agency'],
         'function': sedimentgrainsize
     },
-    'discretewq':{
-        'tables': ['tbl_protocol_metadata','tbl_waterquality_metadata','tbl_waterquality_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': discretewq
-    },
     'benthicinfauna':{
         'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
         'login_fields': ['login_email','login_agency'],
@@ -164,6 +175,11 @@ app.datasets = {
         'tables': ['tbl_protocol_metadata','tbl_feldspar_metadata','tbl_feldspar_data'],
         'login_fields': ['login_email','login_agency'],
         'function': feldspar
+    },
+    'logger':{
+        'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': logger
     }
 }
 
