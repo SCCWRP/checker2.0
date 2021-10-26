@@ -15,7 +15,7 @@ from .custom.fishseines import fishseines #def fcn in .py
 from .custom.crabtrap import crabtrap
 from .custom.vegetation import vegetation #def fcn in .py
 from .custom.nutrients import nutrients_field, nutrients_lab #def fcn in .py
-from .custom.edna import edna #def fcn in .py
+from .custom.edna import edna_field, edna_lab #def fcn in .py
 from .custom.sedimentgrainsize import sedimentgrainsize #def fcn in .py
 from .custom.discretewq import discretewq #def fcn in .py
 from .custom.benthicinfauna import benthicinfauna #def fcn in .py
@@ -118,6 +118,18 @@ app.datasets = {
         'login_fields': ['login_email','login_agency'],
         'function': nutrients_field
     },
+    
+    # --- SOP 4: eDNA --- #
+    'edna_field':{
+        'tables': ['tbl_protocol_metadata','tbl_edna_metadata'],
+        'login_fields': ['login_email','login_agency'],
+        'function': edna_field
+    },
+    'edna_lab':{
+        'tables': ['tbl_protocol_metadata','tbl_edna_water_labbatch_data','tbl_edna_sed_labbatch_data','tbl_edna_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': edna_lab
+    },
 
     #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
     # change to bruvmeta
@@ -154,11 +166,6 @@ app.datasets = {
         'function': vegetation,
         'map_func': veg_visual_map,
         'spatialtable': 'tbl_vegetation_sample_metadata'
-    },
-    'edna':{
-        'tables': ['tbl_protocol_metadata','tbl_edna_metadata','tbl_edna_water_labbatch_data','tbl_edna_sed_labbatch_data','tbl_edna_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': edna
     },
     'sedimentgrainsize':{
         'tables': ['tbl_sav_metadata'],
