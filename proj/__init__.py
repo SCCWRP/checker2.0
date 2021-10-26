@@ -16,7 +16,7 @@ from .custom.crabtrap import crabtrap
 from .custom.vegetation import vegetation #def fcn in .py
 from .custom.nutrients import nutrients_field, nutrients_lab #def fcn in .py
 from .custom.edna import edna_field, edna_lab #def fcn in .py
-from .custom.sedimentgrainsize import sedimentgrainsize #def fcn in .py
+from .custom.sedimentgrainsize import sedimentgrainsize_field, sedimentgrainsize_lab #def fcn in .py
 from .custom.discretewq import discretewq #def fcn in .py
 from .custom.benthicinfauna import benthicinfauna #def fcn in .py
 from .custom.feldspar import feldspar #def fcn in .py
@@ -130,6 +130,18 @@ app.datasets = {
         'login_fields': ['login_email','login_agency'],
         'function': edna_lab
     },
+    
+    # --- SOP 5: Sediment Grain Size --- #
+    'sedimentgrainsize_field':{
+        'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_metadata'],
+        'login_fields': ['login_email','login_agency'],
+        'function': sedimentgrainsize_field
+    },
+    'sedimentgrainsize_lab':{
+        'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_data', 'tbl_sedgrainsize_labbatch_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': sedimentgrainsize_lab
+    },
 
     #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
     # change to bruvmeta
@@ -166,12 +178,6 @@ app.datasets = {
         'function': vegetation,
         'map_func': veg_visual_map,
         'spatialtable': 'tbl_vegetation_sample_metadata'
-    },
-    'sedimentgrainsize':{
-        'tables': ['tbl_sav_metadata'],
-        #'tables': ['tbl_protocol_metadata','tbl_sedgrainsize_metadata','tbl_sedimentgrainsize_labbatch_data','tbl_sedgrainsize_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': sedimentgrainsize
     },
     'benthicinfauna':{
         'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
