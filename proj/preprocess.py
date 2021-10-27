@@ -2,6 +2,7 @@
 
 from flask import current_app, g
 import pandas as pd
+import re
 
 def strip_whitespace(all_dfs: dict):
     print("BEGIN Stripping whitespace function")
@@ -81,7 +82,7 @@ def fix_case(all_dfs: dict):
             x : [
                 item 
                 for item in table_df[x] 
-                if item.lower() in list(map(str.lower,foreignkeys_luvalues[x])) 
+                if item.lower() in list(map(str.lower,foreignkeys_luvalues[x]))
             ]  
             for x in lu_info.column_name
         }
@@ -150,11 +151,56 @@ def hardcoded_fixes(all_dfs):
     return all_dfs
 
 
+def clean_speciesnames(all_dfs):
+    
+    all_dfs['tbl_fish_length_data']['scientificname'] = all_dfs['tbl_fish_length_data']['scientificname'] \
+        .apply(lambda x: re.sub("[\(|\)|\?|,]","", str(x)) )
+
+    all_dfs['tbl_fish_length_data']['commonname'] = all_dfs['tbl_fish_length_data']['commonname'] \
+        .apply(lambda x: re.sub("[\(|\)|\?|,]","", str(x)) )
+    
+    all_dfs['tbl_fish_abundance_data']['scientificname'] = all_dfs['tbl_fish_abundance_data']['scientificname'] \
+        .apply(lambda x: re.sub("[\(|\)|\?|,]","", str(x)) )
+
+    all_dfs['tbl_fish_abundance_data']['commonname'] = all_dfs['tbl_fish_abundance_data']['commonname'] \
+        .apply(lambda x: re.sub("[\(|\)|\?|,]","", str(x)) )
+
+    return all_dfs
+    
+def fill_speciesnames(all_dfs):
+    lu_fishspecies = pd.read_sql('SELECT scientificname, commonname FROM lu_fishspecies', g.eng)
+    names = {
+        c: s  for s, c in list(zip(lu_fishspecies.scientificname, lu_fishspecies.commonname))
+    }
+
+    # I dont really know how to explain the code with comments to be honest but hopefully it makes sense
+    all_dfs['tbl_fish_abundance_data']['scientificname'] = all_dfs['tbl_fish_abundance_data'] \
+        .apply(
+            lambda x:
+            names[x['scientificname']] if (pd.isnull(x['commonname']) or x['commonname'] == '') else x['commonname']
+            ,
+            axis = 1
+        )
+    
+    # here we need to get the key of the dictionary based on the value
+    all_dfs['tbl_fish_abundance_data']['commonname'] = all_dfs['tbl_fish_abundance_data'] \
+        .apply(
+            lambda x:
+            list(names.keys())[list(names.values()).index(x['scientificname'])] if (pd.isnull(x['scientificname']) or x['scientificname'] == '') else x['scientificname']
+            ,
+            axis = 1
+        )
+
+    return all_dfs
+
+
 
 def clean_data(all_dfs):
 
     all_dfs = strip_whitespace(all_dfs)
     all_dfs = fix_case(all_dfs)
-    all_dfs = hardcoded_fixes(all_dfs)
+    all_dfs = clean_speciesnames(all_dfs)
+    all_dfs = fill_speciesnames(all_dfs)
+    # all_dfs = hardcoded_fixes(all_dfs) # That one is customized for BMP at this moment
 
     return all_dfs

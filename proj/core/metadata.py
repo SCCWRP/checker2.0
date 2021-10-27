@@ -18,6 +18,9 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                 meta.columns.get_loc("dtype")
             ] \
             .values[0]
+            print("dtype:")
+            print(dtype)
+            print(dataframe.columns)
 
             ret.append(
                 checkData(
@@ -34,14 +37,18 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                     badcolumn = col,
                     error_type = "Invalid Datatype",
                     is_core_error = True,
-                    error_message = "The value here is not valid for the datatype {}" \
-                        .format(dtype)
+                    error_message = f"The value here is not valid for the datatype {dtype}"
                 )
             )
+            print("ret:")
+            print(ret)
         
 
-
+    print("-----before if output-----")
+    print("dataframe.columns")
+    print(dataframe.columns)
     if output:
+        print("---enter if output---")
         output.put(ret)
     print("END checkDataTypes")
     return ret

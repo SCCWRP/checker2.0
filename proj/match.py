@@ -44,6 +44,8 @@ def match(all_dfs):
     # We can delete tmp_dfs after and collect the garbage
     tmp_dfs = deepcopy(all_dfs)
     
+    matched_tables = []
+
     for sheetname, df in tmp_dfs.items():
 
         # joining the submitted dataframe by pipes and trying to match
@@ -53,6 +55,9 @@ def match(all_dfs):
             cols_df.colnames.apply(lambda x: set(x) == set(df.columns))
         ]
 
+        print("df.columns")
+        print(df.columns)
+        
 
         if m.empty:
             print(f"No match for {sheetname} - finding closest match")
@@ -90,6 +95,9 @@ def match(all_dfs):
             # m should only have one row based on our assumption covered in the assert statement above the for loop
             matched_tbl = m.iloc[0, m.columns.get_loc("table_name")]
 
+            # append it to the matched_tables list
+            matched_tables.append(matched_tbl)
+
             # assign the dataframe with a key being the name of the table it matched in the db
             all_dfs[matched_tbl] = all_dfs.pop(sheetname)
 
@@ -117,11 +125,12 @@ def match(all_dfs):
     del tmp_dfs
     collect()
 
-
+    
     
     # the values of the datasets dictionary are themselves dictionaries
     # would look like {'tables': ['tbl1','tbl2'], 'function': some_function}
-    match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(all_dfs.keys())]
+    #match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(all_dfs.keys())]
+    match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(matched_tables)]
 
     assert len(match_dataset) < 2, "matched 2 or more different datasets, which should never happen"
 

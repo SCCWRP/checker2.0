@@ -1,7 +1,8 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
+import pandas as pd
 from .functions import checkData, get_badrows
 
 def benthicinfauna(all_dfs):
@@ -23,6 +24,12 @@ def benthicinfauna(all_dfs):
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
 
+    benthicmeta = all_dfs['tbl_benthicinfauna_metadata']
+    benthiclabbatch = all_dfs['tbl_benthicinfauna_labbatch']
+    benthicabundance = all_dfs['tbl_benthicinfauna_abundance']
+    benthicbiomass = all_dfs['tbl_benthicinfauna_biomass']
+    
+
     errs = []
     warnings = []
 
@@ -39,6 +46,35 @@ def benthicinfauna(all_dfs):
         "error_message": ""
     }
     '''
+    args = {
+        "dataframe": pd.DataFrame({}),
+        "tablename": '',
+        "badrows": [],
+        "badcolumn": "",
+        "error_type": "",
+        "is_core_error": False,
+        "error_message": ""
+    }
+
+    args.update({
+        "dataframe": benthicbiomass,
+        "tablename": "tbl_benthicinfauna_biomass",
+        "badrows":benthicbiomass[(benthicbiomass['biomass_gm'] < 0)].index.tolist(),
+        "badcolumn": "biomass_gm",
+        "error_type" : "Value is out of range.",
+        "error_message" : "Biomass must be greater than 0"
+    })
+    errs = [*errs, checkData(**args)]
+    
+    args.update({
+        "dataframe": benthiclabbatch,
+        "tablename": "tbl_benthicinfauna_labbatch",
+        "badrows":benthiclabbatch['preparationtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%HH:%MM') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badcolumn": "preparationtime",
+        "error_type" : "Value is out of range.",
+        "error_message" : "Time format is not correct."
+    })
+    errs = [*errs, checkData(**args)]  
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({

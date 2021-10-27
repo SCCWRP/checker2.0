@@ -1,7 +1,8 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
+import pandas as pd
 from .functions import checkData, get_badrows
 
 def sav(all_dfs):
@@ -22,22 +23,25 @@ def sav(all_dfs):
     
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
-
+    
+    savmeta = all_dfs['tbl_sav_metadata']
+    savper = all_dfs['tbl_savpercentcover_data']
+    
     errs = []
     warnings = []
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     
-    # args = {
-    #     "dataframe": df,
-    #     "tablename": tbl,
-    #     "badrows": [],
-    #     "badcolumn": "",
-    #     "error_type": "",
-    #     "is_core_error": False,
-    #     "error_message": ""
-    # }
+    args = {
+        "dataframe":pd.DataFrame({}),
+         "tablename": '',
+         "badrows": [],
+         "badcolumn": "",
+         "error_type": "",
+         "is_core_error": False,
+         "error_message": ""
+     }
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
@@ -47,7 +51,56 @@ def sav(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+    
+    #(1) transectlength_m is nonnegative # tested
+    args.update({
+        "dataframe": savmeta,
+        "tablename": "tbl_sav_metadata",
+        "badrows":savmeta[(savmeta['transectlength_m'] < 0) & (savmeta['transectlength_m'] != -88)].index.tolist(),
+        "badcolumn": "transectlength_m",
+        "error_type" : "Value out of range",
+        "error_message" : "Your transect length must be nonnegative."
+    })
+    errs = [*errs, checkData(**args)]
+
+    #(2) transectlength_m range check [0, 50] #tested
+    args.update({
+        "dataframe": savmeta,
+        "tablename": "tbl_sav_metadata",
+        "badrows":savmeta[((savmeta['transectlength_m'] < 0) | (savmeta['transectlength_m'] > 50)) & (savmeta['transectlength_m'] != -88)].index.tolist(),
+        "badcolumn": "transectlength_m",
+        "error_type" : "Value out of range",
+        "error_message" : "Your transect length exceeds 50 m. A value over 50 will be accepted, but is not expected."
+    })
+    warnings = [*warnings, checkData(**args)]
+
+    #(3) mulitcolumn check for species (scientificname, commonname, status) for tbl_savpercentcover_data
+
+    def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+        
+        lookup_df = lookup_df.assign(match="yes")
+        merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
 
 
+    lookup_sql = f"SELECT * FROM lu_plantspecies;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+
+    badrows = multicol_lookup_check(savper, lu_species, check_cols, lookup_cols)
+    
+    args.update({
+        "dataframe": savper,
+        "tablename": "tbl_savpercentcover_data",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type" : "Multicolumn Lookup Error",
+        "error_message" : "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
     
     return {'errors': errs, 'warnings': warnings}

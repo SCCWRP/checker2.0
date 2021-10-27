@@ -1,4 +1,6 @@
 import time, os
+import datetime
+from dateutil.relativedelta import relativedelta
 import pandas as pd
 from flask import session, Blueprint, current_app, request, render_template, jsonify, g
 from .utils.exceptions import default_exception_handler
@@ -48,11 +50,24 @@ def index():
     agencies = {a[0]:a[1] for a in agencies.values}
     print(agencies)
 
-
+    estuaries = pd.read_sql("SELECT DISTINCT estuary_name FROM mobile_estuary_info", eng).estuary_name.to_list()
+    notinmsf_estuaries = pd.read_sql(
+        """
+        SELECT DISTINCT estuary_name FROM mobile_estuary_info
+        WHERE estuary_name NOT IN 
+        (SELECT DISTINCT(estuary_name) FROM msf_site_metadata)
+        """, eng).estuary_name.to_list()
+    #estuaries = [x for x in estuaries if x not in fake_estuaries]
+    dates = pd.read_sql("SELECT DISTINCT estuary_date FROM mobile_estuary_info", eng).estuary_date.to_list()
+    dates = [x.strftime('%m-%d-%Y') for x in dates]
+    
     return render_template(
         'index.html', 
         projectname = current_app.project_name,
-        agencies = agencies
+        agencies = agencies,
+        estuaries = estuaries,
+        notinmsf_estuaries = notinmsf_estuaries,
+        dates = dates
     )
 
 
@@ -62,14 +77,20 @@ def index():
 def login():
     
     login_info = dict(request.form)
-    print(login_info)
 
+    date_range = login_info['login_startdate'].split('_')
+    login_info['login_startdate'] = date_range[0]
+    login_info['login_enddate'] = date_range[1]
+
+    print("login_info")
+    print(login_info)
     # Something that may or may not be specific for this project, but
     #  based on the dataset, there are different login fields that are relevant
     assert login_info.get('login_datatype') in current_app.datasets.keys(), f"login_datatype form field value {login_info.get('login_datatype')} not found in current_app.datasets.keys()"
     session['login_info'] = {k: v for k,v in login_info.items() if k in current_app.datasets.get(login_info.get('login_datatype')).get('login_fields')}
     
     print(session.get('login_info'))
+    
     
     # The info from the login form needs to be in the system fields list, otherwise it will throw off the match routine
     assert set(login_info.keys()).issubset(set(current_app.system_fields)), \
@@ -100,6 +121,32 @@ def login():
     return jsonify(msg="login successful")
 
 
+@homepage.route('/startdates', methods = ['GET','POST'])
+def startdates():
+    
+    #eng = current_app.eng
+
+    estuary_name = request.form.get('login_estuary')
+
+    print("estuary_name")
+    print(estuary_name)
+    
+    startdates = pd.read_sql(
+        f"""
+            SELECT DISTINCT estuary_date 
+            FROM mobile_estuary_info
+            WHERE estuary_name IN ('{estuary_name}')
+        """,
+        g.eng
+    ).estuary_date.to_list()
+
+    startdates = [x.strftime("%Y-%m-%d") for x in startdates]
+    
+    enddates = [x.strftime('%Y-%m-%d') for x in [datetime.datetime.strptime(x, '%Y-%m-%d')  + relativedelta(months=1) for x in startdates]]
+    daterange = [x + "_" + y for x,y in zip(startdates,enddates)]
+    print("daterange")
+    print(daterange)
+    return jsonify(startdates = daterange)
 
     
 # When an exception happens when the browser is sending requests to the homepage blueprint, this routine runs

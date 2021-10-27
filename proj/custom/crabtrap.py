@@ -53,29 +53,65 @@ def crabtrap(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-
+    print('Compare deployment time to retrieval time')
     args.update({
         "dataframe": crabmeta,
-        "tablename": "tbl_crabtrap_metadata",
+        "tablename": 'tbl_crabtrap_metadata',
         # I changed badrows to 'deploymenttime > retrivaltime' because of the error_message
-        "badrows":crabmeta[crabmeta.deploymenttime.apply(pd.Timestamp) > crabmeta.retrievaltime.apply(pd.Timestamp)].index.tolist(),
+        "badrows":crabmeta[crabmeta.deploymenttime > crabmeta.retrievaltime].index.tolist(),
         "badcolumn":"deploymenttime,retrievaltime",
         "error_type": "Date Value out of range",
         "error_message" : "Deployment time should be before retrieval time."
     })
     errs = [*errs, checkData(**args)]
-    
+    print('Finished: Compare deployment time to retrieval time')
     args.update({
         "dataframe": crabinvert,
-        "tablename": "tbl_crabfishinvert_abundance",
-        "badrows":crabinvert[(crabinvert['abundance'] < 0) | (crabinvert['abundance'] > 100)].index.tolist(),
+        "tablename": 'tbl_crabfishinvert_abundance',
+        "badrows":crabinvert[crabinvert['abundance'] != -88][(crabinvert['abundance'] < 0) | (crabinvert['abundance'] > 100)].index.tolist(),
         "badcolumn": "abundance",
         "error_type": "Value out of range",
         "error_message": "Your abundance value must be between 0 to 100."
     })
     errs = [*errs, checkData(**args)]
 
-    print("what does errs look like? ")
-    print(errs)
-    
+
+    def multicol_lookup_check(df_tocheck, lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_tocheck.columns)), "columns do not exist in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+        lookup_df = lookup_df.assign(match="yes")
+        merged = pd.merge(df_tocheck, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
+    lookup_sql = f"SELECT * FROM lu_fishmacroplantspecies;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+
+    badrows = multicol_lookup_check(crabinvert,lu_species, check_cols, lookup_cols)
+
+    args.update({
+        "dataframe": crabinvert,
+        "tablename": "tbl_crabfishinvert_abundance",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
+
+    badrows = multicol_lookup_check(crabmass, lu_species, check_cols, lookup_cols)
+
+    args.update({
+        "dataframe": crabmass,
+        "tablename": "tbl_crabbiomass_length",
+        "badrows": badrows,
+        "badcolumn": "scientificname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+    })
+    errs = [*errs, checkData(**args)]
+
+
     return {'errors': errs, 'warnings': warnings}

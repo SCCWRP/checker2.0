@@ -13,6 +13,10 @@ from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
 from .utils.mail import send_mail
 from .utils.exceptions import default_exception_handler
+from .custom.fish_visual_map import fish_visual_map
+from .custom.bruv_visual_map import bruv_visual_map
+from .custom.veg_visual_map import veg_visual_map
+from .custom.sav_visual_map import sav_visual_map
 
 
 upload = Blueprint('upload', __name__)
@@ -168,8 +172,8 @@ def main():
     #print("preprocessing and cleaning data")
     # We are not sure if we want to do this
     # some projects like bight prohibit this
-    #all_dfs = clean_data(all_dfs)
-    #print("DONE preprocessing and cleaning data")
+    all_dfs = clean_data(all_dfs)
+    print("DONE preprocessing and cleaning data")
     
     # write all_dfs again to the same excel path
     # Later, if the data is clean, the loading routine will use the tab names to load the data to the appropriate tables
@@ -219,9 +223,9 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = False) 
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
     print("Right after core runs")
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
@@ -265,6 +269,8 @@ def main():
         custom_output = current_app.datasets.get(match_dataset).get('function')(all_dfs)
         print("custom_output: ")
         print(custom_output)
+        #example
+        #map_output = current_app.datasets.get(match_dataset).get('map_function')(all_dfs)
 
         assert isinstance(custom_output, dict), \
             "custom output is not a dictionary. custom function is not written correctly"
@@ -276,10 +282,30 @@ def main():
         errs.extend(custom_output.get('errors'))
         warnings.extend(custom_output.get('warnings'))
 
+        errs = [e for e in errs if len(e) > 0]
+        warnings = [w for w in warnings if len(w) > 0]
+
+        print("errs")
+        print(errs)
+        print("warnings")
+        print(warnings)
+
         print("DONE - Custom Checks")
 
     # End Custom Checks section    
 
+    # Begin Visual Map Checks:
+
+    # Run only if they passed Core Checks
+    if errs == []:
+        # There are visual map checks for SAV, BRUV, Fish and Vegetation:
+
+        map_func = current_app.datasets.get(match_dataset).get('map_func')
+        if map_func is not None:
+            map_output = map_func(all_dfs, current_app.datasets.get(match_dataset).get('spatialtable'))
+            f = open(os.path.join(session.get('submission_dir'),f'{match_dataset}_map.html'),'w')
+            f.write(map_output._repr_html_())
+            f.close()
 
     # ---------------------------------------------------------------- #
 
@@ -348,6 +374,20 @@ def main():
 
     print("DONE with upload routine, returning JSON to browser")
     return jsonify(**returnvals)
+
+
+@upload.route('/map/<submissionid>/<datatype>')
+def getmap(submissionid, datatype):
+    datatype = str(datatype)
+    if datatype not in ('sav','bruv','fishseines','vegetation'):
+        return "Map not found ¯\_(ツ)_/¯"
+
+    map_path = os.path.join(os.getcwd(), "files", str(submissionid), f'{datatype}_map.html')
+    if os.path.exists(map_path):
+        html = open(map_path,'r').read()
+        return render_template(f'map_template.html', map=html)
+    else:
+        return "Map not found ¯\_(ツ)_/¯"
 
 
 
