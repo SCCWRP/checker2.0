@@ -223,16 +223,9 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False) 
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = False) 
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
     print("Right after core runs")
-    #print("all_dfs")
-    #print(all_dfs)
-    #print("g.eng")
-    #print(g.eng)
-    #print("dbmetadata")
-    #print(dbmetadata)
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
-    #print("after core_output, debug TRUE")
 
     errs.extend(core_output['core_errors'])
     warnings.extend(core_output['core_warnings'])
