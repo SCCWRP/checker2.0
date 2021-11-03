@@ -77,15 +77,15 @@ def index():
 def login():
     
     login_info = dict(request.form)
-
-    date_range = login_info['login_startdate'].split('_')
-    login_info['login_startdate'] = date_range[0]
-    login_info['login_enddate'] = date_range[1]
-
     print("login_info")
     print(login_info)
+    # date_range = login_info['login_startdate'].split('_')
+    # login_info['login_startdate'] = date_range[0]
+    # login_info['login_enddate'] = date_range[1]
+
+
     # Something that may or may not be specific for this project, but
-    #  based on the dataset, there are different login fields that are relevant
+    # based on the dataset, there are different login fields that are relevant
     assert login_info.get('login_datatype') in current_app.datasets.keys(), f"login_datatype form field value {login_info.get('login_datatype')} not found in current_app.datasets.keys()"
     session['login_info'] = {k: v for k,v in login_info.items() if k in current_app.datasets.get(login_info.get('login_datatype')).get('login_fields')}
     
