@@ -8,6 +8,7 @@ from .functions import checkData, get_badrows
 def fishseines(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
+    lu_list_script_root = current_app.script_root
     
     # function should be named after the dataset in app.datasets in __init__.py
     assert current_function_name in current_app.datasets.keys(), \
@@ -86,7 +87,7 @@ def fishseines(all_dfs):
         "error_message" : "End time format should be 12 HR AM/PM."
     })
     errs = [*warnings, checkData(**args)]
-    '''
+    
     args.update({
         "dataframe": fishmeta,
         "tablename": "tbl_fish_sample_metadata",
@@ -97,6 +98,7 @@ def fishseines(all_dfs):
     })
     errs = [*warnings, checkData(**args)] 
     print("check ran - fish_sample_metadata - start time before end time")
+    '''
 
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
@@ -123,7 +125,10 @@ def fishseines(all_dfs):
         "badrows": badrows,
         "badcolumn":"scientificname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
+                        'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
         
     })
 
@@ -138,7 +143,10 @@ def fishseines(all_dfs):
         "badrows": badrows,
         "badcolumn": "scientificname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
+                        'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
 
     })
 
