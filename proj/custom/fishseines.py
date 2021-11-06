@@ -56,16 +56,17 @@ def fishseines(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
     
+    
     args.update({
         "dataframe": fishabud,
-        "tablename": "tbl_fish_abudance_data",
-        "badrows":fishabud[(fishabud['abundance'] < 0) | (fishabud['abundance'] > 1000)].index.tolist(),
+        "tablename": "tbl_fish_abundance_data",
+        "badrows":fishabud[((fishabud['abundance'] < 0) | (fishabud['abundance'] > 1000)) & (fishabud['abundance'] != -88)].index.tolist(),
         "badcolumn": "abundance",
         "error_type" : "Value out of range",
-        "error_message" : "Your abundance value must be between 0 to 1000."
+        "error_message" : "Your abundance value must be between 0 to 1000. If this value is supposed to be empty, please fill with -88."
     })
     errs = [*warnings, checkData(**args)]
-    print("check ran - tbl_fish_abundance_data - abundance range")
+    print("check ran - tbl_fish_abundance_data - abundance range") # tested and working 5nov2021
     # commenting out time checks for now - zaib 28 oct 2021
     '''
     args.update({
@@ -74,7 +75,7 @@ def fishseines(all_dfs):
         "badrows": fishmeta[fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%I:%M %p') if not pd.isnull(x) else "00:00:00")].index.tolist(),
         "badcolumn": "starttime",
         "error_type" : "Start time is not in the correct format.",
-        "error_message" : "Start time format should be 12 HR AM/PM."
+        "error_message" : "Start time format should be in 24-hour format HH:MM"
     })
     errs = [*warnings, checkData(**args)]
 
