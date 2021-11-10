@@ -69,7 +69,7 @@ def fishseines(all_dfs):
     print("check ran - tbl_fish_abundance_data - abundance range") # tested and working 5nov2021
     # commenting out time checks for now - zaib 28 oct 2021
     ## for time fields, in preprocess.py consider filling empty time related fields with NaT using pandas | check format of time?? | should be string
-    
+
     # Check: starttime format validation
     timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
     args.update({
@@ -95,17 +95,16 @@ def fishseines(all_dfs):
 
 
     # Check: starttime is before endtime --- crashes when time format is not HH:MM
-    '''
-    args.update({
-        "dataframe": fishmeta,
-        "tablename": "tbl_fish_sample_metadata",
-        "badrows": fishmeta[fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '') > fishmeta['endtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '')].index.tolist(),
-        "badcolumn": "starttime",
-        "error_message": "Starttime value must be before endtime. Time should be entered in HH:MM format on a 24-hour clock."
-    })
-    errs = [*errs, checkData(**args)]
-    print("check ran - tbl_fish_sample_metadata - starttime before endtime")
-    '''
+    if (len(fishmeta[~fishmeta['endtime'].str.match(timeregex)])) == 0 & (len(fishmeta[~fishmeta['starttime'].str.match(timeregex)] == 0)):
+        args.update({
+            "dataframe": fishmeta,
+            "tablename": "tbl_fish_sample_metadata",
+            "badrows": fishmeta[fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '') > fishmeta['endtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '')].index.tolist(),
+            "badcolumn": "starttime",
+            "error_message": "Starttime value must be before endtime. Time should be entered in HH:MM format on a 24-hour clock."
+            })
+        errs = [*errs, checkData(**args)]
+        print("check ran - tbl_fish_sample_metadata - starttime before endtime")
 
     '''
     args.update({
