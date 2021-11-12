@@ -46,12 +46,13 @@ def fix_case(all_dfs: dict):
     print("BEGIN fix_case function")
     for table_name in all_dfs.keys():
         table_df = all_dfs[f'{table_name}'] 
-    #Among all the varchar cols, only get the ones tied to the lookup list
+    #Among all the varchar cols, only get the ones tied to the lookup list -- modified to only find lu_lists that are not of numeric types
         lookup_sql = f"""
             SELECT
                 kcu.column_name, 
                 ccu.table_name AS foreign_table_name,
-                ccu.column_name AS foreign_column_name 
+                ccu.column_name AS foreign_column_name,
+                isc.data_type AS column_data_type 
             FROM 
                 information_schema.table_constraints AS tc 
                 JOIN information_schema.key_column_usage AS kcu
@@ -60,9 +61,13 @@ def fix_case(all_dfs: dict):
                 JOIN information_schema.constraint_column_usage AS ccu
                 ON ccu.constraint_name = tc.constraint_name
                 AND ccu.table_schema = tc.table_schema
+                JOIN information_schema.columns as isc
+                ON isc.column_name = ccu.column_name
+                AND isc.table_name = ccu.table_name
             WHERE tc.constraint_type = 'FOREIGN KEY' 
             AND tc.table_name='{table_name}'
-            AND ccu.table_name LIKE 'lu_%%';
+            AND ccu.table_name LIKE 'lu_%%'
+            AND isc.data_type NOT IN ('integer', 'smallint', 'numeric');
         """
         lu_info = pd.read_sql(lookup_sql, g.eng)
            
@@ -82,7 +87,7 @@ def fix_case(all_dfs: dict):
             x : [
                 item 
                 for item in table_df[x] 
-                if item.lower() in list(map(str.lower,foreignkeys_luvalues[x]))
+                if str(item).lower() in list(map(str.lower,foreignkeys_luvalues[x])) # bug: 'lower' for 'str' objects doesn't apply to 'int' object
             ]  
             for x in lu_info.column_name
         }
@@ -99,7 +104,7 @@ def fix_case(all_dfs: dict):
                   item : new_item 
                   for item in foreignkeys_rawvalues[col] 
                   for new_item in foreignkeys_luvalues[col] 
-                  if item.lower() == new_item.lower()
+                  if str(item).lower() == new_item.lower()
             } 
             for col in foreignkeys_rawvalues.keys()
         }
@@ -150,7 +155,7 @@ def hardcoded_fixes(all_dfs):
 
     return all_dfs
 
-
+'''
 def clean_speciesnames(all_dfs):
     
     all_dfs['tbl_fish_length_data']['scientificname'] = all_dfs['tbl_fish_length_data']['scientificname'] \
@@ -192,15 +197,15 @@ def fill_speciesnames(all_dfs):
         )
 
     return all_dfs
-
+'''
 
 
 def clean_data(all_dfs):
 
     all_dfs = strip_whitespace(all_dfs)
-    all_dfs = fix_case(all_dfs)
-    all_dfs = clean_speciesnames(all_dfs)
-    all_dfs = fill_speciesnames(all_dfs)
-    # all_dfs = hardcoded_fixes(all_dfs) # That one is customized for BMP at this moment
+    all_dfs = fix_case(all_dfs)                # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
+    #all_dfs = clean_speciesnames(all_dfs)
+    #all_dfs = fill_speciesnames(all_dfs)
+    all_dfs = hardcoded_fixes(all_dfs) # That one is customized for BMP at this moment -- change to empa specific fixes
 
     return all_dfs
