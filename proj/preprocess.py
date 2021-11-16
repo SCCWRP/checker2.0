@@ -3,6 +3,8 @@
 from flask import current_app, g
 import pandas as pd
 import re
+import time
+import numpy as np
 
 def strip_whitespace(all_dfs: dict):
     print("BEGIN Stripping whitespace function")
@@ -35,11 +37,10 @@ def strip_whitespace(all_dfs: dict):
         
         # Strip whitespace left side and right side
         table_df[all_varchar_cols] = table_df[all_varchar_cols].apply(
-            lambda x: x.astype(str).str.strip()
+            lambda col: col.apply(lambda x: str(x).strip() if not pd.isnull(x) else x)
         )
         all_dfs[f"{table_name}"] = table_df
     print("END Stripping whitespace function")
-    print(all_dfs)
     return all_dfs
 
 def fix_case(all_dfs: dict):
@@ -111,6 +112,35 @@ def fix_case(all_dfs: dict):
         table_df = table_df.replace(fix_case)                
         all_dfs[f'{table_name}'] = table_df
     print("END fix_case function")
+    return all_dfs
+
+def fill_empty_cells(all_dfs):
+    for table_name in all_dfs.keys():
+        table_df = all_dfs[f'{table_name}']
+        for col in table_df.columns:
+            dt = table_df[col].dtype
+            #if dt == object: #fillna method seems to not be doing what is should :/
+                #table_df[col].fillna("", inplace = True)
+                #table_df[col] = table_df[col].fillna('')
+                #table_df[col].replace(np.nan, '', inplace = True)
+                #table_df[col].replace('NA', '', inplace = True)
+                #table_df[col] = table_df[col].replace(np.nan, '', regex = True)
+                #table_df[col] = table_df[col].replace(np.NaN, '', regex = True)
+                #print("table_df[col]")
+                #print(table_df[col])
+                #time.sleep(3)
+            #print(table_df[col].isna())
+            #time.sleep(3)
+            if dt == np.float64 or dt == np.int64: #numeric data type fills correctly!
+                table_df[col].fillna(-88, inplace = True)
+            else:
+                table_df[col].fillna("Not recorded", inplace = True)
+
+            #print("table_df subset null")
+            #print(table_df[table_df[col].isnull()]) #all of these dfs returned empty >:(
+            #print(table_df[table_df[col].isna()])
+            #time.sleep(3)
+        all_dfs[f'{table_name}'] = table_df
     return all_dfs
 
 # because every project will have those non-generalizable, one off, "have to hard code" kind of fixes
@@ -201,11 +231,33 @@ def fill_speciesnames(all_dfs):
 
 
 def clean_data(all_dfs):
-
+    print("Before strip whitespace and any preprocessing")
+    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
     all_dfs = strip_whitespace(all_dfs)
+    print("After strip whitespace")
+    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+    
+    
+    print("Before fix case")
+    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
     all_dfs = fix_case(all_dfs)                # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
+    print("After fix case")
+    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+
+    print("before filling empty values")
+    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+    all_dfs = fill_empty_cells(all_dfs) # this doesnt work
+    print("after filling empty values")
+    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+    
     #all_dfs = clean_speciesnames(all_dfs)
     #all_dfs = fill_speciesnames(all_dfs)
-    all_dfs = hardcoded_fixes(all_dfs) # That one is customized for BMP at this moment -- change to empa specific fixes
+    #all_dfs = hardcoded_fixes(all_dfs) # That one is customized for BMP at this moment -- change to empa specific fixes
 
     return all_dfs
