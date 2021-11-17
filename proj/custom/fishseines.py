@@ -4,6 +4,7 @@ from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
+import re
 
 def fishseines(all_dfs):
     
@@ -56,7 +57,7 @@ def fishseines(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
     
-    
+    # Check - abundance range [0, 1000]
     args.update({
         "dataframe": fishabud,
         "tablename": "tbl_fish_abundance_data",
@@ -72,10 +73,11 @@ def fishseines(all_dfs):
 
     # Check: starttime format validation
     timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
+    badrows_starttime = fishmeta[fishmeta['starttime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not pd.isnull(x) else False)].index.tolist()
     args.update({
         "dataframe": fishmeta,
         "tablename": "tbl_fish_sample_metadata",
-        "badrows": fishmeta[~fishmeta['starttime'].str.match(timeregex)].index.tolist(),
+        "badrows": badrows_starttime,
         "badcolumn": "starttime",
         "error_message": "Time should be entered in HH:MM format on a 24-hour clock."
     })
@@ -83,10 +85,11 @@ def fishseines(all_dfs):
     print("check ran - tbl_fish_sample_metadata - starttime format") # tested and working 9nov2021
 
     # Check: endtime format validation
+    badrows_endtime = fishmeta[fishmeta['endtime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not pd.isnull(x) else False)].index.tolist()
     args.update({
         "dataframe": fishmeta,
         "tablename": "tbl_fish_sample_metadata",
-        "badrows": fishmeta[~fishmeta['endtime'].str.match(timeregex)].index.tolist(),
+        "badrows": badrows_endtime,
         "badcolumn": "endtime",
         "error_message": "Time should be entered in HH:MM format on a 24-hour clock."
     })
@@ -95,28 +98,20 @@ def fishseines(all_dfs):
 
 
     # Check: starttime is before endtime --- crashes when time format is not HH:MM
-    if (len(fishmeta[~fishmeta['endtime'].str.match(timeregex)])) == 0 & (len(fishmeta[~fishmeta['starttime'].str.match(timeregex)] == 0)):
+    # Note: starttime and endtime format checks must pass before entering the starttime before endtime check
+    if (len(badrows_starttime) == 0 & (len(badrows_endtime) == 0)):
         args.update({
             "dataframe": fishmeta,
             "tablename": "tbl_fish_sample_metadata",
-            "badrows": fishmeta[fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '') > fishmeta['endtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '')].index.tolist(),
+            "badrows": fishmeta[fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '') >= fishmeta['endtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '')].index.tolist(),
             "badcolumn": "starttime",
             "error_message": "Starttime value must be before endtime. Time should be entered in HH:MM format on a 24-hour clock."
             })
         errs = [*errs, checkData(**args)]
         print("check ran - tbl_fish_sample_metadata - starttime before endtime")
 
-    '''
-    args.update({
-        "dataframe": fishmeta,
-        "tablename": "tbl_fish_sample_metadata",
-        "badrows": fishmeta[fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%I:%M %p') if not pd.isnull(x) else "00:00:00")].index.tolist(),
-        "badcolumn": "starttime",
-        "error_type" : "Start time is not in the correct format.",
-        "error_message" : "Start time format should be in 24-hour format HH:MM"
-    })
-    errs = [*warnings, checkData(**args)]
-    '''
+    del badrows_starttime
+    del badrows_endtime
 
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
@@ -135,7 +130,8 @@ def fishseines(all_dfs):
     lookup_cols = ['scientificname', 'commonname', 'status']
 
     badrows = multicol_lookup_check(fishabud, lu_species, check_cols, lookup_cols)
-
+    
+    # Check: multicolumn for species lookup
     args.update({
         "dataframe": fishabud,
         "tablename": "tbl_fish_abundance_data",
@@ -153,7 +149,8 @@ def fishseines(all_dfs):
     print("check ran - fish_abundance_metadata - multicol species") 
 
     badrows = multicol_lookup_check(fishdata, lu_species, check_cols, lookup_cols)
-
+    
+    # Check: multicolumn for species lookup
     args.update({
         "dataframe": fishdata,
         "tablename": "tbl_fish_length_data",
