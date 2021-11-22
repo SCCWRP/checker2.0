@@ -1,5 +1,4 @@
 files/*
-docker/deploy.sh
 export/*
 logs
 .vscode
