@@ -1,13 +1,15 @@
 # Dont touch this file! This is intended to be a template for implementing new custom checks
 
 from inspect import currentframe
-from flask import current_app
+from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
+import re
 
 def crabtrap(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
+    lu_list_script_root = current_app.script_root
     
     # function should be named after the dataset in app.datasets in __init__.py
     assert current_function_name in current_app.datasets.keys(), \
@@ -53,7 +55,49 @@ def crabtrap(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-    print('Compare deployment time to retrieval time')
+
+    # Check: starttime format validation
+    timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
+    # replacing null with -88 since data has been filled w/ -88
+    #badrows_deploymenttime = crabmeta[crabmeta['deploymenttime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not pd.isnull(x) else False)].index.tolist()
+    badrows_deploymenttime = crabmeta[crabmeta['deploymenttime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not '-88' else False)].index.tolist()
+    args.update({
+        "dataframe": crabmeta,
+        "tablename": "tbl_crabtrap_metadata",
+        "badrows": badrows_deploymenttime,
+        "badcolumn": "deploymenttime",
+        "error_message": "Time should be entered in HH:MM format on a 24-hour clock."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - tbl_crabtrapmeta_metadata - deploymenttime format") 
+
+    badrows_retrievaltime = crabmeta[crabmeta['retrievaltime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not '-88' else False)].index.tolist()
+    args.update({
+        "dataframe": crabmeta,
+        "tablename": "tbl_crabtrap_metadata",
+        "badrows": badrows_retrievaltime,
+        "badcolumn": "retrievaltime",
+        "error_message": "Time should be entered in HH:MM format on a 24-hour clock."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - tbl_crabtrapmeta_metadata - retrievaltime format") 
+
+    # Check: starttime is before endtime --- crashes when time format is not HH:MM
+    # Note: starttime and endtime format checks must pass before entering the starttime before endtime check
+    if (len(badrows_deploymenttime) == 0 & (len(badrows_retrievaltime) == 0)):
+        args.update({
+            "dataframe": crabmeta,
+            "tablename": "tbl_crabtrap_metadata",
+            "badrows": crabmeta[crabmeta['deploymenttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not '-88' else '') >= crabmeta['retrievaltime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not '-88' else '')].index.tolist(),
+            "badcolumn": "deploymenttime",
+            "error_message": "Deploymenttime value must be before retrievaltime. Time should be entered in HH:MM format on a 24-hour clock."
+            })
+        errs = [*errs, checkData(**args)]
+        print("check ran - tbl_crabtrap_metadata - deploymenttime before retrievaltime")
+
+    del badrows_deploymenttime
+    del badrows_retrievaltime
+    '''
     args.update({
         "dataframe": crabmeta,
         "tablename": 'tbl_crabtrap_metadata',
@@ -65,26 +109,32 @@ def crabtrap(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     print('Finished: Compare deployment time to retrieval time')
+    '''
+    print("enter abundance check")
     args.update({
         "dataframe": crabinvert,
         "tablename": 'tbl_crabfishinvert_abundance',
-        "badrows":crabinvert[crabinvert['abundance'] != -88][(crabinvert['abundance'] < 0) | (crabinvert['abundance'] > 100)].index.tolist(),
+        #"badrows":crabinvert[((crabinvert['abundance'] < 0) | (crabinvert['abundance'] > 100) & (crabinvert['abundance'] != -88)].index.tolist(),
+        "badrows": crabinvert[crabinvert['abundance'].apply(lambda x: ((x < 0) | (x > 100)) & (x != -88))].index.tolist(),
         "badcolumn": "abundance",
         "error_type": "Value out of range",
         "error_message": "Your abundance value must be between 0 to 100."
     })
     errs = [*errs, checkData(**args)]
+    print("check ran - tbl_crabfishinvert_abundance - abundance check") 
 
-
+    print("before multicol check")
     def multicol_lookup_check(df_tocheck, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_tocheck.columns)), "columns do not exist in the dataframe"
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
+
         lookup_df = lookup_df.assign(match="yes")
+        df_tocheck['status'] = df_tocheck['status'].astype(str)
         merged = pd.merge(df_tocheck, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)
 
-    lookup_sql = f"SELECT * FROM lu_fishmacroplantspecies;"
+    lookup_sql = f"SELECT * FROM lu_fishmacrospecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
     check_cols = ['scientificname', 'commonname', 'status']
     lookup_cols = ['scientificname', 'commonname', 'status']
@@ -97,10 +147,13 @@ def crabtrap(all_dfs):
         "badrows": badrows,
         "badcolumn": "scientificname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message": "The scientificname/commonname/status entry did not match the lookup list."
+                        '<a ' 
+                        f'/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
+                        'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
     })
     errs = [*errs, checkData(**args)]
-
+    print("check ran - crabfishinvert_abundance - multicol species") 
     badrows = multicol_lookup_check(crabmass, lu_species, check_cols, lookup_cols)
 
     args.update({
@@ -109,9 +162,15 @@ def crabtrap(all_dfs):
         "badrows": badrows,
         "badcolumn": "scientificname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message": f'The scientificname/commonname/status entry did not match the lookup list.'
+                         '<a ' 
+                        f'/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
+                        'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
+
     })
     errs = [*errs, checkData(**args)]
+    print("check ran - crabbiomass_length - multicol species") 
+
 
 
     return {'errors': errs, 'warnings': warnings}
