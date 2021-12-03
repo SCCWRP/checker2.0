@@ -18,7 +18,7 @@ from .custom.nutrients import nutrients_field, nutrients_lab #def fcn in .py
 from .custom.edna import edna_field, edna_lab #def fcn in .py
 from .custom.sedimentgrainsize import sedimentgrainsize_field, sedimentgrainsize_lab #def fcn in .py
 from .custom.discretewq import discretewq #def fcn in .py
-from .custom.benthicinfauna import benthicinfauna #def fcn in .py
+from .custom.benthicinfauna import benthicinfauna_field, benthicinfauna_lab #def fcn in .py
 from .custom.feldspar import feldspar #def fcn in .py
 from .custom.logger import logger #def fcn in .py
 from .custom.bruv_visual_map import bruv_visual_map
@@ -179,10 +179,15 @@ app.datasets = {
         'map_func': veg_visual_map,
         'spatialtable': 'tbl_vegetation_sample_metadata'
     },
-    'benthicinfauna':{
-        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
+    'benthicinfauna_field':{
+        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata'],
         'login_fields': ['login_email','login_agency'],
-        'function': benthicinfauna
+        'function': benthicinfauna_field
+    },
+    'benthicinfauna_lab':{
+        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
+        'login_fields': ['login_email','login_agency'],
+        'function': benthicinfauna_lab
     },
     'feldspar':{
         'tables': ['tbl_protocol_metadata','tbl_feldspar_metadata','tbl_feldspar_data'],
