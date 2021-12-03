@@ -5,6 +5,7 @@ from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
 import re
+import time
 
 def fishseines(all_dfs):
     
@@ -73,7 +74,14 @@ def fishseines(all_dfs):
 
     # Check: starttime format validation
     timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
-    badrows_starttime = fishmeta[fishmeta['starttime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not pd.isnull(x) else False)].index.tolist()
+    badrows_starttime = fishmeta[
+        fishmeta['starttime'].apply(
+            lambda x: 
+            not bool(re.match(timeregex, str(x))) 
+            if not '-88' else 
+            False
+        )
+    ].index.tolist()
     args.update({
         "dataframe": fishmeta,
         "tablename": "tbl_fish_sample_metadata",
@@ -85,7 +93,8 @@ def fishseines(all_dfs):
     print("check ran - tbl_fish_sample_metadata - starttime format") # tested and working 9nov2021
 
     # Check: endtime format validation
-    badrows_endtime = fishmeta[fishmeta['endtime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not pd.isnull(x) else False)].index.tolist()
+    timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+    badrows_endtime = fishmeta[fishmeta['endtime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not '-88' else False)].index.tolist()
     args.update({
         "dataframe": fishmeta,
         "tablename": "tbl_fish_sample_metadata",
@@ -99,11 +108,18 @@ def fishseines(all_dfs):
 
     # Check: starttime is before endtime --- crashes when time format is not HH:MM
     # Note: starttime and endtime format checks must pass before entering the starttime before endtime check
+    # must be revised
+    '''
+    df = fishmeta[(fishmeta['starttime'] != '-88') & (fishmeta['endtime'] != '-88') & (fishmeta['endtime'] != -88)]
+    print("subset df for time check: ")
+    print(df)
+
+    badrows = df[df['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not '-88' else 'False') >= df['endtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not '-88' else 'False')].index.tolist()
     if (len(badrows_starttime) == 0 & (len(badrows_endtime) == 0)):
         args.update({
             "dataframe": fishmeta,
             "tablename": "tbl_fish_sample_metadata",
-            "badrows": fishmeta[fishmeta['starttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '') >= fishmeta['endtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else '')].index.tolist(),
+            "badrows": badrows,
             "badcolumn": "starttime",
             "error_message": "Starttime value must be before endtime. Time should be entered in HH:MM format on a 24-hour clock."
             })
@@ -112,7 +128,7 @@ def fishseines(all_dfs):
 
     del badrows_starttime
     del badrows_endtime
-
+    '''
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
