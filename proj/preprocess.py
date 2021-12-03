@@ -114,10 +114,24 @@ def fix_case(all_dfs: dict):
     print("END fix_case function")
     return all_dfs
 
+#revise fill_empty_cells with 
+## qry = select * from information_schema.columns WHERE table_name = {table_name} 
+# for table_name in all_dfs.keys():
+# SELECT 
+#      column_name as col_name, 
+#       udt_name as dt
+# FROM information_schema.columns
+#       WHERE table_name='{table_name}'
+# table_sql = <qry>
+# table_info = pd.read_sql(table_sql, g.eng)
+# make sure no system_fields -- NOT IN app.system fields (see above)
+# Datatypes are retrieved from information schema to populate empty cells with -88 or 'Not recorded' for the fill_empty_cells function.
+'''
 def fill_empty_cells(all_dfs):
     for table_name in all_dfs.keys():
         table_df = all_dfs[f'{table_name}']
         for col in table_df.columns:
+            print("col: ", col)
             dt = table_df[col].dtype
             #if dt == object: #fillna method seems to not be doing what is should :/
                 #table_df[col].fillna("", inplace = True)
@@ -131,9 +145,56 @@ def fill_empty_cells(all_dfs):
                 #time.sleep(3)
             #print(table_df[col].isna())
             #time.sleep(3)
+            print("dt: ", dt)
+            # if dt in ['int2','int4','numeric','timestamp']:
             if dt == np.float64 or dt == np.int64: #numeric data type fills correctly!
                 table_df[col].fillna(-88, inplace = True)
-            else:
+            else: # meaning dt in ['varchar']
+                table_df[col].fillna("Not recorded", inplace = True)
+
+            #print("table_df subset null")
+            #print(table_df[table_df[col].isnull()]) #all of these dfs returned empty >:(
+            #print(table_df[table_df[col].isna()])
+            #time.sleep(3)
+        all_dfs[f'{table_name}'] = table_df
+    return all_dfs
+'''
+#revised fill_empty_cells - zaib
+def fill_empty_cells(all_dfs):
+    for table_name in all_dfs.keys():
+        table_df = all_dfs[f'{table_name}']
+        table_sql = f"""
+            SELECT 
+                column_name as col_names,
+                udt_name as udt
+            FROM 
+                information_schema.columns
+            WHERE
+                table_name='{table_name}'
+            AND column_name NOT IN ('{"','".join(current_app.system_fields)}');
+            """
+        table_info = pd.read_sql(table_sql, g.eng)
+        for col in table_df.columns:
+            print("col: ", col)
+            #dt = table_df[col].dtype
+            #if dt == object: #fillna method seems to not be doing what is should :/
+                #table_df[col].fillna("", inplace = True)
+                #table_df[col] = table_df[col].fillna('')
+                #table_df[col].replace(np.nan, '', inplace = True)
+                #table_df[col].replace('NA', '', inplace = True)
+                #table_df[col] = table_df[col].replace(np.nan, '', regex = True)
+                #table_df[col] = table_df[col].replace(np.NaN, '', regex = True)
+                #print("table_df[col]")
+                #print(table_df[col])
+                #time.sleep(3)
+            #print(table_df[col].isna())
+            #time.sleep(3)
+            dt = table_info.loc[table_info['col_names']== col, 'udt'].iloc[0]
+            print("dt: ", dt)
+            if dt in ['int2','int4','numeric','timestamp']:
+            #if dt == np.float64 or dt == np.int64: #numeric data type fills correctly!
+                table_df[col].fillna(-88, inplace = True)
+            else: # meaning dt in ['varchar']
                 table_df[col].fillna("Not recorded", inplace = True)
 
             #print("table_df subset null")
@@ -232,28 +293,29 @@ def fill_speciesnames(all_dfs):
 
 def clean_data(all_dfs):
     print("Before strip whitespace and any preprocessing")
-    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
-    print('\n')
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #rint('\n')
     all_dfs = strip_whitespace(all_dfs)
     print("After strip whitespace")
-    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
-    print('\n')
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #print('\n')
     
+    #disabled to test checks -- jk enabled to test submit data
     
     print("Before fix case")
-    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
     all_dfs = fix_case(all_dfs)                # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
     print("After fix case")
-    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
 
     print("before filling empty values")
-    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
-    all_dfs = fill_empty_cells(all_dfs) # this doesnt work
+    all_dfs = fill_empty_cells(all_dfs)
     print("after filling empty values")
-    print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
     
     #all_dfs = clean_speciesnames(all_dfs)
