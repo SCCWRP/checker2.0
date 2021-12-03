@@ -191,11 +191,17 @@ def fill_empty_cells(all_dfs):
             #time.sleep(3)
             dt = table_info.loc[table_info['col_names']== col, 'udt'].iloc[0]
             print("dt: ", dt)
-            if dt in ['int2','int4','numeric','timestamp']:
             #if dt == np.float64 or dt == np.int64: #numeric data type fills correctly!
+            if dt in ['int2','int4','numeric']: #,'timestamp']: # timestamp cant have a -88
                 table_df[col].fillna(-88, inplace = True)
+            elif dt == 'timestamp':
+                table_df[col].fillna(pd.Timestamp('1950-01-01 00:00:00'), inplace = True)
             else: # meaning dt in ['varchar']
-                table_df[col].fillna("Not recorded", inplace = True)
+                # Hard coding "NR" rather than Not recorded only for this particular case
+                filler = 'NR' if table_name == 'tbl_nutrients_data' and col == 'qualifier' else 'Not recorded'
+                filler = "00:00:00" if col.lower().endswith("time") else filler
+                table_df[col].fillna(filler, inplace = True)
+                del filler
 
             #print("table_df subset null")
             #print(table_df[table_df[col].isnull()]) #all of these dfs returned empty >:(

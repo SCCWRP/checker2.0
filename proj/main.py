@@ -89,8 +89,8 @@ def main():
         sheet: pd.read_excel(
             excel_path, 
             sheet_name = sheet,
-            skiprows = current_app.excel_offset, 
-            na_values = ['']
+            skiprows = current_app.excel_offset
+            #na_values = ['']
         )
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
@@ -192,7 +192,7 @@ def main():
         sheet: pd.read_excel(
             excel_path, 
             sheet_name = sheet,
-            skiprows = current_app.excel_offset, 
+            skiprows = current_app.excel_offset,
             na_values = ['']
         )
         for sheet in pd.ExcelFile(excel_path).sheet_names
@@ -223,7 +223,7 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = False) 
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
     #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
     print("Right after core runs")
 
@@ -332,7 +332,9 @@ def main():
     # These next few lines of code should correct that
 
     errs = correct_row_offset(errs, offset = current_app.excel_offset)
+    print("errs populated")
     warnings = correct_row_offset(warnings, offset = current_app.excel_offset)
+    print("warnings populated")
 
 
     # -------------------------------------------------------------------------------- #

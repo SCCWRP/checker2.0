@@ -8,6 +8,7 @@ from .functions import checkData, get_badrows
 def sav(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
+    lu_list_script_root = current_app.script_root
     
     # function should be named after the dataset in app.datasets in __init__.py
     assert current_function_name in current_app.datasets.keys(), \
@@ -67,12 +68,13 @@ def sav(all_dfs):
     args.update({
         "dataframe": savmeta,
         "tablename": "tbl_sav_metadata",
-        "badrows":savmeta[((savmeta['transectlength_m'] < 0) | (savmeta['transectlength_m'] > 50)) & (savmeta['transectlength_m'] != -88)].index.tolist(),
+        "badrows":savmeta[(savmeta['transectlength_m'] > 50) & (savmeta['transectlength_m'] != -88)].index.tolist(),
         "badcolumn": "transectlength_m",
         "error_type" : "Value out of range",
         "error_message" : "Your transect length exceeds 50 m. A value over 50 will be accepted, but is not expected."
     })
     warnings = [*warnings, checkData(**args)]
+    print("check ran - tbl_sav_metadata - transectlength range")
 
     #(3) mulitcolumn check for species (scientificname, commonname, status) for tbl_savpercentcover_data
 
@@ -81,6 +83,8 @@ def sav(all_dfs):
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
         
         lookup_df = lookup_df.assign(match="yes")
+        #bug fix: read 'status' as string to avoid merging on float64 (from df_to_check) and object (from lookup_df) error
+        df_to_check['status'] = df_to_check['status'].astype(str)
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)
@@ -99,8 +103,12 @@ def sav(all_dfs):
         "badrows": badrows,
         "badcolumn": "scientificname",
         "error_type" : "Multicolumn Lookup Error",
-        "error_message" : "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message" : f'The scientificname/commonname/status entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
+                        'target="_blank">lu_plantspecies</a>' # need to add href for lu_species
     })
     errs = [*errs, checkData(**args)]
+    print("check ran - savpercentcover_data - multicol species")
     
     return {'errors': errs, 'warnings': warnings}

@@ -8,7 +8,8 @@ from .functions import checkData, get_badrows
 def vegetation(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
-    
+    lu_list_script_root = current_app.script_root
+
     # function should be named after the dataset in app.datasets in __init__.py
     assert current_function_name in current_app.datasets.keys(), \
         f"function {current_function_name} not found in current_app.datasets.keys() - naming convention not followed"
@@ -25,7 +26,8 @@ def vegetation(all_dfs):
     # example = all_dfs['tbl_example']
     
     vegmeta = all_dfs['tbl_vegetation_sample_metadata']
-    vegdata = all_dfs['tbl_vegetative_coverdata']
+    vegdata = all_dfs['tbl_vegetativecover_data']
+    epidata = all_dfs['tbl_epifauna_data']
     errs = []
     warnings = []
 
@@ -44,7 +46,7 @@ def vegetation(all_dfs):
     
     args.update({
         "dataframe": vegdata,
-        "tablename": "tbl_vegetative_coverdata",
+        "tablename": "tbl_vegetativecover_data",
         "badrows":vegdata[(vegdata['tallestplantheight_cm']<0) | (vegdata['tallestplantheight_cm'] > 300)].index.tolist(),
         "badcolumn": "tallestplantheight_cm",
         "error_type" : "Value is out of range.",
@@ -72,16 +74,29 @@ def vegetation(all_dfs):
     })
     errs = [*warnings, checkData(**args)]
 
+    args.update({
+        "dataframe": epidata,
+        "tablename": "tbl_epifauna_data",
+        "badrows":epidata[(epidata['burrows'] == 'Yes') & (epidata['enteredabundance'].apply(lambda x: x < 0))].index.tolist(),
+        "badcolumn": "enteredabundance",
+        "error_type" : "Value out of range",
+        "error_message" : "Your recorded entered abundance value must be greater than 0 and cannot be -88."
+    })
+    errs = [*warnings, checkData(**args)]
+
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
 
         lookup_df = lookup_df.assign(match="yes")
+        df_to_check['status'] = df_to_check['status'].astype(str)
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)
 
-    lookup_sql = f"SELECT * FROM lu_vegplantmacrospecies;"
+    lookup_sql = f"SELECT * FROM lu_plantspecies;"
+    #lookup_sql = f"(SELECT * FROM lu_plantspecies) UNION (SELECT * FROM lu_fishmacrospecies);"
+        # will not use union of the lu_lists because vegdata has plantspecies and epidata has fishmacrospecies (two separate multicolumn checks)
     lu_species = pd.read_sql(lookup_sql, g.eng)
     check_cols = ['scientificname', 'commonname', 'status']
     lookup_cols = ['scientificname', 'commonname', 'status']
@@ -95,21 +110,33 @@ def vegetation(all_dfs):
         "badrows": badrows,
         "badcolumn": "scientificname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message": "The scientificname/commonname/status entry did not match the lu_plantspecies lookup list."
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
+                        'target="_blank">lu_plantspecies</a>' # need to add href for lu_species
     })
 
     errs = [*errs, checkData(**args)]
-
+    print("check ran - vegetativecover_data - multicol species") 
+    
+    del badrows
+    lookup_sql = f"SELECT * FROM lu_fishmacrospecies;"
+    lu_species = pd.read_sql(lookup_sql, g.eng)
+    badrows = multicol_lookup_check(epidata, lu_species, check_cols, lookup_cols)
     args.update({
-        "dataframe": vegdata,
+        "dataframe": epidata,
         "tablename": "tbl_epifauna_data",
         "badrows": badrows,
         "badcolumn": "scientificname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message": f'The scientificname/commonname/status entry did not match the lu_fishmacrospecies lookup list.'
+                         '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
+                        'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
     })
 
     errs = [*errs, checkData(**args)]
+    print("check ran - epifauna_data - multicol species") 
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({

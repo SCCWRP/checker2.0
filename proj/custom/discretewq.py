@@ -25,7 +25,7 @@ def discretewq(all_dfs):
     # example = all_dfs['tbl_example']
 
     
-    watermeta=all_dfs=['tbl_waterquality_metadata']
+    watermeta=all_dfs['tbl_waterquality_metadata']
     waterdata=all_dfs['tbl_waterquality_data']
 
     errs = []
@@ -67,7 +67,7 @@ def discretewq(all_dfs):
     args.update({
         "dataframe": watermeta,
         "tablename": 'tbl_waterquality_metadata',
-        "badrows":watermeta['samplecollectiontime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M:%S') if not pd.isnull(x) else "00:00:00").index.tolist(),
+        "badrows":watermeta['samplecollectiontime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M:%S') if not (pd.isnull(x) or str(x).lower() == 'not recorded') else "00:00:00").index.tolist(),
         "badcolumn": "samplecollectiontime",
         "error_type" : "Value out of range",
         "error_message" : "Your time input is out of range."
@@ -77,10 +77,10 @@ def discretewq(all_dfs):
     args.update({
         "dataframe": waterdata,
         "tablename": 'tbl_waterquality_data',
-        "badrows": waterdata[((waterdata['conductivity_mscm'] < 0) | (waterdata['conductivity_mscm'] > waterdata)) & (waterdata['conductivity_mscm'] != -88)],
+        "badrows": waterdata[((waterdata['conductivity_mscm'] < 0) | (waterdata['conductivity_mscm'] > 100)) & (waterdata['conductivity_mscm'] != -88)],
         "badcolumn": "conductivity_mscm",
         "error_type": "Value out of range",
-        "error_message" : "Your conductivity value is out of range."
+        "error_message" : "Your conductivity value is out of range [0 to 100]"
     })
     errs = [*warnings, checkData(**args)]
 
@@ -90,7 +90,7 @@ def discretewq(all_dfs):
         "badrows": waterdata[((waterdata['tds_ppt'] < 0) | (waterdata['tds_ppt'] > 100)) & (waterdata['tds_ppt'] != -88)],
         "badcolumn": "tds_ppt",
         "error_type": "Value Out of range",
-        "error_message" : "Your ppt is out of range."
+        "error_message" : "Your ppt is out of range [0 to 100]"
     })
     errs = [*warnings, checkData(**args)]
 

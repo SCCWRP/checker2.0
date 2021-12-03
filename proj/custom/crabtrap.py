@@ -56,6 +56,7 @@ def crabtrap(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
+    ''' disabled check by Paul - doesn't make any sessions should be a combination of deployment date/time vs retrieve date/time - 3dec2021
     # Check: starttime format validation
     timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
     # replacing null with -88 since data has been filled w/ -88
@@ -97,6 +98,7 @@ def crabtrap(all_dfs):
 
     del badrows_deploymenttime
     del badrows_retrievaltime
+    ''' 
     '''
     args.update({
         "dataframe": crabmeta,

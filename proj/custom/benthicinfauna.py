@@ -151,14 +151,7 @@ def benthicinfauna_lab(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-
-
-    
-    return {'errors': errs, 'warnings': warnings}
-
-
-
-
+    '''
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
@@ -211,5 +204,5 @@ def benthicinfauna_lab(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran - fish_length_data - multicol species") 
 
-    
+    '''
     return {'errors': errs, 'warnings': warnings}
