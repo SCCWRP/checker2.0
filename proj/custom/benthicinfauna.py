@@ -210,33 +210,18 @@ def benthicinfauna_lab(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     print("check ran - benthicinfauna_labbatch - preparationtime") # tested
-    '''
-    args.update({
-        "dataframe": benthiclabbatch,
-        "tablename": "tbl_benthicinfauna_labbatch",
-        "badrows":benthiclabbatch['preparationtime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%HH:%MM') if not pd.isnull(x) else "00:00:00").index.tolist(),
-        "badcolumn": "preparationtime",
-        "error_type" : "Value is out of range.",
-        "error_message" : "Time format is not correct."
-    })
-    errs = [*errs, checkData(**args)]  
-    '''
-    # Example of appending an error (same logic applies for a warning)
-    # args.update({
-    #   "badrows": get_badrows(df[df.temperature != 'asdf']),
-    #   "badcolumn": "temperature",
-    #   "error_type" : "Not asdf",
-    #   "error_message" : "This is a helpful useful message for the user"
-    # })
-    # errs = [*errs, checkData(**args)]
-    '''
+
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
 
         lookup_df = lookup_df.assign(match="yes")
-        #bug fix: read 'status' as string to avoid merging on float64 (from df_to_check) and object (from lookup_df) error
-        df_to_check['status'] = df_to_check['status'].astype(str)
+        
+        for c in check_cols:
+            df_to_check[c] = df_to_check[c].apply(lambda x: str(x).strip())
+        for c in lookup_cols:
+            lookup_df[c] = lookup_df[c].apply(lambda x: str(x).strip())
+
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)
@@ -246,10 +231,11 @@ def benthicinfauna_lab(all_dfs):
     check_cols = ['scientificname', 'commonname', 'status']
     lookup_cols = ['scientificname', 'commonname', 'status']
 
-    badrows = multicol_lookup_check(benthicbiomass, lu_species, check_cols, lookup_cols)
-
+    badrows = multicol_lookup_check(benthicabundance, lu_species, check_cols, lookup_cols)
+    
+    # Check: multicolumn lookup for species - benthicabundance
     args.update({
-        "dataframe": benthicbiomass,
+        "dataframe": benthicabundance,
         "tablename": "tbl_benthicinfauna_abundance",
         "badrows": badrows,
         "badcolumn":"scientificname",
@@ -257,30 +243,26 @@ def benthicinfauna_lab(all_dfs):
         "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
-                        'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
-        
+                        'target="_blank">lu_fishmacrospecies</a>.'
     })
-
     errs = [*errs, checkData(**args)]
-    print("check ran - benthicinfauna_abundance - multicol species") 
+    print("check ran - benthicinfauna_abundance - multicolumn lookup for species") 
 
-    badrows = multicol_lookup_check(benthiclabbatch, lu_species, check_cols, lookup_cols)
-
+    badrows = multicol_lookup_check(benthicbiomass, lu_species, check_cols, lookup_cols)
+    
+    # Check: multicolumn lookup for species - benthicbiomass
     args.update({
-        "dataframe": fishdata,
-        "tablename": "tbl_fish_length_data",
+        "dataframe": benthicbiomass,
+        "tablename": "tbl_benthicinfauna_biomass",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn":"scientificname",
         "error_type": "Multicolumn Lookup Error",
         "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
-                        'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
-
+                        'target="_blank">lu_fishmacrospecies</a>.'
     })
-
     errs = [*errs, checkData(**args)]
-    print("check ran - fish_length_data - multicol species") 
+    print("check ran - benthicinfauna_biomass - multicolumn lookup for species") 
 
-    '''
     return {'errors': errs, 'warnings': warnings}
