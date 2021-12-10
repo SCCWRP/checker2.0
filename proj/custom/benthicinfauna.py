@@ -4,6 +4,7 @@ from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
+import re
 
 def benthicinfauna_field(all_dfs):
     
@@ -56,6 +57,58 @@ def benthicinfauna_field(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+
+    # Check: coresizediameter_cm corresponds to sample location == subtidal
+    args = {
+        "dataframe": benthicmeta,
+        "tablename": 'tbl_benthicinfauna_metadata',
+        "badrows": benthicmeta[(benthicmeta['samplelocation'] == 'subtidal') & (benthicmeta['coresizediameter_cm'] != 10)].index.to_list(),
+        "badcolumn": "coresizediameter_cm",
+        "error_type": "Unexpected Value",
+        "is_core_error": False,
+        "error_message": "The value for coresizediameter_cm where samplelocation recorded as 'subtidal' is expected to be 10."
+    }
+    warnings = [*warnings, checkData(**args)]
+    print("check ran - benthicinfauna_metadata - coresizediamter_cm") # tested
+    
+    # Check: coresizedepth_cm corresponds to sample location == subtidal
+    args = {
+        "dataframe": benthicmeta,
+        "tablename": 'tbl_benthicinfauna_metadata',
+        "badrows": benthicmeta[(benthicmeta['samplelocation'] == 'subtidal') & (benthicmeta['coresizedepth_cm'] != 10)].index.to_list(),
+        "badcolumn": "coresizediameter_cm",
+        "error_type": "Unexpected Value",
+        "is_core_error": False,
+        "error_message": "The value for coresizedepth_cm where samplelocation recorded as 'subtidal' is expected to be 10."
+    }
+    warnings = [*warnings, checkData(**args)]
+    print("check ran - benthicinfauna_metadata - coresizedepth_cm") # tested
+
+    # Check: coresizediameter_cm corresponds to sample location == intertidal
+    args = {
+        "dataframe": benthicmeta,
+        "tablename": 'tbl_benthicinfauna_metadata',
+        "badrows": benthicmeta[(benthicmeta['samplelocation'] == 'intertidal') & (benthicmeta['coresizediameter_cm'] != 10)].index.to_list(),
+        "badcolumn": "coresizediameter_cm",
+        "error_type": "Unexpected Value",
+        "is_core_error": False,
+        "error_message": "The value for coresizediameter_cm where samplelocation recorded as 'intertidal' is expected to be 10."
+    }
+    warnings = [*warnings, checkData(**args)]
+    print("check ran - benthicinfauna_metadata - coresizediamter_cm") # tested
+
+    # Check: coresizedepth_cm corresponds to sample location == intertidal
+    args = {
+        "dataframe": benthicmeta,
+        "tablename": 'tbl_benthicinfauna_metadata',
+        "badrows": benthicmeta[(benthicmeta['samplelocation'] == 'intertidal') & (benthicmeta['coresizedepth_cm'] != 2)].index.to_list(),
+        "badcolumn": "coresizedepth_cm",
+        "error_type": "Unexpected Value",
+        "is_core_error": False,
+        "error_message": "The value for coresizedepth_cm where samplelocation recorded as 'intertidal' is expected to be 2."
+    }
+    warnings = [*warnings, checkData(**args)]
+    print("check ran - benthicinfauna_metadata - coresizedepth_cm") # tested
     
 
     # Example of appending an error (same logic applies for a warning)
@@ -66,8 +119,6 @@ def benthicinfauna_field(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
-
-
     
     return {'errors': errs, 'warnings': warnings}
 
@@ -126,13 +177,40 @@ def benthicinfauna_lab(all_dfs):
     args.update({
         "dataframe": benthicbiomass,
         "tablename": "tbl_benthicinfauna_biomass",
-        "badrows":benthicbiomass[(benthicbiomass['biomass_gm'] < 0)].index.tolist(),
-        "badcolumn": "biomass_gm",
+        "badrows":benthicbiomass[(benthicbiomass['biomass_g'] < 0)].index.tolist(),
+        "badcolumn": "biomass_g",
         "error_type" : "Value is out of range.",
         "error_message" : "Biomass must be greater than 0"
     })
     errs = [*errs, checkData(**args)]
-    
+
+    # Check: preparationtime format validation
+    timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
+    '''
+    badrows_preptime = benthiclabbatch[
+        benthiclabbatch['preparationtime'].apply(
+            lambda x: not bool(re.match(timeregex, ":".join([i for i in x.split(":")[:-1]]) )) 
+            if str(x) != 'Not recorded' 
+            else False
+        )
+    ].index.tolist()
+    '''
+    # This badrows_preptime is working.
+    badrows_preptime = benthiclabbatch[
+        benthiclabbatch['preparationtime'].apply(
+            lambda x: not bool(re.match(timeregex, str(x))) if str(x) != 'Not Recorded' else False)
+            ].index.tolist()
+    args.update({
+        "dataframe": badrows_preptime,
+        "tablename": "tbl_benthicinfauna_labbatch",
+        "badrows": badrows_preptime,
+        "badcolumn": "preparationtime",
+        "error_type" : "Time Format Error",
+        "error_message": "Time should be entered in HH:MM format on a 24-hour clock."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - benthicinfauna_labbatch - preparationtime") # tested
+    '''
     args.update({
         "dataframe": benthiclabbatch,
         "tablename": "tbl_benthicinfauna_labbatch",
@@ -142,7 +220,7 @@ def benthicinfauna_lab(all_dfs):
         "error_message" : "Time format is not correct."
     })
     errs = [*errs, checkData(**args)]  
-
+    '''
     # Example of appending an error (same logic applies for a warning)
     # args.update({
     #   "badrows": get_badrows(df[df.temperature != 'asdf']),
