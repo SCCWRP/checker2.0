@@ -248,7 +248,7 @@ def benthicinfauna_lab(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran - benthicinfauna_abundance - multicolumn lookup for species") 
 
-    badrows = multicol_lookup_check(benthicbiomass, lu_species, check_cols, lookup_cols)
+    badrows = multicol_lookup_check(benthicbiomass, lu_species, check_cols, lookup_cols) #tested
     
     # Check: multicolumn lookup for species - benthicbiomass
     args.update({
@@ -263,6 +263,6 @@ def benthicinfauna_lab(all_dfs):
                         'target="_blank">lu_fishmacrospecies</a>.'
     })
     errs = [*errs, checkData(**args)]
-    print("check ran - benthicinfauna_biomass - multicolumn lookup for species") 
+    print("check ran - benthicinfauna_biomass - multicolumn lookup for species") #tested
 
     return {'errors': errs, 'warnings': warnings}
