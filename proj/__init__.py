@@ -14,17 +14,19 @@ from .custom.bruv import bruv #def fcn in .py
 from .custom.fishseines import fishseines #def fcn in .py
 from .custom.crabtrap import crabtrap
 from .custom.vegetation import vegetation #def fcn in .py
-from .custom.nutrients import nutrients_field, nutrients_lab #def fcn in .py
-from .custom.edna import edna_field, edna_lab #def fcn in .py
-from .custom.sedimentgrainsize import sedimentgrainsize_field, sedimentgrainsize_lab #def fcn in .py
+#from .custom.nutrients import nutrients_field, nutrients_lab #def fcn in .py
+#from .custom.edna import edna_field, edna_lab #def fcn in .py
+#from .custom.sedimentgrainsize import sedimentgrainsize_field, sedimentgrainsize_lab #def fcn in .py
 from .custom.discretewq import discretewq #def fcn in .py
 from .custom.benthicinfauna import benthicinfauna #def fcn in .py
 from .custom.feldspar import feldspar #def fcn in .py
-from .custom.logger import logger #def fcn in .py
+#from .custom.logger import logger #def fcn in .py
 from .custom.bruv_visual_map import bruv_visual_map
 from .custom.sav_visual_map import sav_visual_map
 from .custom.veg_visual_map import veg_visual_map
 from .custom.fish_visual_map import fish_visual_map
+
+# Dynamic Imports Here
 
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
@@ -53,13 +55,14 @@ def teardown_request(exception):
         g.eng.dispose()
 
 # Project name
-app.project_name = "EMPA"
+app.project_name = environ.get("PROJNAME")
 
 # script root (for any links we put, mainly lookup lists)
 app.script_root = 'checker'
 
 # Maintainers
-app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','nataliem@sccwrp.org' ,'minan@sccwrp.org', 'delaramm@sccwrp.org'] #,'pauls@sccwrp.org']
+#app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','nataliem@sccwrp.org' ,'minan@sccwrp.org', 'delaramm@sccwrp.org'] #,'pauls@sccwrp.org']
+app.maintainers = ['monted97@gmail.com']
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
@@ -108,40 +111,40 @@ app.datasets = {
     },
     
     # --- SOP 3: Nutrients --- #
-    'nutrients_lab':{
-        'tables': ['tbl_protocol_metadata','tbl_nutrients_labbatch_data','tbl_nutrients_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': nutrients_lab
-    },
-    'nutrients_field':{
-        'tables': ['tbl_protocol_metadata','tbl_nutrients_metadata'],
-        'login_fields': ['login_email','login_agency'],
-        'function': nutrients_field
-    },
+   # 'nutrients_lab':{
+   #     'tables': ['tbl_protocol_metadata','tbl_nutrients_labbatch_data','tbl_nutrients_data'],
+   #     'login_fields': ['login_email','login_agency'],
+   #     'function': nutrients_lab
+   # },
+   # 'nutrients_field':{
+   #     'tables': ['tbl_protocol_metadata','tbl_nutrients_metadata'],
+   #     'login_fields': ['login_email','login_agency'],
+   #     'function': nutrients_field
+   # },
     
     # --- SOP 4: eDNA --- #
-    'edna_field':{
-        'tables': ['tbl_protocol_metadata','tbl_edna_metadata'],
-        'login_fields': ['login_email','login_agency'],
-        'function': edna_field
-    },
-    'edna_lab':{
-        'tables': ['tbl_protocol_metadata','tbl_edna_water_labbatch_data','tbl_edna_sed_labbatch_data','tbl_edna_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': edna_lab
-    },
+   # 'edna_field':{
+   #     'tables': ['tbl_protocol_metadata','tbl_edna_metadata'],
+   #     'login_fields': ['login_email','login_agency'],
+   #     'function': edna_field
+   # },
+   # 'edna_lab':{
+   #     'tables': ['tbl_protocol_metadata','tbl_edna_water_labbatch_data','tbl_edna_sed_labbatch_data','tbl_edna_data'],
+   #     'login_fields': ['login_email','login_agency'],
+   #     'function': edna_lab
+   # },
     
     # --- SOP 5: Sediment Grain Size --- #
-    'sedimentgrainsize_field':{
-        'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_metadata'],
-        'login_fields': ['login_email','login_agency'],
-        'function': sedimentgrainsize_field
-    },
-    'sedimentgrainsize_lab':{
-        'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_data', 'tbl_sedgrainsize_labbatch_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': sedimentgrainsize_lab
-    },
+   # 'sedimentgrainsize_field':{
+   #     'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_metadata'],
+   #     'login_fields': ['login_email','login_agency'],
+   #     'function': sedimentgrainsize_field
+   # },
+   # 'sedimentgrainsize_lab':{
+   #     'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_data', 'tbl_sedgrainsize_labbatch_data'],
+   #     'login_fields': ['login_email','login_agency'],
+   #     'function': sedimentgrainsize_lab
+   # },
 
     #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
     # change to bruvmeta
@@ -188,12 +191,12 @@ app.datasets = {
         'tables': ['tbl_protocol_metadata','tbl_feldspar_metadata','tbl_feldspar_data'],
         'login_fields': ['login_email','login_agency'],
         'function': feldspar
-    },
-    'logger':{
-        'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': logger
-    }
+    }#,
+   # 'logger':{
+   #     'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data'],
+   #     'login_fields': ['login_email','login_agency'],
+   #     'function': logger
+   # }
 }
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)

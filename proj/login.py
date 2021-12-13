@@ -6,6 +6,7 @@ from flask import session, Blueprint, current_app, request, render_template, jso
 from .utils.exceptions import default_exception_handler
 
 homepage = Blueprint('homepage', __name__)
+#projName = os.environ["PROJNAME"]
 @homepage.route('/', methods = ['GET','POST'])
 def index():
     eng = g.eng
