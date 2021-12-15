@@ -56,8 +56,11 @@ def core(all_dfs, eng, all_meta, debug = False):
         )
 
     # flatten the lists
-    print(errs)
-    print(warnings)
+    # bug: 'ascii' codec can't encode character '\xb0' in position 2344: ordinal not in range(128) - app crashes here -- likely occuring when printing errs
+    # more specifically, this occurs when errs is populated with unicode character
+    # commenting out errs and warnings dict print statements
+    #print(errs)
+    #print(warnings)
     return {
         "core_errors": [e for sublist in errs for e in sublist if ( e != dict() and e != set() )],
         "core_warnings": [w for sublist in warnings for w in sublist if ( w != dict() and w != set() )]

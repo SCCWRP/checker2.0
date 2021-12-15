@@ -223,8 +223,8 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
     print("Right after core runs")
 
     errs.extend(core_output['core_errors'])
@@ -285,10 +285,11 @@ def main():
         errs = [e for e in errs if len(e) > 0]
         warnings = [w for w in warnings if len(w) > 0]
 
-        print("errs")
-        print(errs)
-        print("warnings")
-        print(warnings)
+        # commenting out errs and warnings print statements
+        #print("errs")
+        #print(errs)
+        #print("warnings")
+        #print(warnings)
 
         print("DONE - Custom Checks")
 
@@ -372,7 +373,7 @@ def main():
         "table_to_tab_map" : session['table_to_tab_map']
     }
     
-    print(returnvals)
+    #print(returnvals)
 
     print("DONE with upload routine, returning JSON to browser")
     return jsonify(**returnvals)
@@ -382,14 +383,14 @@ def main():
 def getmap(submissionid, datatype):
     datatype = str(datatype)
     if datatype not in ('sav','bruv','fishseines','vegetation'):
-        return "Map not found ¯\_(ツ)_/¯"
+        return "Map not found"
 
     map_path = os.path.join(os.getcwd(), "files", str(submissionid), f'{datatype}_map.html')
     if os.path.exists(map_path):
         html = open(map_path,'r').read()
         return render_template(f'map_template.html', map=html)
     else:
-        return "Map not found ¯\_(ツ)_/¯"
+        return "Map not found"
 
 
 

@@ -53,7 +53,8 @@ def multitask(functions: list, *args):
     while output.qsize() > 0:
         finaloutput.append(output.get())
     print("output from the multitask/mutliprocessing function")
-    #print(finaloutput)
+    print("did this print the finaloutput")
+    print(finaloutput)
     return finaloutput
 
 
