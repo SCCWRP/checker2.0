@@ -146,8 +146,11 @@ def fishseines(all_dfs):
 
     lookup_sql = f"SELECT * FROM lu_fishmacrospecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    check_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname', 'status']
+    # Removing status part of multicolumn check for now as requested by Jan. 16 Dec 2021
+    #check_cols = ['scientificname', 'commonname', 'status']
+    check_cols = ['scientificname', 'commonname']
+    #lookup_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(fishabud, lu_species, check_cols, lookup_cols)
     
@@ -156,9 +159,9 @@ def fishseines(all_dfs):
         "dataframe": fishabud,
         "tablename": "tbl_fish_abundance_data",
         "badrows": badrows,
-        "badcolumn":"scientificname",
+        "badcolumn":"commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+        "error_message": f'The scientificname/commonname entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
                         'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
@@ -175,9 +178,9 @@ def fishseines(all_dfs):
         "dataframe": fishdata,
         "tablename": "tbl_fish_length_data",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+        "error_message": f'The scientificname/commonname entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
                         'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
