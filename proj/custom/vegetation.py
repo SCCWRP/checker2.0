@@ -52,7 +52,7 @@ def vegetation(all_dfs):
         "error_type" : "Value is out of range.",
         "error_message" : "Height should be between 0 to 3 metres"
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     args.update({
         "dataframe": vegmeta,
@@ -62,7 +62,7 @@ def vegetation(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your longitude coordinates are outside of california, check your minus sign in your longitude data."
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
     
     args.update({
         "dataframe": vegmeta,
@@ -72,7 +72,7 @@ def vegetation(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your latitude coordinates are outside of california."
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     args.update({
         "dataframe": epidata,
@@ -82,7 +82,7 @@ def vegetation(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your recorded entered abundance value must be greater than 0 and cannot be -88."
     })
-    errs = [*warnings, checkData(**args)]
+    errs = [*errs, checkData(**args)]
 
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
@@ -98,8 +98,10 @@ def vegetation(all_dfs):
     #lookup_sql = f"(SELECT * FROM lu_plantspecies) UNION (SELECT * FROM lu_fishmacrospecies);"
         # will not use union of the lu_lists because vegdata has plantspecies and epidata has fishmacrospecies (two separate multicolumn checks)
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    check_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname', 'status']
+    #check_cols = ['scientificname', 'commonname', 'status']
+    check_cols = ['scientificname', 'commonname']
+    #lookup_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(vegdata, lu_species, check_cols, lookup_cols)
         
@@ -108,9 +110,9 @@ def vegetation(all_dfs):
         "dataframe": vegdata,
         "tablename": "tbl_vegetativecover_data",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lu_plantspecies lookup list."
+        "error_message": "The scientificname/commonname entry did not match the lu_plantspecies lookup list."
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
                         'target="_blank">lu_plantspecies</a>' # need to add href for lu_species
@@ -127,9 +129,9 @@ def vegetation(all_dfs):
         "dataframe": epidata,
         "tablename": "tbl_epifauna_data",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lu_fishmacrospecies lookup list.'
+        "error_message": f'The scientificname/commonname entry did not match the lu_fishmacrospecies lookup list.'
                          '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
                         'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
