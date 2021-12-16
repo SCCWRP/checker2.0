@@ -71,8 +71,10 @@ def macroalgae(all_dfs):
 
     lookup_sql = f"SELECT * FROM lu_plantspecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    check_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname', 'status']
+    #check_cols = ['scientificname', 'commonname', 'status']
+    check_cols = ['scientificname', 'commonname']
+    #lookup_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(algaecover, lu_species, check_cols, lookup_cols)
 
@@ -80,9 +82,9 @@ def macroalgae(all_dfs):
         "dataframe": algaecover,
         "tablename": "tbl_algaecover_data",
         "badrows": badrows,
-        "badcolumn":"scientificname",
+        "badcolumn":"commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+        "error_message": f'The scientificname/commonname entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
                         'target="_blank">lu_plantspecies</a>' # need to add href for lu_species
@@ -98,9 +100,9 @@ def macroalgae(all_dfs):
         "dataframe": algaefloating,
         "tablename": "tbl_floating_data",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+        "error_message": f'The scientificname/commonname entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
                         'target="_blank">lu_plantspecies</a>' # need to add href for lu_species
