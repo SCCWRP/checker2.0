@@ -112,6 +112,8 @@ def crabtrap(all_dfs):
     errs = [*errs, checkData(**args)]
     print('Finished: Compare deployment time to retrieval time')
     '''
+
+
     print("enter abundance check")
     args.update({
         "dataframe": crabinvert,
@@ -138,8 +140,10 @@ def crabtrap(all_dfs):
 
     lookup_sql = f"SELECT * FROM lu_fishmacrospecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    check_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname', 'status']
+    #check_cols = ['scientificname', 'commonname', 'status']
+    check_cols = ['scientificname', 'commonname']
+    #lookup_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(crabinvert,lu_species, check_cols, lookup_cols)
 
@@ -147,11 +151,11 @@ def crabtrap(all_dfs):
         "dataframe": crabinvert,
         "tablename": "tbl_crabfishinvert_abundance",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": "The scientificname/commonname/status entry did not match the lookup list."
+        "error_message": "The scientificname/commonname entry did not match the lookup list."
                         '<a ' 
-                        f'/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
                         'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
     })
     errs = [*errs, checkData(**args)]
@@ -162,17 +166,44 @@ def crabtrap(all_dfs):
         "dataframe": crabmass,
         "tablename": "tbl_crabbiomass_length",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lookup list.'
+        "error_message": f'The scientificname/commonname entry did not match the lookup list.'
                          '<a ' 
-                        f'/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
                         'target="_blank">lu_fishmacrospecies</a>' # need to add href for lu_species
 
     })
     errs = [*errs, checkData(**args)]
     print("check ran - crabbiomass_length - multicol species") 
+    # Disabling Time Check for Crab Trap to submit data.
+    '''
+    # Crab Trap Time Logic Check (Mina N.).....currently a work in progress
+    ddate = crabmeta[crabmeta['deploymentdate']].dt.strftime('%Y-%m-%d')
+    print(ddate)
+    rdate = crabmeta[crabmeta['retrievaldate']].dt.strftime('%Y-%m-%d')
+    dtime = crabmeta[crabmeta['deploymenttime']].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else "00:00:00")
+    rtime = crabmeta[crabmeta['retrievaltime']].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') if not pd.isnull(x) else "00:00:00")
 
+    # Merge date columns with respectvie time columns:
+    deployment = ddate + ' ' + dtime
+    ret = rdate + ' ' + rtime
+    deployment = pd.to_datetime(deployment)
+    retrieval = pd.to_datetime(ret)
 
+    # Return rows if deployment is after retrieval
+    badrows = crabmeta[crabmeta[deployment]][deployment > retrieval]
+
+    args.update({
+     "dataframe": crabmeta,
+     "tablename": "tbl_crabtrap_metadata",
+     "badrows": badrows,
+     "badcolumn": "deploymentdate,deploymenttime,retrievaldate,retrievaltime",
+     "error_message": "Values in 'deployment time' column is before values in 'retrieval time' column"
+    
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - tbl_crabtrap_metadata - time logic check")
+    '''
 
     return {'errors': errs, 'warnings': warnings}
