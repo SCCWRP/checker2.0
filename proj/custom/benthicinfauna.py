@@ -201,7 +201,7 @@ def benthicinfauna_lab(all_dfs):
             lambda x: not bool(re.match(timeregex, str(x))) if str(x) != 'Not Recorded' else False)
             ].index.tolist()
     args.update({
-        "dataframe": badrows_preptime,
+        "dataframe": benthiclabbatch,
         "tablename": "tbl_benthicinfauna_labbatch",
         "badrows": badrows_preptime,
         "badcolumn": "preparationtime",
@@ -228,8 +228,10 @@ def benthicinfauna_lab(all_dfs):
 
     lookup_sql = f"SELECT * FROM lu_fishmacrospecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    check_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname', 'status']
+    #check_cols = ['scientificname', 'commonname', 'status']
+    check_cols = ['scientificname', 'commonname']
+    #lookup_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(benthicabundance, lu_species, check_cols, lookup_cols)
     
@@ -238,9 +240,9 @@ def benthicinfauna_lab(all_dfs):
         "dataframe": benthicabundance,
         "tablename": "tbl_benthicinfauna_abundance",
         "badrows": badrows,
-        "badcolumn":"scientificname",
+        "badcolumn":"commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+        "error_message": f'The scientificname/commonname entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
                         'target="_blank">lu_fishmacrospecies</a>.'
@@ -255,9 +257,9 @@ def benthicinfauna_lab(all_dfs):
         "dataframe": benthicbiomass,
         "tablename": "tbl_benthicinfauna_biomass",
         "badrows": badrows,
-        "badcolumn":"scientificname",
+        "badcolumn":"commonname",
         "error_type": "Multicolumn Lookup Error",
-        "error_message": f'The scientificname/commonname/status entry did not match the lookup list '
+        "error_message": f'The scientificname/commonname entry did not match the lookup list '
                         '<a '
                         f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_fishmacrospecies" '
                         'target="_blank">lu_fishmacrospecies</a>.'
