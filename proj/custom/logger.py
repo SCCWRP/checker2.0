@@ -61,7 +61,7 @@ def logger(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your qvalue is out of range. Must be greater than 0."
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     args.update({
         "dataframe": loggerm,
@@ -71,7 +71,7 @@ def logger(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your do_percent is out of range, must be greater than 0."
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     args.update({
         "dataframe": loggerm,
@@ -81,7 +81,7 @@ def logger(all_dfs):
         "error_type" : "Date Value out of range",
         "error_message" : "Your do_mql value is out of range. Must be greater than 0."
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
     args.update({
         "dataframe": loggerc,
@@ -91,7 +91,7 @@ def logger(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your conductivity_sm value is out of range, it must be equal or greater than 0."
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
 
 
     
