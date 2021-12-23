@@ -219,6 +219,20 @@ def checkIntegers(dataframe, tablename, eng, meta, *args, output = None, **kwarg
                 and (col not in current_app.system_fields)
         ):
             udt_name = meta.iloc[meta[meta.column_name == col].index, meta.columns.get_loc("udt_name")].values[0]
+
+            # Need to check if all the values are valid int literals first
+            if not all(
+                dataframe[col] \
+                    .apply(
+                        lambda x:
+                        # function returns True if it successfully converted
+                        convert_dtype(int, x)
+                    ) \
+                    .values
+            ):
+                continue
+
+
             ret.append(
                 checkData(
                     dataframe = dataframe,
@@ -227,11 +241,11 @@ def checkIntegers(dataframe, tablename, eng, meta, *args, output = None, **kwarg
                             dataframe[col].apply(
                                 lambda x:
                                 False if pd.isnull(x)
-                                else not ( (x >= -32768) & (x <= 32767) )
+                                else not ( (int(x) >= -32768) & (int(x) <= 32767) )
                                 if udt_name == 'int2'
-                                else not ( (x >= -2147483648) & (x <= 2147483647) )
+                                else not ( (int(x) >= -2147483648) & (int(x) <= 2147483647) )
                                 if udt_name == 'int4'
-                                else not ( (x >= -9223372036854775808) & (x <= 9223372036854775807) )
+                                else not ( (int(x) >= -9223372036854775808) & (int(x) <= 9223372036854775807) )
                                 if udt_name == 'int8'
                                 
                                 # if something else slips through the cracks, this will not allow it through by default

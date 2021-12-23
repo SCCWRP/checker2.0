@@ -126,39 +126,6 @@ def fix_case(all_dfs: dict):
 # table_info = pd.read_sql(table_sql, g.eng)
 # make sure no system_fields -- NOT IN app.system fields (see above)
 # Datatypes are retrieved from information schema to populate empty cells with -88 or 'Not recorded' for the fill_empty_cells function.
-'''
-def fill_empty_cells(all_dfs):
-    for table_name in all_dfs.keys():
-        table_df = all_dfs[f'{table_name}']
-        for col in table_df.columns:
-            print("col: ", col)
-            dt = table_df[col].dtype
-            #if dt == object: #fillna method seems to not be doing what is should :/
-                #table_df[col].fillna("", inplace = True)
-                #table_df[col] = table_df[col].fillna('')
-                #table_df[col].replace(np.nan, '', inplace = True)
-                #table_df[col].replace('NA', '', inplace = True)
-                #table_df[col] = table_df[col].replace(np.nan, '', regex = True)
-                #table_df[col] = table_df[col].replace(np.NaN, '', regex = True)
-                #print("table_df[col]")
-                #print(table_df[col])
-                #time.sleep(3)
-            #print(table_df[col].isna())
-            #time.sleep(3)
-            print("dt: ", dt)
-            # if dt in ['int2','int4','numeric','timestamp']:
-            if dt == np.float64 or dt == np.int64: #numeric data type fills correctly!
-                table_df[col].fillna(-88, inplace = True)
-            else: # meaning dt in ['varchar']
-                table_df[col].fillna("Not recorded", inplace = True)
-
-            #print("table_df subset null")
-            #print(table_df[table_df[col].isnull()]) #all of these dfs returned empty >:(
-            #print(table_df[table_df[col].isna()])
-            #time.sleep(3)
-        all_dfs[f'{table_name}'] = table_df
-    return all_dfs
-'''
 #revised fill_empty_cells - zaib
 def fill_empty_cells(all_dfs):
     for table_name in all_dfs.keys():
@@ -213,43 +180,6 @@ def fill_empty_cells(all_dfs):
 # because every project will have those non-generalizable, one off, "have to hard code" kind of fixes
 # and this project is no exception
 def hardcoded_fixes(all_dfs):
-    if 'tbl_ceden_waterquality' in all_dfs.keys():
-
-        # hard coded fix for analytename column for water quality
-        all_dfs['tbl_ceden_waterquality']['analytename'] = all_dfs['tbl_ceden_waterquality'] \
-            .analytename \
-            .apply(
-                lambda x:
-                'Nitrogen, Total Kjeldahl'
-                if 'kjeldahl' in str(x).lower()
-
-                else 'Ammonia as N'
-                if 'ammonia' in str(x).lower()
-
-                else 'Total Organic Carbon'
-                if 'organic carbon' in str(x).lower()
-
-                else 'Hardness as CaCO3'
-                if ('hardness' in str(x).lower()) and ('carbonate' in str(x).lower())
-
-                else 'Nitrate as N'
-                if 'nitrogen, nitrate (no3) as n' in str(x).lower()
-
-                else 'SpecificConductivity'
-                if 'specific conductance' in str(x).lower()
-
-                else 'Nitrogen, Total'
-                if str(x).lower() == 'nitrogen'
-
-                else 'OrthoPhosphate as P'
-                if 'orthophosphate' in str(x).lower()
-                
-                else 'Nitrate + Nitrite as N'
-                if (('nitrate' in str(x).lower()) and ('nitrite' in str(x).lower()))
-
-                else x
-            )
-
     return all_dfs
 
 '''

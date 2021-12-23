@@ -95,35 +95,27 @@ def bruv_field(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     '''
-    
-    #(1) tbl_bruv_metadata - time format check HH:MM 24 hour clock
-    ## commenting out time checks for now - need to check in with Jan - Zaib 
-        # Check: starttime format validation
+    # Check: bruvmetadata bruvintime time validation
     timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
-    print(bruvmeta['bruvintime'].unique())
     badrows_bruvintime = bruvmeta[
         bruvmeta['bruvintime'].apply(
-            lambda x: not bool(re.match(timeregex, ":".join([i for i in x.split(":")[:-1]]) )) 
-            if str(x) != 'Not recorded' 
-            else False
-        )
-    ].index.tolist()
-    print("badrows_bruvintime")
-    print(badrows_bruvintime)
-    print(bruvmeta.bruvintime[6:8])
+            lambda x: not bool(re.match(timeregex, str(x))) if str(x) != "00:00:00" else False)
+            ].index.tolist()
     args.update({
         "dataframe": bruvmeta,
         "tablename": "tbl_bruv_metadata",
         "badrows": badrows_bruvintime,
         "badcolumn": "bruvintime",
-        "error_type" : "Time error",
+        "error_type" : "Time Format Error",
         "error_message": "Time should be entered in HH:MM format on a 24-hour clock."
     })
     errs = [*errs, checkData(**args)]
-
-    print("check ran - tbl_bruv_metadata - bruvintime format") 
-
-    badrows_bruvouttime = bruvmeta[bruvmeta['bruvouttime'].apply(lambda x: not bool(re.match(timeregex, str(x))) if not 'Not recorded' else False)].index.tolist()
+    print("check ran - bruv_metadata - bruvintime") 
+    # Check: bruvmetadata bruvouttime time validation
+    badrows_bruvouttime = bruvmeta[
+        bruvmeta['bruvouttime'].apply(
+            lambda x: not bool(re.match(timeregex, str(x))) if str(x) != "00:00:00" else False)
+            ].index.tolist()
     args.update({
         "dataframe": bruvmeta,
         "tablename": "tbl_bruv_metadata",
@@ -136,24 +128,31 @@ def bruv_field(all_dfs):
 
     # NOTE This check needs to take into consideration that the data is clean if the start date is before the end date
     # Note: starttime and endtime format checks must pass before entering the starttime before endtime check
-    # if (len(badrows_bruvintime) == 0 & (len(badrows_bruvouttime) == 0)):
-    #     args.update({
-    #         "dataframe": bruvmeta,
-    #         "tablename": "tbl_bruv_metadata",
-    #         "badrows": bruvmeta[bruvmeta['bruvintime'].apply(
-    #             lambda x: pd.Timestamp(str(x)).strftime('%H:%M') 
-    #             if not 'Not recorded' else '') >= bruvmeta['bruvouttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') 
-    #             if not 'Not recorded' else '')].index.tolist(),
-    #         "badcolumn": "bruvintime",
-    #         "error_message": "Bruvintime value must be before bruvouttime. Time should be entered in HH:MM format on a 24-hour clock."
-    #         })
-    #     errs = [*errs, checkData(**args)]
-    #     print("check ran - tbl_bruv_metadata - bruvintime before bruvouttime")
+    '''
+    df = bruvmeta[(bruvmeta['bruvintime'] != "00:00:00") & (bruvmeta['bruvouttime'] != "00:00:00")]
+    print(" =========================================")
+    print("subsetting df on bruv time: ")
+    print(" =========================================")
+    print(df['bruvintime'])
+    print(df['bruvouttime'])
+    if (len(badrows_bruvintime) == 0 & (len(badrows_bruvouttime) == 0)):
+        args.update({
+            "dataframe": bruvmeta,
+            "tablename": "tbl_bruv_metadata",
+            "badrows": df[df['bruvintime'].apply(
+                lambda x: pd.Timestamp(str(x)).strftime('%H:%M') 
+                if not "00:00:00" else '') >= df['bruvouttime'].apply(lambda x: pd.Timestamp(str(x)).strftime('%H:%M') 
+                if not "00:00:00" else '')].index.tolist(),
+            "badcolumn": "bruvintime",
+            "error_message": "Bruvintime value must be before bruvouttime."
+            })
+        errs = [*errs, checkData(**args)]
+    print("check ran - tbl_bruv_metadata - bruvintime before bruvouttime")
 
     del badrows_bruvintime
     del badrows_bruvouttime
-
-    #() depth_m is positive for tbl_bruv_metadata 
+    '''
+    # Check: depth_m is positive for tbl_bruv_metadata 
     print("before metadata depth check")
     args.update({
         "dataframe": bruvmeta,
@@ -163,9 +162,8 @@ def bruv_field(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Depth measurement should not be a negative number, must be greater than 0."
     })
-    #errs = [*warnings, checkData(**args)]
     errs = [*errs, checkData(**args)]
-    print("after metadata depth check")
+    print("check ran - tbl_bruv_metadata - nonnegative depth_m") # tested
 
     return {'errors': errs, 'warnings': warnings}
 
