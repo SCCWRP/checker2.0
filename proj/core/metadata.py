@@ -18,9 +18,9 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                 meta.columns.get_loc("dtype")
             ] \
             .values[0]
-            print("dtype:")
-            print(dtype)
-            print(dataframe.columns)
+            if col == 'samplecollectiondate':
+                print(col)
+                print(dataframe[col])
 
             ret.append(
                 checkData(

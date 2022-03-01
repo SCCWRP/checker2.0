@@ -16,7 +16,7 @@ import os
 from os import environ
 import xlsxwriter
 import openpyxl
-#from openpyxl import load_workbook
+from openpyxl import load_workbook
 
 # dynamic lookup lists to template
 # skip the formatting
@@ -337,8 +337,11 @@ def template():
         print("why doesnt it exist ... ")
     #openpyxl load_workbook issue: zipfile.BadZipFile: File is not a zip file
 
-    #workbook = openpyxl.load_workbook(filename=excel_file)
-    excel_writer.book = openpyxl.load_workbook(filename=excel_file)
+    #Change: import fcn alone and then call # did not work
+    print(excel_file)
+    workbook = openpyxl.Workbook()
+    workbook = load_workbook("/var/www/checker/export/routine/LOGGER-TEMPLATE.xlsx")
+    #excel_writer.book = openpyxl.load_workbook(filename=excel_file)
     print("this workedddd") # no it did not
     # Add lookup lists to the excel file.
     print("Start adding lookup lists to the excel file...")

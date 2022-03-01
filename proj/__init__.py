@@ -204,7 +204,7 @@ app.datasets = {
         'function': feldspar
     },
     'logger':{
-        'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data'],
+        'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data','tbl_logger_other_data'],
         'login_fields': ['login_email','login_agency'],
         'function': logger
     },

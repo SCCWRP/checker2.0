@@ -17,14 +17,14 @@ def core(all_dfs, eng, all_meta, debug = False):
         print(tbl)
         errs.extend(
             [
+                checkDataTypes(df, tbl, eng, all_meta[tbl]),
                 checkDuplicatesInSession(df, tbl, eng, all_meta[tbl]),
                 checkDuplicatesInProduction(df, tbl, eng, all_meta[tbl]),
                 checkLookUpLists(df, tbl, eng, all_meta[tbl]),
                 checkNotNull(df, tbl, eng, all_meta[tbl]),
                 checkIntegers(df, tbl, eng, all_meta[tbl]),
                 checkPrecision(df, tbl, eng, all_meta[tbl]),
-                checkLength(df, tbl, eng, all_meta[tbl]),
-                checkDataTypes(df, tbl, eng, all_meta[tbl])
+                checkLength(df, tbl, eng, all_meta[tbl])
             ]
             
             if debug 

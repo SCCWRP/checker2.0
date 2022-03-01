@@ -58,14 +58,14 @@ def fishseines(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
     
-    # Check - abundance range [0, 1000]
+    # Check - abundance range [0, 5000]
     args.update({
         "dataframe": fishabud,
         "tablename": "tbl_fish_abundance_data",
-        "badrows":fishabud[((fishabud['abundance'] < 0) | (fishabud['abundance'] > 1000)) & (fishabud['abundance'] != -88)].index.tolist(),
+        "badrows":fishabud[((fishabud['abundance'] < 0) | (fishabud['abundance'] > 5000)) & (fishabud['abundance'] != -88)].index.tolist(),
         "badcolumn": "abundance",
         "error_type" : "Value out of range",
-        "error_message" : "Your abundance value must be between 0 to 1000. If this value is supposed to be empty, please fill with -88."
+        "error_message" : "Your abundance value must be between 0 to 5000. If this value is supposed to be empty, please fill with -88."
     })
     errs = [*warnings, checkData(**args)]
     print("check ran - tbl_fish_abundance_data - abundance range") # tested and working 5nov2021

@@ -4,6 +4,7 @@ from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
 from .functions import checkData, get_badrows
+from .yeahbuoy import yeahbuoy
 
 def logger(all_dfs):
     
@@ -24,11 +25,14 @@ def logger(all_dfs):
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
 
-    loggermeta = all_dfs['tbl_wq_logger_metadata']
-    loggerm = all_dfs['tbl_logger_mdot_data']
-    loggerc = all_dfs['tbl_logger_ctd_data']
-    
+    loggermeta =  all_dfs['tbl_wq_logger_metadata']
+    loggerm =     all_dfs['tbl_logger_mdot_data']
+    loggerc =     all_dfs['tbl_logger_ctd_data']
+    loggertroll = all_dfs['tbl_logger_troll_data']
+    loggertid =   all_dfs['tbl_logger_tidbit_data']
+    loggerother = all_dfs['tbl_logger_other_data']
 
+   
     errs = []
     warnings = []
 
@@ -52,6 +56,38 @@ def logger(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+    
+    # Before the Barometric/Buoy routine
+    nonrequired = {
+        'tbl_logger_mdot_data': loggerm,
+        'tbl_logger_ctd_data': loggerc,
+        'tbl_logger_troll_data': loggertroll,
+        'tbl_logger_tidbit_data': loggertid,
+        'tbl_logger_other_data': loggerother
+    }
+
+    # first check if they have all required data
+    if all([df.empty for df in nonrequired.values()]):
+        for k, df in nonrequired.items():
+            # add a row to the empty dataframe
+            df = pd.DataFrame(eval( "{}".format({col: '' for col in df.columns}) ) , index = [0])
+            
+            args.update({
+                "dataframe": df,
+                "tablename": k,
+                "badrows":[0],
+                "badcolumn": ",".join([col for col in df.columns]),
+                "error_type" : "Missing required data",
+                "error_message" : f"Data must be provided for one of {', '.join(tbl for tbl in nonrequired.keys())}"
+            })
+            errs = [*errs, checkData(**args)]
+
+            # return here if they dont have all the required data
+            return {'errors': errs, 'warnings': warnings}
+
+    else:
+        for df in nonrequired:
+            df = yeahbuoy(df) if not df.empty else df
 
     args.update({
         "dataframe": loggerm,

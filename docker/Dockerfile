@@ -28,6 +28,8 @@ RUN pip3 install shapely
 ENV PROJ_LIBDIR=/usr/lib
 ENV PROJ_INCDIR=/usr/lib
 RUN pip3 install geopandas 
+RUN pip3 install folium 
+RUN pip3 install matplotlib 
 #RUN pip3 install opencv-python
 
 RUN mkdir -p /var/www/checker/

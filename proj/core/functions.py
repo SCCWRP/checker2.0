@@ -1,6 +1,6 @@
 import pandas as pd
 import multiprocessing as mp
-import re, time
+import re, time, sys
 from math import log10
 from pandas import DataFrame, isnull
 from functools import lru_cache
@@ -64,6 +64,14 @@ def convert_dtype(t, x):
     try:
         if ((pd.isnull(x)) and (t == int)):
             return True
+        if t == pd.Timestamp:
+            # checking for a valid postgres timestamp literal
+            # Postgres technically also accepts the format like "January 8 00:00:00 1999" but we won't be checking for that unless it becomes a problem
+            datepat = re.compile("\d{4}-\d{1,2}-\d{1,2}\s*(\d{1,2}:\d{1,2}:\d{2}(\.\d+){0,1}){0,1}$")
+            print("TEST")
+            print(x)
+            print(str(x))
+            return bool(re.match(datepat, str(x)))
         t(x)
         return True
     except Exception as e:

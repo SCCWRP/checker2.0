@@ -172,7 +172,7 @@ def main():
     #print("preprocessing and cleaning data")
     # We are not sure if we want to do this
     # some projects like bight prohibit this
-    all_dfs = clean_data(all_dfs)
+    #all_dfs = clean_data(all_dfs)
     print("DONE preprocessing and cleaning data")
     
     # write all_dfs again to the same excel path
@@ -200,6 +200,7 @@ def main():
     }
     print("all_dfs after read back in")
     print(all_dfs)
+
     
     # ----------------------------------------- #
 
@@ -216,6 +217,9 @@ def main():
         tblname: fetch_meta(tblname, g.eng)
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
+
+    print("dbmetadata")
+    print(dbmetadata)
 
    
     # tack on core errors to errors list
