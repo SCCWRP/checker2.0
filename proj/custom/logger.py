@@ -67,6 +67,7 @@ def logger(all_dfs):
     }
 
     # first check if they have all required data
+    print("# first check if they have all required data")
     if all([df.empty for df in nonrequired.values()]):
         for k, df in nonrequired.items():
             # add a row to the empty dataframe
@@ -86,18 +87,21 @@ def logger(all_dfs):
             return {'errors': errs, 'warnings': warnings}
 
     else:
-        for df in nonrequired:
+        for df in nonrequired.values():
             df = yeahbuoy(df) if not df.empty else df
-
+    print("Done checking if they have all required data")
+    
+    print("Begin minidot data checks...")
     args.update({
         "dataframe": loggerm,
         "tablename": "tbl_logger_mdot_data",
-        "badrows":loggerm[(loggerm['qvalue'] < 0.9) & (loggerm['qvalue']!=-88)].index.tolist(),
-        "badcolumn": "qvalue",
+        "badrows":loggerm[(loggerm['h2otemp_c'] > 100) | ((loggerm['h2otemp_c']!=-88) & (loggerm['h2otemp_c'] < 0))].index.tolist(),
+        "badcolumn": "h2otemp_c",
         "error_type" : "Value out of range",
-        "error_message" : "Your qvalue is out of range. Must be greater than 0."
+        "error_message" : "Your h2otemp_c is out of range. Value should not exceed 100 degrees C."
     })
-    warnings = [*warnings, checkData(**args)]
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_mdot_data - h2otemp_c")
 
     args.update({
         "dataframe": loggerm,
@@ -105,30 +109,209 @@ def logger(all_dfs):
         "badrows":loggerm[(loggerm['do_percent'] < 0) & (loggerm['do_percent']!=-88)].index.tolist(),
         "badcolumn": "do_percent",
         "error_type" : "Value out of range",
-        "error_message" : "Your do_percent is out of range, must be greater than 0."
+        "error_message" : "Your do_percent is negative. Value must be nonnegative and at least 0."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_mdot_data - do_percent")
+
+    # Check: issue warning do_percent > 110 # Jan asked for this to be a warning. 4 March 2022
+    args.update({
+        "dataframe": loggerm,
+        "tablename": "tbl_logger_mdot_data",
+        "badrows":loggerm[(loggerm['do_percent'] > 110)].index.tolist(),
+        "badcolumn": "do_percent",
+        "error_type" : "Value out of range",
+        "error_message" : "Your do_percent is greater than 110. This is an unexpected value, but will be accepted."
     })
     warnings = [*warnings, checkData(**args)]
+    print("check ran - logger_mdot_data - do_percent")
 
     args.update({
         "dataframe": loggerm,
         "tablename": "tbl_logger_mdot_data",
-        "badrows":loggerm[(loggerm['do_mgl'] < 0) & (loggerm['do_mgl']!=-88)].index.tolist(),
+        "badrows":loggerm[(loggerm['do_mgl'] > 60) | ((loggerm['do_mgl']!=-88) & (loggerm['do_mgl'] < 0))].index.tolist(),
         "badcolumn": "do_mgl",
-        "error_type" : "Date Value out of range",
-        "error_message" : "Your do_mql value is out of range. Must be greater than 0."
+        "error_type" : "Value out of range",
+        "error_message" : "Your do_mql value is out of range. Value should not exceed 60."
     })
-    warnings = [*warnings, checkData(**args)]
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_mdot_data - do_mgl")
+
+    # Check: qvalue range increased from 1 to 1.1 - approved by Jan 4 March 2022
+    args.update({
+        "dataframe": loggerm,
+        "tablename": "tbl_logger_mdot_data",
+        "badrows":loggerm[(loggerm['qvalue'] > 1.1) | ((loggerm['qvalue']!=-88) & (loggerm['qvalue'] < 0))].index.tolist(),
+        "badcolumn": "qvalue",
+        "error_type" : "Value out of range",
+        "error_message" : "Your qvalue is out of range. Must be less than 1.1."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_mdot_data - qvalue")
+    print("...End minidot data checks.")
+
+    print("Begin CTD data checks...")
+    args.update({
+        "dataframe": loggerc,
+        "tablename": "tbl_logger_ctd_data",
+        "badrows":loggerc[((loggerc['conductivity_sm'] < 0) & (loggerc['conductivity_sm'] != -88)) | (loggerc['conductivity_sm'] > 10)].index.tolist(),
+        "badcolumn": "conductivity_sm",
+        "error_type" : "Value out of range",
+        "error_message" : "Your conductivity_sm value is out of range. Value must be within 0-10. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_ctd_data - conductivity_sm")
 
     args.update({
         "dataframe": loggerc,
         "tablename": "tbl_logger_ctd_data",
-        "badrows":loggerc[(loggerc['conductivity_sm'] < 0) & (loggerc['conductivity_sm'] != -88)].index.tolist(),
+        "badrows":loggerc[(loggerc['h2otemp_c'] > 100) | ((loggerc['h2otemp_c'] != -88) & (loggerc['h2otemp_c'] < 0))].index.tolist(),
+        "badcolumn": "h2otemp_c",
+        "error_type" : "Value out of range",
+        "error_message" : "Your h2otemp_c value is out of range. Value should not exceed 100 degrees C. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_ctd_data - h2otemp_c")
+
+    args.update({
+        "dataframe": loggerc,
+        "tablename": "tbl_logger_ctd_data",
+        "badrows":loggerc[(loggerc['salinity_ppt'] < 0) & (loggerc['salinity_ppt'] != -88)].index.tolist(),
+        "badcolumn": "salinity_ppt",
+        "error_type" : "Negative value",
+        "error_message" : "Your salinity_ppt value is less than 0. Value should be nonnegative. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_ctd_data - salinity_ppt")
+    print("...End CTD data checks.")
+
+    print("Begin Troll data checks...")
+    args.update({
+        "dataframe": loggertroll,
+        "tablename": "tbl_logger_troll_data",
+        "badrows":loggertroll[(loggertroll['h2otemp_c'] > 100) | ((loggertroll['h2otemp_c'] != -88) & (loggertroll['h2otemp_c'] < 0))].index.tolist(),
+        "badcolumn": "h2otemp_c",
+        "error_type" : "Value out of range",
+        "error_message" : "Your h2otemp_c value is out of range. Value should not exceed 100 degrees C. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_troll_data - h2otemp_c")
+    print("...End Troll data checks.")
+
+    print("Begin Tidbit data checks...")
+    args.update({
+        "dataframe": loggertid,
+        "tablename": "tbl_logger_tidbit_data",
+        "badrows":loggertid[(loggertid['h2otemp_c'] > 100) | ((loggertid['h2otemp_c'] != -88) & (loggertid['h2otemp_c'] < 0))].index.tolist(),
+        "badcolumn": "h2otemp_c",
+        "error_type" : "Value out of range",
+        "error_message" : "Your h2otemp_c value is out of range. Value should not exceed 100 degrees C. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_tidbit_data - h2otemp_c")
+    print("...End Tidbit data checks.")
+
+    print("Begin Other data checks...")
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[(loggerother['h2otemp_c'] > 100) | ((loggerother['h2otemp_c'] != -88) & (loggerother['h2otemp_c'] < 0))].index.tolist(),
+        "badcolumn": "h2otemp_c",
+        "error_type" : "Value out of range",
+        "error_message" : "Your h2otemp_c value is out of range. Value should be within 0 to 100 degrees C. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - h2otemp_c")
+
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[(loggerother['ph'] < 1) | (loggerother['ph'] > 14)].index.tolist(),
+        "badcolumn": "ph",
+        "error_type" : "Value out of range",
+        "error_message" : "pH value is out of range. Value should be between 1 and 14. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - pH")
+
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_ctd_data",
+        "badrows":loggerother[((loggerother['conductivity_sm'] < 0) & (loggerother['conductivity_sm'] != -88)) | (loggerother['conductivity_sm'] > 10)].index.tolist(),
         "badcolumn": "conductivity_sm",
         "error_type" : "Value out of range",
-        "error_message" : "Your conductivity_sm value is out of range, it must be equal or greater than 0."
+        "error_message" : "Your conductivity_sm value is out of range. Value must be within 0-10. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - conductivity_sm")
+
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[((loggerother['turbitidy_ntu'] < 0) & (loggerother['turbitidy_ntu'] != -88)) | (loggerother['turbitidy_ntu'] > 3000)].index.tolist(),
+        "badcolumn": "turbitidy_ntu",
+        "error_type" : "Value out of range",
+        "error_message" : "Turbidity_NTU value is out of range. Value should be within 0-3000. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - turbidity_ntu")
+
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[(loggerother['do_mgl'] > 60) | ((loggerother['do_mgl']!=-88) & (loggerother['do_mgl'] < 0))].index.tolist(),
+        "badcolumn": "do_mgl",
+        "error_type" : "Value out of range",
+        "error_message" : "DO_mgL value is out of range. Value should be within 0-60. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - do_mgl")
+
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[(loggerother['do_percent'] < 0) & (loggerother['do_percent']!=-88)].index.tolist(),
+        "badcolumn": "do_percent",
+        "error_type" : "Value out of range",
+        "error_message" : "DO_percent is negative. Value must be nonnegative and at least 0."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - do_percent")
+
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[(loggerother['do_percent'] > 110)].index.tolist(),
+        "badcolumn": "do_percent",
+        "error_type" : "Value out of range",
+        "error_message" : "DO_percent is greater than 110. This is an unexpected value, but will be accepted."
     })
     warnings = [*warnings, checkData(**args)]
+    print("check ran - logger_other_data - do_percent")
 
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[(loggerother['orp_mv'] < -999) | (loggerother['orp_mv'] > 999)].index.tolist(),
+        "badcolumn": "orp_mv",
+        "error_type" : "Value out of range",
+        "error_message" : "ORP_mV is out of range. Value must be within -999 to 999."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - orp_mv")
 
+    args.update({
+        "dataframe": loggerother,
+        "tablename": "tbl_logger_other_data",
+        "badrows":loggerother[(loggerother['salinity_ppt'] < 0) & (loggerother['salinity_ppt'] != -88)].index.tolist(),
+        "badcolumn": "salinity_ppt",
+        "error_type" : "Value out of range",
+        "error_message" : "Salinity_ppt entered is negative. Value must be at least 0. If no value to provide, enter -88."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_other_data - salinity_ppt")
+
+    print("...End Other data checks.")
     
     return {'errors': errs, 'warnings': warnings}
+
