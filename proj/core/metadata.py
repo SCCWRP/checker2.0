@@ -40,8 +40,8 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                     error_message = f"The value here is not valid for the datatype {dtype}"
                 )
             )
-            print("ret:")
-            print(ret)
+            #print("ret:")
+            #print(ret)
         
 
     print("-----before if output-----")
@@ -133,6 +133,9 @@ def checkScale(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
     if output:
         output.put(ret) 
     print("END checkScale")
+    # Getting warning to round salinity_ppt for ctd_data (sensor data) when value has fewer than 15 decimal places...
+    print("ret for checkScale")
+    print(ret)
     return ret
 
 
