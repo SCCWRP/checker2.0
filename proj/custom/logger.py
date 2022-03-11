@@ -98,7 +98,7 @@ def logger(all_dfs):
         "badrows":loggerm[(loggerm['h2otemp_c'] > 100) | ((loggerm['h2otemp_c']!=-88) & (loggerm['h2otemp_c'] < 0))].index.tolist(),
         "badcolumn": "h2otemp_c",
         "error_type" : "Value out of range",
-        "error_message" : "Your h2otemp_c is out of range. Value should not exceed 100 degrees C."
+        "error_message" : "Your h2otemp_c is out of range. Value should be within 0-100 degrees C."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logger_mdot_data - h2otemp_c")
@@ -248,8 +248,8 @@ def logger(all_dfs):
     args.update({
         "dataframe": loggerother,
         "tablename": "tbl_logger_other_data",
-        "badrows":loggerother[((loggerother['turbitidy_ntu'] < 0) & (loggerother['turbitidy_ntu'] != -88)) | (loggerother['turbitidy_ntu'] > 3000)].index.tolist(),
-        "badcolumn": "turbitidy_ntu",
+        "badrows":loggerother[((loggerother['turbidity_ntu'] < 0) & (loggerother['turbidity_ntu'] != -88)) | (loggerother['turbidity_ntu'] > 3000)].index.tolist(),
+        "badcolumn": "turbidity_ntu",
         "error_type" : "Value out of range",
         "error_message" : "Turbidity_NTU value is out of range. Value should be within 0-3000. If no value to provide, enter -88."
     })
