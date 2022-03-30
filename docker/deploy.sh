@@ -1,4 +1,6 @@
 #!/bin/bash
+# Arg #1 is the container and folder name
+# Arg #2 is the Database connection string
 docker container run -it -d --name $1 \
     -v /tmp:/tmp -v /var/www/templates/$1:/var/www/$1 \
     -v /etc/timezone:/etc/timezone:ro \
