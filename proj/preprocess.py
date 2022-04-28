@@ -160,6 +160,7 @@ def fill_empty_cells(all_dfs):
             print("dt: ", dt)
             #if dt == np.float64 or dt == np.int64: #numeric data type fills correctly!
             if dt in ['int2','int4','numeric']: #,'timestamp']: # timestamp cant have a -88
+                #table_df[col].fillna('', inplace = True) # empty string
                 table_df[col].fillna(-88, inplace = True)
             elif dt == 'timestamp':
                 table_df[col].fillna(pd.Timestamp('1950-01-01 00:00:00'), inplace = True)
