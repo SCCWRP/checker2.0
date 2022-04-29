@@ -24,7 +24,6 @@ def logger(all_dfs):
     
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
-
     loggermeta =  all_dfs['tbl_wq_logger_metadata']
     loggerm =     all_dfs['tbl_logger_mdot_data']
     loggerc =     all_dfs['tbl_logger_ctd_data']
@@ -212,6 +211,7 @@ def logger(all_dfs):
     print("...End Tidbit data checks.")
 
     print("Begin Other data checks...")
+
     args.update({
         "dataframe": loggerother,
         "tablename": "tbl_logger_other_data",
@@ -270,23 +270,12 @@ def logger(all_dfs):
     args.update({
         "dataframe": loggerother,
         "tablename": "tbl_logger_other_data",
-        "badrows":loggerother[(loggerother['do_percent'] < 0) & (loggerother['do_percent']!=-88)].index.tolist(),
-        "badcolumn": "do_percent",
-        "error_type" : "Value out of range",
-        "error_message" : "DO_percent is negative. Value must be nonnegative and at least 0."
-    })
-    errs = [*errs, checkData(**args)]
-    print("check ran - logger_other_data - do_percent")
-
-    args.update({
-        "dataframe": loggerother,
-        "tablename": "tbl_logger_other_data",
         "badrows":loggerother[(loggerother['do_percent'] > 110)].index.tolist(),
         "badcolumn": "do_percent",
         "error_type" : "Value out of range",
-        "error_message" : "DO_percent is greater than 110. This is an unexpected value, but will be accepted."
+        "error_message" : "DO_percent is greater than 110. Value must be less than or equal to 110. If no value, enter -88 or leave blank."
     })
-    warnings = [*warnings, checkData(**args)]
+    errs = [*errs, checkData(**args)]
     print("check ran - logger_other_data - do_percent")
 
     args.update({
@@ -303,10 +292,10 @@ def logger(all_dfs):
     args.update({
         "dataframe": loggerother,
         "tablename": "tbl_logger_other_data",
-        "badrows":loggerother[(loggerother['salinity_ppt'] < 0) & (loggerother['salinity_ppt'] != -88)].index.tolist(),
+        "badrows":loggerother[(loggerother['salinity_ppt']<0) & (loggerother['salinity_ppt']!=-88)].index.tolist(),
         "badcolumn": "salinity_ppt",
         "error_type" : "Value out of range",
-        "error_message" : "Salinity_ppt entered is negative. Value must be at least 0. If no value to provide, enter -88."
+        "error_message" : "Salinity_ppt is negative. Value must be nonnegative and at least 0. If no value, enter -88 or leave blank."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logger_other_data - salinity_ppt")
