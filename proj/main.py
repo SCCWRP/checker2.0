@@ -169,10 +169,10 @@ def main():
     #  We want to limit the manual cleaning of the data that the user has to do
     #  This function will strip whitespace on character fields and fix columns to match lookup lists if they match (case insensitive)
 
-    #print("preprocessing and cleaning data")
+    print("preprocessing and cleaning data")
     # We are not sure if we want to do this
     # some projects like bight prohibit this
-    #all_dfs = clean_data(all_dfs)
+    all_dfs = clean_data(all_dfs)
     print("DONE preprocessing and cleaning data")
     
     # write all_dfs again to the same excel path
@@ -219,7 +219,7 @@ def main():
     }
 
     print("dbmetadata")
-    print(dbmetadata)
+    #print(dbmetadata)
 
    
     # tack on core errors to errors list
