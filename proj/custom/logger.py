@@ -3,7 +3,7 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 from .yeahbuoy import yeahbuoy
 
 def logger(all_dfs):
@@ -89,6 +89,23 @@ def logger(all_dfs):
         for df in nonrequired.values():
             df = yeahbuoy(df) if not df.empty else df
     print("Done checking if they have all required data")
+
+    print("Begin Logic Checks")
+    #checkLogic function previously automates the custom error message, but I have not generalized it here.
+    #instead, I've written in the error_message explicitly
+    # ???????????? ------ consider adding if empty conditions ---- ?????????
+    args.update({
+        "dataframe": loggermeta,
+        "tablename": "tbl_wq_logger_metadata",
+        "badrows": checkLogic(loggermeta, loggerm, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "mDOT_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+        "error_type": "Logic Error",
+        "error_message": "Each record in WQ_metadata must have a corresponding record in mDOT_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - wq_metadata vs logger_mdot_data") # tested
+    print("---------------------- yippee -------------------")
+    
     
     print("Begin minidot data checks...")
     args.update({
@@ -259,10 +276,10 @@ def logger(all_dfs):
     args.update({
         "dataframe": loggerother,
         "tablename": "tbl_logger_other_data",
-        "badrows":loggerother[(loggerother['do_mgl'] > 60) | ((loggerother['do_mgl']!=-88) & (loggerother['do_mgl'] < 0))].index.tolist(),
+        "badrows":loggerother[(loggerother['do_mgl'] > 300) | ((loggerother['do_mgl']!=-88) & (loggerother['do_mgl'] < -1))].index.tolist(),
         "badcolumn": "do_mgl",
         "error_type" : "Value out of range",
-        "error_message" : "DO_mgL value is out of range. Value should be within 0-60. If no value to provide, enter -88."
+        "error_message" : "DO_mgL value is out of range. Value should be between -1 and 300. If no value to provide, enter -88."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logger_other_data - do_mgl")
@@ -270,10 +287,10 @@ def logger(all_dfs):
     args.update({
         "dataframe": loggerother,
         "tablename": "tbl_logger_other_data",
-        "badrows":loggerother[(loggerother['do_percent'] > 110)].index.tolist(),
+        "badrows":loggerother[((loggerother['do_percent'] < -1) & (loggerother['do_percent'] != -88)) | (loggerother['do_percent'] > 300)].index.tolist(),
         "badcolumn": "do_percent",
         "error_type" : "Value out of range",
-        "error_message" : "DO_percent is greater than 110. Value must be less than or equal to 110. If no value, enter -88 or leave blank."
+        "error_message" : "DO_percent is out of range. Value must be within 0-300. If no value, enter -88 or leave blank."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logger_other_data - do_percent")
