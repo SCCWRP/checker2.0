@@ -95,8 +95,8 @@ def logger(all_dfs):
     #instead, I've written in the error_message explicitly
     # ???????????? ------ consider adding if empty conditions ---- ?????????
     args.update({
-        "dataframe": loggermeta,
-        "tablename": "tbl_wq_logger_metadata",
+        "dataframe": loggerm,
+        "tablename": "tbl_logger_mdot_data",
         "badrows": checkLogic(loggermeta, loggerm, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "mDOT_data"), 
         "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
         "error_type": "Logic Error",
@@ -104,8 +104,18 @@ def logger(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     print("check ran - wq_metadata vs logger_mdot_data") # tested
+
+    args.update({
+        "dataframe": loggermeta,
+        "tablename": "tbl_wq_logger_metadata",
+        "badrows": checkLogic(loggerm, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "mDOT_data", df2_name = "WQ_metadata"), 
+        "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+        "error_type": "Logic Error",
+        "error_message": "Records in mDOT_data must have a corresponding record in WQ_metadata."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logger_mdot_data vs wq_metadata") #tested
     print("---------------------- yippee -------------------")
-    
     
     print("Begin minidot data checks...")
     args.update({
