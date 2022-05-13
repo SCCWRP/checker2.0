@@ -335,7 +335,9 @@ def main():
     # Therefore the row number in the errors and warnings will only match with their excel file's row if the column headers are actually in 
     #   the first row of the excel file.
     # These next few lines of code should correct that
-
+    for e in errs: 
+        assert type(e['rows']) == list, \
+            "rows key in errs dict must be a list"
     errs = correct_row_offset(errs, offset = current_app.excel_offset)
     print("errs populated")
     warnings = correct_row_offset(warnings, offset = current_app.excel_offset)
