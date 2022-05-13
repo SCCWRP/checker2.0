@@ -152,10 +152,10 @@ def logger(all_dfs):
 
     # Logic Check 3: wq_metadata & Troll_data
     # Logic Check 3a: metadata records not found in Troll_data
-    if 'Troll' in loggerc['sensortype'].unique().tolist():
+    if 'Troll' in loggermeta['sensortype'].unique().tolist():
         args.update({
-            "dataframe": loggerc,
-            "tablename": "tbl_logger_ctd_data",
+            "dataframe": loggertroll,
+            "tablename": "tbl_logger_troll_data",
             "badrows": checkLogic(loggermeta, loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
@@ -168,15 +168,41 @@ def logger(all_dfs):
     if not loggertroll.empty:
         args.update({
             "dataframe": loggermeta,
-            "tablename": "tbl_logger_troll_data",
+            "tablename": "tbl_wq_logger_metadata",
             "badrows": checkLogic(loggertroll, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Troll_data", df2_name = "WQ_metadata"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Records in Troll_data must have a corresponding record in WQ_metadata."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - logger_ctd_data vs wq_metadata") # tested
+        print("check ran - logger_troll_data vs wq_metadata") # tested
 
+    # Logic Check 4: wq_metadata & Tidbit_data
+    # Logic Check 4a: metadata records not found in Tidbit_data
+    if 'Tidbit' in loggermeta['sensortype'].unique().tolist():
+        args.update({
+            "dataframe": loggertid,
+            "tablename": "tbl_logger_tidbit_data",
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'Tidbit'], loggertid, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Tidbit_data"), 
+            "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+            "error_type": "Logic Error",
+            "error_message": "Each record with sensortype as Tidbit in WQ_metadata must have corresponding record(s) in Tidbit_data."
+        })
+        errs = [*errs, checkData(**args)]
+        print("check ran - wq_metadata vs logger_tidbit_data") # NOT TESTED
+
+    # Logic Check 4b: metadata record missing for records provided by Tidbit_data
+    if not loggertid.empty:
+        args.update({
+            "dataframe": loggermeta,
+            "tablename": "tbl_wq_logger_metadata",
+            "badrows": checkLogic(loggertid, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Tidbit_data", df2_name = "WQ_metadata"), 
+            "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+            "error_type": "Logic Error",
+            "error_message": "Records in Tidbit_data must have a corresponding record in WQ_metadata."
+        })
+        errs = [*errs, checkData(**args)]
+        print("check ran - logger_tidbit_data vs wq_metadata") # NOT TESTED
 
 
     print("---------------------- yippee -------------------")
