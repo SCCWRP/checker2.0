@@ -203,9 +203,35 @@ def logger(all_dfs):
         })
         errs = [*errs, checkData(**args)]
         print("check ran - logger_tidbit_data vs wq_metadata") # tested
+#################### leaving Logic Check 5 commented out. Need to create lu_sensortype. See Jan! 
+    # Logic Check 5: wq_metadata & Other_data
+    # Logic Check 5a: metadata records not found in Other_data
+    '''
+    if 'Other' in loggermeta['sensortype'].unique().tolist():
+        args.update({
+            "dataframe": loggerother,
+            "tablename": "tbl_logger_other_data",
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'Other'], loggertid, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Other_data"), 
+            "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+            "error_type": "Logic Error",
+            "error_message": "Each record with sensortype as Other in WQ_metadata must have corresponding record(s) in Other_data."
+        })
+        errs = [*errs, checkData(**args)]
+        print("check ran - wq_metadata vs logger_other_data") # NOT TESTED
 
-
-    print("---------------------- yippee -------------------")
+    # Logic Check 5b: metadata record missing for records provided by Other_data
+    if not loggerother.empty:
+        args.update({
+            "dataframe": loggermeta,
+            "tablename": "tbl_wq_logger_metadata",
+            "badrows": checkLogic(loggerother, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Other_data", df2_name = "WQ_metadata"), 
+            "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+            "error_type": "Logic Error",
+            "error_message": "Records in Other_data must have a corresponding record in WQ_metadata."
+        })
+        errs = [*errs, checkData(**args)]
+        print("check ran - logger_other_data vs wq_metadata") # NOT TESTED
+        '''
     
     print("Begin minidot data checks...")
     args.update({
