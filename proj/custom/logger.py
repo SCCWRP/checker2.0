@@ -101,7 +101,7 @@ def logger(all_dfs):
         args.update({
             "dataframe": loggerm,
             "tablename": "tbl_logger_mdot_data",
-            "badrows": checkLogic(loggermeta, loggerm, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "mDOT_data"), 
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'MiniDOT'], loggerm, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "mDOT_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record in WQ_metadata must have a corresponding record in mDOT_data."
@@ -129,7 +129,7 @@ def logger(all_dfs):
         args.update({
             "dataframe": loggerc,
             "tablename": "tbl_logger_ctd_data",
-            "badrows": checkLogic(loggermeta, loggerc, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "CTD_data"), 
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'CTD'], loggerc, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "CTD_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record in WQ_metadata must have corresponding record(s) in CTD_data."
@@ -156,7 +156,7 @@ def logger(all_dfs):
         args.update({
             "dataframe": loggertroll,
             "tablename": "tbl_logger_troll_data",
-            "badrows": checkLogic(loggermeta, loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data"), 
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'Troll'], loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record in WQ_metadata must have corresponding record(s) in Troll_data."
@@ -189,7 +189,7 @@ def logger(all_dfs):
             "error_message": "Each record with sensortype as Tidbit in WQ_metadata must have corresponding record(s) in Tidbit_data."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - wq_metadata vs logger_tidbit_data") # NOT TESTED
+        print("check ran - wq_metadata vs logger_tidbit_data") # tested
 
     # Logic Check 4b: metadata record missing for records provided by Tidbit_data
     if not loggertid.empty:
@@ -202,7 +202,7 @@ def logger(all_dfs):
             "error_message": "Records in Tidbit_data must have a corresponding record in WQ_metadata."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - logger_tidbit_data vs wq_metadata") # NOT TESTED
+        print("check ran - logger_tidbit_data vs wq_metadata") # tested
 
 
     print("---------------------- yippee -------------------")
