@@ -96,7 +96,8 @@ def logger(all_dfs):
     # ???????????? ------ consider adding if empty conditions ---- ?????????
     # Logic Check 1: wq_metadata & mDOT_data
     # Logic Check 1a: metadata records not found in mDOT_data
-    if not loggerm.empty:
+    # checking if metadata specifies that there is MDOT within submission, then run checkLogic()
+    if 'MiniDOT' in loggerm['sensortype'].unique().tolist():
         print("logger_mdot_data is not an empty dataframe")
         args.update({
             "dataframe": loggerm,
@@ -107,9 +108,11 @@ def logger(all_dfs):
             "error_message": "Each record in WQ_metadata must have a corresponding record in mDOT_data."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - wq_metadata vs logger_mdot_data") # tested
+        print("check ran - wq_metadata vs logger_mdot_data") # testing
 
-        # Logic Check 1b: metadata record missing for records provided by mDOT_data
+    # Logic Check 1b: metadata record missing for records provided by mDOT_data
+    # run checkLogic() if loggerm has records
+    if not loggerm.empty:
         args.update({
             "dataframe": loggermeta,
             "tablename": "tbl_wq_logger_metadata",
@@ -119,11 +122,11 @@ def logger(all_dfs):
             "error_message": "Records in mDOT_data must have a corresponding record in WQ_metadata."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - logger_mdot_data vs wq_metadata") #tested
+        print("check ran - logger_mdot_data vs wq_metadata") #testing
     ######################
     # Logic Check 2: wq_metadata & CTD_data
     # Logic Check 2a: metadata records not found in CTD_data
-    if not loggerc.empty:
+    if 'CTD' in loggerc['sensortype'].unique().tolist():
         args.update({
             "dataframe": loggerc,
             "tablename": "tbl_logger_ctd_data",
@@ -135,7 +138,8 @@ def logger(all_dfs):
         errs = [*errs, checkData(**args)]
         print("check ran - wq_metadata vs logger_ctd_data") # tested
 
-        # Logic Check 2b: metadata record missing for records provided by CTD_data
+    # Logic Check 2b: metadata record missing for records provided by CTD_data
+    if not loggerc.empty:
         args.update({
             "dataframe": loggermeta,
             "tablename": "tbl_wq_logger_metadata",
