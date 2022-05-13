@@ -83,6 +83,8 @@ def get_badrows(df_badrows):
 # checkLogic function previously automates the custom error message, but I have not generalized it here
 #def checkLogic(df1, df2, cols: list, error_type = "Logic Error", custom_error_message = None, df1_name = "", df2_name = ""):
 # removed custom_error_message as an argument... see args dict in custom checks
+
+# checkLogic() returns indices of rows with logic errors
 def checkLogic(df1, df2, cols: list, error_type = "Logic Error", df1_name = "", df2_name = ""):
     ''' each record in df1 must have a corresponding record in df2'''
     print(f"cols: {cols}")
