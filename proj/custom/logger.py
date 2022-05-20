@@ -122,6 +122,7 @@ def logger(all_dfs):
         errs = [*errs, checkData(**args)]
         print("check ran - logger_mdot_data vs wq_metadata") #testing
     ######################
+    # Check: Bad sensortype entry for mdot_data
     if ['minidot'] != loggerm['sensortype'].unique().tolist(): # 'minidot' is NOT the sensortype provided, more sensortypes filled
         args.update({
             "dataframe": loggerm,
@@ -160,7 +161,20 @@ def logger(all_dfs):
         })
         errs = [*errs, checkData(**args)]
         print("check ran - logger_ctd_data vs wq_metadata") #tested
-
+    #############
+    # Check: Bad sensortype entry for ctd_data
+    if ['CTD'] != loggerm['sensortype'].unique().tolist(): # 'minidot' is NOT the sensortype provided, more sensortypes filled
+        args.update({
+            "dataframe": loggerc,
+            "tablename": "tbl_logger_ctd_data",
+            "badrows": loggerc[loggerc['sensortype'] != 'CTD'].index.tolist(),
+            "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+            "error_type": "Lookup Error",
+            "error_message": "Records in CTD_data must be filled with sensortype as CTD. If sensortype should be as provided, please check that the correct data table is filled."
+        })
+        errs = [*errs, checkData(**args)]
+        print("check ran - wq_metadata vs logger_ctd_data")
+    ##########
     # Logic Check 3: wq_metadata & Troll_data
     # Logic Check 3a: metadata records not found in Troll_data
     if 'Troll' in loggermeta['sensortype'].unique().tolist():
