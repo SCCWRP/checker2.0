@@ -163,7 +163,7 @@ def logger(all_dfs):
         print("check ran - logger_ctd_data vs wq_metadata") #tested
     #############
     # Check: Bad sensortype entry for ctd_data
-    if ['CTD'] != loggerm['sensortype'].unique().tolist(): # 'minidot' is NOT the sensortype provided, more sensortypes filled
+    if ['CTD'] != loggerc['sensortype'].unique().tolist(): # 'minidot' is NOT the sensortype provided, more sensortypes filled
         args.update({
             "dataframe": loggerc,
             "tablename": "tbl_logger_ctd_data",
