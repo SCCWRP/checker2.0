@@ -97,17 +97,16 @@ def logger(all_dfs):
     # Logic Check 1: wq_metadata & mDOT_data
     # Logic Check 1a: metadata records not found in mDOT_data
     # checking if metadata specifies that there is MDOT within submission, then run checkLogic()
-    if 'MiniDOT' in loggermeta['sensortype'].unique().tolist():
+    if 'minidot' in loggermeta['sensortype'].unique().tolist():
         args.update({
             "dataframe": loggerm,
             "tablename": "tbl_logger_mdot_data",
-            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'MiniDOT'], loggerm, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "mDOT_data"), 
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'minidot'], loggerm, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "mDOT_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record in WQ_metadata must have a corresponding record in mDOT_data."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - wq_metadata vs logger_mdot_data") # testing
 
     # Logic Check 1b: metadata record missing for records provided by mDOT_data
     # run checkLogic() if loggerm has records
@@ -122,6 +121,18 @@ def logger(all_dfs):
         })
         errs = [*errs, checkData(**args)]
         print("check ran - logger_mdot_data vs wq_metadata") #testing
+    ######################
+    if ['minidot'] != loggerm['sensortype'].unique().tolist(): # 'minidot' is NOT the sensortype provided, more sensortypes filled
+        args.update({
+            "dataframe": loggerm,
+            "tablename": "tbl_logger_mdot_data",
+            "badrows": loggerm[loggerm['sensortype'] != 'minidot'].index.tolist(),
+            "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+            "error_type": "Lookup Error",
+            "error_message": "Records in mDOT_data must be filled with sensortype as minidot. If sensortype should be as provided, please check that the correct data table is filled."
+        })
+        errs = [*errs, checkData(**args)]
+        print("check ran - wq_metadata vs logger_mdot_data")
     ######################
     # Logic Check 2: wq_metadata & CTD_data
     # Logic Check 2a: metadata records not found in CTD_data
@@ -206,6 +217,7 @@ def logger(all_dfs):
 #################### leaving Logic Check 5 commented out. Need to create lu_sensortype. See Jan! 
     # Logic Check 5: wq_metadata & Other_data
     # Logic Check 5a: metadata records not found in Other_data
+    # for other_data, it's probably best to call the list of values from the database where not (ctd, minidot, or 
     '''
     if 'Other' in loggermeta['sensortype'].unique().tolist():
         args.update({
