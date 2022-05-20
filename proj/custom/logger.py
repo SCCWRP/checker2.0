@@ -99,8 +99,8 @@ def logger(all_dfs):
     # checking if metadata specifies that there is MDOT within submission, then run checkLogic()
     if 'minidot' in loggermeta['sensortype'].unique().tolist():
         args.update({
-            "dataframe": loggerm,
-            "tablename": "tbl_logger_mdot_data",
+            "dataframe": loggermeta,
+            "tablename": "tbl_wq_logger_metadata",
             "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'minidot'], loggerm, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "mDOT_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
@@ -112,8 +112,8 @@ def logger(all_dfs):
     # run checkLogic() if loggerm has records
     if not loggerm.empty:
         args.update({
-            "dataframe": loggermeta,
-            "tablename": "tbl_wq_logger_metadata",
+            "dataframe": loggerm,
+            "tablename": "tbl_logger_mdot_data",
             "badrows": checkLogic(loggerm, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "mDOT_data", df2_name = "WQ_metadata"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
@@ -168,7 +168,7 @@ def logger(all_dfs):
             "dataframe": loggerc,
             "tablename": "tbl_logger_ctd_data",
             "badrows": loggerc[loggerc['sensortype'] != 'CTD'].index.tolist(),
-            "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+            "badcolumn": "sensortype",
             "error_type": "Lookup Error",
             "error_message": "Records in CTD_data must be filled with sensortype as CTD. If sensortype should be as provided, please check that the correct data table is filled."
         })
@@ -177,11 +177,11 @@ def logger(all_dfs):
     ##########
     # Logic Check 3: wq_metadata & Troll_data
     # Logic Check 3a: metadata records not found in Troll_data
-    if 'Troll' in loggermeta['sensortype'].unique().tolist():
+    if 'troll' in loggermeta['sensortype'].unique().tolist():
         args.update({
             "dataframe": loggertroll,
             "tablename": "tbl_logger_troll_data",
-            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'Troll'], loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data"), 
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'troll'], loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record in WQ_metadata must have corresponding record(s) in Troll_data."
@@ -201,7 +201,20 @@ def logger(all_dfs):
         })
         errs = [*errs, checkData(**args)]
         print("check ran - logger_troll_data vs wq_metadata") # tested
-
+    ##########
+    # Check: Bad sensortype entry for troll_data
+    if ['troll'] != loggertroll['sensortype'].unique().tolist(): # 'minidot' is NOT the sensortype provided, more sensortypes filled
+        args.update({
+            "dataframe": loggertroll,
+            "tablename": "tbl_logger_troll_data",
+            "badrows": loggertroll[loggertroll['sensortype'] != 'troll'].index.tolist(),
+            "badcolumn": "sensortype",
+            "error_type": "Lookup Error",
+            "error_message": "Records in troll_data must be filled with sensortype as troll. If sensortype looks correct, please check that the correct data table is filled."
+        })
+        errs = [*errs, checkData(**args)]
+        print("check ran - bad sensortype - troll_data")
+    ##########
     # Logic Check 4: wq_metadata & Tidbit_data
     # Logic Check 4a: metadata records not found in Tidbit_data
     if 'Tidbit' in loggermeta['sensortype'].unique().tolist():
