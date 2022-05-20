@@ -139,8 +139,8 @@ def logger(all_dfs):
     # Logic Check 2a: metadata records not found in CTD_data
     if 'CTD' in loggermeta['sensortype'].unique().tolist():
         args.update({
-            "dataframe": loggerc,
-            "tablename": "tbl_logger_ctd_data",
+            "dataframe": loggermeta,
+            "tablename": "tbl_wq_logger_metadata",
             "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'CTD'], loggerc, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "CTD_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
@@ -152,8 +152,8 @@ def logger(all_dfs):
     # Logic Check 2b: metadata record missing for records provided by CTD_data
     if not loggerc.empty:
         args.update({
-            "dataframe": loggermeta,
-            "tablename": "tbl_wq_logger_metadata",
+            "dataframe": loggerc,
+            "tablename": "tbl_logger_ctd_data",
             "badrows": checkLogic(loggerc, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "CTD_data", df2_name = "WQ_metadata"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
