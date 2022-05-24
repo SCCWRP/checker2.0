@@ -54,30 +54,32 @@ def discretewq(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
+    print("Begin WQ Logic Checks...")
     # Logic Check 1: wq_metadata & wq_data
     # Logic Check 1a: wq_metdata records not found in wq_data
     args.update({
-        "dataframe": waterdata,
-        "tablename": "tbl_waterquality_data",
+        "dataframe": watermeta,
+        "tablename": "tbl_waterquality_metadata",
         "badrows": checkLogic(watermeta, waterdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplecollectiontime', 'profile', 'depth_m'], df1_name = "WQ_metadata", df2_name = "WQ_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplecollectiontime, profile, depth_m",
         "error_type": "Logic Error",
         "error_message": "Each record in WQ_metadata must have a corresponding record in WQ_data."
     })
     errs = [*errs, checkData(**args)]
-    print("check ran - wq_metadata vs wq_data") # testing
+    print("check ran - logic - wq_metadata records not found in wq_data") #testing
 
     # Logic Check 1b: wq_metadata records missing for records provided by wq_data
     args.update({
-        "dataframe": watermeta,
-        "tablename": "tbl_waterquality_metadata",
+        "dataframe": waterdata,
+        "tablename": "tbl_waterquality_data",
         "badrows": checkLogic(waterdata, watermeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplecollectiontime', 'profile', 'depth_m'], df1_name = "WQ_data", df2_name = "WQ_metadata"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplecollectiontime, profile, depth_m",
         "error_type": "Logic Error",
         "error_message": "Records in WQ_data must have a corresponding record in WQ_metadata."
     })
     errs = [*errs, checkData(**args)]
-    print("check ran - wq_data vs wq_metadata") #testing
+    print("check ran - logic - wq_metadata records missing for records provided by wq_data") #testing
+    print("End WQ Logic Checks...")
 
     # End Discrete WQ Logic Checks
     args.update({
@@ -111,7 +113,7 @@ def discretewq(all_dfs):
         "badrows": waterdata[((waterdata['conductivity_mscm'] < 0) | (waterdata['conductivity_mscm'] > 100)) & (waterdata['conductivity_mscm'] != -88)].index.tolist(), 
         "badcolumn": "conductivity_mscm",
         "error_type": "Value out of range",
-        "error_message" : "Your conductivity value is out of range [0 to 100]"
+        "error_message" : "Your conductivity value is out of range. Conductivtiy must be between 0 and 100."
     })
     errs = [*errs, checkData(**args)]
 
