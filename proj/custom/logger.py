@@ -9,6 +9,7 @@ from .yeahbuoy import yeahbuoy
 def logger(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
+    lu_list_script_root = current_app.script_root
     
     # function should be named after the dataset in app.datasets in __init__.py
     assert current_function_name in current_app.datasets.keys(), \
@@ -173,37 +174,41 @@ def logger(all_dfs):
             "error_message": "Records in CTD_data must be filled with sensortype as CTD. If sensortype should be as provided, please check that the correct data table is filled."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - wq_metadata vs logger_ctd_data")
+        print("check ran - logger_ctd_data - bad sensortype")
     ##########
     # Logic Check 3: wq_metadata & Troll_data
     # Logic Check 3a: metadata records not found in Troll_data
     if 'troll' in loggermeta['sensortype'].unique().tolist():
         args.update({
-            "dataframe": loggertroll,
-            "tablename": "tbl_logger_troll_data",
+            "dataframe": loggermeta,
+            "tablename": "tbl_wq_logger_metadata",
             "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'troll'], loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record in WQ_metadata must have corresponding record(s) in Troll_data."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - wq_metadata vs logger_troll_data") # tested
+        print("check ran - wq_metadata vs logger_troll_data") # no data submitted for troll
 
     # Logic Check 3b: metadata record missing for records provided by Troll_data
     if not loggertroll.empty:
         args.update({
-            "dataframe": loggermeta,
-            "tablename": "tbl_wq_logger_metadata",
+            "dataframe": loggertroll,
+            "tablename": "tbl_logger_troll_data",
             "badrows": checkLogic(loggertroll, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Troll_data", df2_name = "WQ_metadata"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Records in Troll_data must have a corresponding record in WQ_metadata."
         })
         errs = [*errs, checkData(**args)]
+        print(loggertroll)
+        print("checklogic res")
+        print(checkLogic(loggertroll, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Troll_data", df2_name = "WQ_metadata"))
+        print("----------------------------------")
         print("check ran - logger_troll_data vs wq_metadata") # tested
     ##########
     # Check: Bad sensortype entry for troll_data
-    if ['troll'] != loggertroll['sensortype'].unique().tolist(): # 'minidot' is NOT the sensortype provided, more sensortypes filled
+    if ['troll'] != loggertroll['sensortype'].unique().tolist(): # 'troll' is NOT the sensortype provided, more sensortypes filled
         args.update({
             "dataframe": loggertroll,
             "tablename": "tbl_logger_troll_data",
@@ -213,7 +218,7 @@ def logger(all_dfs):
             "error_message": "Records in troll_data must be filled with sensortype as troll. If sensortype looks correct, please check that the correct data table is filled."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - bad sensortype - troll_data")
+        print("check ran - troll_data - bad sensortype")
     ##########
     # Logic Check 4: wq_metadata & Tidbit_data
     # Logic Check 4a: metadata records not found in Tidbit_data
@@ -241,28 +246,26 @@ def logger(all_dfs):
         })
         errs = [*errs, checkData(**args)]
         print("check ran - logger_tidbit_data vs wq_metadata") # tested
-#################### leaving Logic Check 5 commented out. Need to create lu_sensortype. See Jan! 
     # Logic Check 5: wq_metadata & Other_data
     # Logic Check 5a: metadata records not found in Other_data
     # for other_data, it's probably best to call the list of values from the database where not (ctd, minidot, or 
-    '''
-    if 'Other' in loggermeta['sensortype'].unique().tolist():
+    if 'HL Series Sensors' in loggermeta['sensortype'].unique().tolist():
         args.update({
-            "dataframe": loggerother,
-            "tablename": "tbl_logger_other_data",
-            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'Other'], loggertid, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Other_data"), 
+            "dataframe": loggermeta,
+            "tablename": "tbl_wq_logger_metadata",
+            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'HL Series Sensors'], loggerother, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Other_data"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record with sensortype as Other in WQ_metadata must have corresponding record(s) in Other_data."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - wq_metadata vs logger_other_data") # NOT TESTED
+        print("check ran - wq_metadata vs logger_other_data") # tested
 
     # Logic Check 5b: metadata record missing for records provided by Other_data
     if not loggerother.empty:
         args.update({
-            "dataframe": loggermeta,
-            "tablename": "tbl_wq_logger_metadata",
+            "dataframe": loggerother,
+            "tablename": "tbl_logger_other_data",
             "badrows": checkLogic(loggerother, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Other_data", df2_name = "WQ_metadata"), 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
@@ -270,8 +273,8 @@ def logger(all_dfs):
         })
         errs = [*errs, checkData(**args)]
         print("check ran - logger_other_data vs wq_metadata") # NOT TESTED
-        '''
     
+    print("End datatype wide logic checks.")
     print("Begin minidot data checks...")
     args.update({
         "dataframe": loggerm,
