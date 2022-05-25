@@ -3,7 +3,7 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 import re
 import time
 
@@ -58,6 +58,33 @@ def fishseines(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
     
+    print("Begin Fish Seines Logic Checks...")
+    # Logic Check 1: fish_sample_metadata & fish_abundance_data
+    # Logic Check 1a: fishmeta records not found in fishabud
+    args.update({
+        "dataframe": fishmeta,
+        "tablename": "tbl_fish_sample_metadata",
+        "badrows": checkLogic(fishmeta, fishabud, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate'], df1_name = "sample_metadata", df2_name = "abundance_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in sample_metadata must have corresponding records in abundance_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sample_metadata records not found in abundance_data") 
+    # Logic Check 1b: fishmeta records missing for records provided by fishabud
+    args.update({
+        "dataframe": fishabud,
+        "tablename": "tbl_fish_abundance_data",
+        "badrows": checkLogic(fishabud, fishmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate'], df1_name = "abundance_data", df2_name = "sample_metadata"),
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in abundance_data must have corresponding records in sample_metadata."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sample_metadata records missing for records provided in abundance_data") 
+
+    print("End Fish Seines Logic Checks...")
+
     # Check - abundance range [0, 5000]
     args.update({
         "dataframe": fishabud,
@@ -67,7 +94,7 @@ def fishseines(all_dfs):
         "error_type" : "Value out of range",
         "error_message" : "Your abundance value must be between 0 to 5000. If this value is supposed to be empty, please fill with -88."
     })
-    errs = [*warnings, checkData(**args)]
+    warnings = [*warnings, checkData(**args)]
     print("check ran - tbl_fish_abundance_data - abundance range") # tested and working 5nov2021
     # commenting out time checks for now - zaib 28 oct 2021
     ## for time fields, in preprocess.py consider filling empty time related fields with NaT using pandas | check format of time?? | should be string
