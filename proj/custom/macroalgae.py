@@ -3,7 +3,7 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 
 def macroalgae(all_dfs):
     
@@ -56,7 +56,33 @@ def macroalgae(all_dfs):
 
     
    # return {'errors': errs, 'warnings': warnings}
+    print("Begin Macroalgae Logic Checks...")
+    # Logic Check 1: sample_metadata & algaecover_data
+    # Logic Check 1a: algaemeta records not found in algaecover
+    args.update({
+        "dataframe": algaemeta,
+        "tablename": "tbl_macroalgae_sample_metadata",
+        "badrows": checkLogic(algaemeta, algaecover, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'], df1_name = "sample_metadata", df2_name = "Algaecover_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in sample_metadata must have corresponding records in Algaecover_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sample_metadata records not found in algaecover_data") 
+    # Logic Check 1b: algaemeta records missing for records provided by algaecover
+    args.update({
+        "dataframe": algaecover,
+        "tablename": "tbl_algaecover_data",
+        "badrows": checkLogic(algaecover, algaemeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'], df1_name = "Algaecover_data", df2_name = "sample_metadata"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in Algaecover_data must have corresponding records in sample_metadata."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sample_metadata records missing for records provided in algaecover_data") 
 
+
+    print("End Macroalgae Logic Checks...")
 
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
@@ -115,7 +141,7 @@ def macroalgae(all_dfs):
     
     return {'errors': errs, 'warnings': warnings}
 
-
+'''
     #TransectBeginLatitude, TransectEndLatitude
     args.update({
         "dataframe": algaemeta,
@@ -162,3 +188,4 @@ def macroalgae(all_dfs):
         "error_message" : "Your longitude coordinate is outside of california."
     })
     errs = [*warnings, checkData(**args)]
+'''
