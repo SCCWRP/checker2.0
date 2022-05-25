@@ -44,7 +44,7 @@ def nutrients_lab(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
-    '''
+
     print("Begin Logic Checks...")
     eng = g.eng
     sql = eng.execute("SELECT * FROM tbl_nutrients_metadata")
@@ -52,22 +52,43 @@ def nutrients_lab(all_dfs):
     sql_df.columns = sql.keys()
     nutrimeta = sql_df
     del sql_df
-    print("dataframe from db")
-    print(nutrimeta)
-    # SELECT * FROM tbl_nutrients_metadata
-    # Logic Check 1: nutrients_metadata (db) & nutrients_labbatch_data (submission)
-    # Logic Check 1a: nutrients metadata records do not exist in database
+    # Logic Check 1: nutrients_metadata (db) & nutrients_labbatch_data (submission),nutrients metadata records do not exist in database
     args.update({
         "dataframe": nutrilab,
         "tablename": "tbl_nutrients_labbatch_data",
         "badrows": checkLogic(nutrilab, nutrimeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'nutrientreplicate', 'sampleid'], df1_name = "Nuts_labbatch_data", df2_name = "Nuts_metadata"), 
-        "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, nutrientreplicate, sampleid",
         "error_type": "Logic Error",
-        "error_message": "Each record in WQ_metadata must have a corresponding record in mDOT_data."
+        "error_message": "Field submission for nutrients labdata is missing. Please verify that the nutrients field data has been previously submitted."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logic - nutrients metadata records do not exist in database for nutrilab submission")
-    '''
+
+    # Logic Check 2: nutrients_labbatch_data & nutrients_data must have corresponding records within session submission
+    # Logic Check 2a: nutrients_data missing records provided by nutrients_labbatch_data
+    args.update({
+        "dataframe": nutrilab,
+        "tablename": "tbl_nutrients_labbatch_data",
+        "badrows": checkLogic(nutrilab, nutridata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'nutrientreplicate', 'sampleid', 'preparationbatchid'], df1_name = "Nuts_labbatch_data", df2_name = "Nuts_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, nutrientreplicate, sampleid, preparationbatchid",
+        "error_type": "Logic Error",
+        "error_message": "Records in nutrients_labbatch_data must have corresponding records in nutrients_data. Missing records in nutrients_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - missing nutrients_data records")
+    # Logic Check 2b: nutrients_labbatch_data missing records provided by nutrients_data
+    args.update({
+        "dataframe": nutridata,
+        "tablename": "tbl_nutrients_data",
+        "badrows": checkLogic(nutridata, nutrilab, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'nutrientreplicate', 'sampleid', 'preparationbatchid'], df1_name = "Nuts_data", df2_name = "Nuts_labbatch_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, nutrientreplicate, sampleid, preparationbatchid",
+        "error_type": "Logic Error",
+        "error_message": "Records in nutrients_data must have corresponding records in nutrients_labbatch_data. Missing records in nutrients_labbatch_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - missing nutrients_labbatch_data records")
+
+    print("End Nutrients Lab Logic Checks...")
 
     
     # args.update({
