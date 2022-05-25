@@ -3,7 +3,7 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 
 def sav(all_dfs):
     
@@ -52,6 +52,33 @@ def sav(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+
+    print("Begin SAV Logic Checks...")
+    # Logic Check 1: sav_metadata & savpercentcover_data
+    # Logic Check 1a: savmeta records not found in savper
+    args.update({
+        "dataframe": savmeta,
+        "tablename": "tbl_sav_metadata",
+        "badrows": checkLogic(savmeta, savper, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate'], df1_name = "SAV_metadata", df2_name = "SAVpercentcover_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in SAV_metadata must have corresponding records in SAVpercentcover_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sav_metadata records not found in savpercent_data") 
+    # Logic Check 1b: savmeta records missing for records provided by savper
+    args.update({
+        "dataframe": savper,
+        "tablename": "tbl_savpercentcover_data",
+        "badrows": checkLogic(savper, savmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate'], df1_name = "SAVpercentcover_data", df2_name = "SAV_metadata"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in SAVpercentcover_data must have corresponding records in SAV_metadata."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sav_metadata records missing for records provided in  savpercent_data") 
+
+    print("End SAV Logic Checks...")
     
     #(1) transectlength_m is nonnegative # tested
     args.update({
