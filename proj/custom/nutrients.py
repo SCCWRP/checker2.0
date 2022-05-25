@@ -3,7 +3,8 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from pandas import DataFrame
+from .functions import checkData, get_badrows, checkLogic
 
 def nutrients_lab(all_dfs):
     
@@ -43,6 +44,31 @@ def nutrients_lab(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+    '''
+    print("Begin Logic Checks...")
+    eng = g.eng
+    sql = eng.execute("SELECT * FROM tbl_nutrients_metadata")
+    sql_df = DataFrame(sql.fetchall())
+    sql_df.columns = sql.keys()
+    nutrimeta = sql_df
+    del sql_df
+    print("dataframe from db")
+    print(nutrimeta)
+    # SELECT * FROM tbl_nutrients_metadata
+    # Logic Check 1: nutrients_metadata (db) & nutrients_labbatch_data (submission)
+    # Logic Check 1a: nutrients metadata records do not exist in database
+    args.update({
+        "dataframe": nutrilab,
+        "tablename": "tbl_nutrients_labbatch_data",
+        "badrows": checkLogic(nutrilab, nutrimeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'nutrientreplicate', 'sampleid'], df1_name = "Nuts_labbatch_data", df2_name = "Nuts_metadata"), 
+        "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
+        "error_type": "Logic Error",
+        "error_message": "Each record in WQ_metadata must have a corresponding record in mDOT_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - nutrients metadata records do not exist in database for nutrilab submission")
+    '''
+
     
     # args.update({
     #     "dataframe": nutridata,
