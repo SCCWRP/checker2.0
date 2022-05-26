@@ -83,6 +83,30 @@ def fishseines(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran - logic - sample_metadata records missing for records provided in abundance_data") 
 
+    # Logic Check 2: fish_abundance_data & fish_length_data
+    # Logic Check 2a: fishabud records not found in fishdata
+    args.update({
+        "dataframe": fishabud,
+        "tablename": "tbl_fish_abundance_data",
+        "badrows": checkLogic(fishabud, fishdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate', 'scientificname'], df1_name = "abundance_data", df2_name = "length_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate, scientificname",
+        "error_type": "Logic Error",
+        "error_message": "Records in abundance_data must have corresponding records in length_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - abundance_data records not found in length_data") 
+    # Logic Check 2b: fishabud records missing for records provided by fishdata
+    args.update({
+        "dataframe": fishdata,
+        "tablename": "tbl_fish_length_data",
+        "badrows": checkLogic(fishdata, fishabud, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate', 'scientificname'], df1_name = "length_data", df2_name = "abundance_data"),
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate, scientificname",
+        "error_type": "Logic Error",
+        "error_message": "Records in length_data must have corresponding records in abundance_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - abundance_data records missing for records provided in length_data") 
+    
     print("End Fish Seines Logic Checks...")
 
     # Check - abundance range [0, 5000]
