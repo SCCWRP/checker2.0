@@ -80,6 +80,32 @@ def crabtrap(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran - logic - crabtrap_metadata records missing for records provided in crabfishinvert_abundance") 
 
+    # Logic Check 2: crabfishinvert_abundance & crabbiomass_length
+    # Logic Check 2a: crabinvert records not found in crabmass
+    # changed order of colnames based off template rather than pkey from db
+    args.update({
+        "dataframe": crabinvert,
+        "tablename": "tbl_crabfishinvert_abundance",
+        "badrows": checkLogic(crabinvert, crabmass, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'traptype', 'traplocation', 'replicate', 'scientificname'], df1_name = "Crab_fish_invert_abundance_data", df2_name = "Crab_biomass_length_data"), 
+        "badcolumn": "siteid, estuaryname, samplecollectiondate, traptype, scientificname, traplocation, stationno, replicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in Crab_fish_invert_abundance must have corresponding records in Crab_biomass_length."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - crabfishinvert_abundance records not found in crabbiomass_length")
+    # Logic Check 1b: crabinvert records missing for records provided by crabmass
+    # changed ordering of colnames off template rather than db pkey fields
+    args.update({
+        "dataframe": crabmass,
+        "tablename": "tbl_crabbiomass_length",
+        "badrows": checkLogic(crabmass, crabinvert, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'traptype', 'traplocation', 'replicate', 'scientificname'], df1_name = "Crab_biomass_length_data", df2_name = "Crab_fish_invert_abundance_data"), 
+        "badcolumn": "siteid, estuaryname, samplecollectiondate, traptype, scientificname, traplocation, stationno, replicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in Crab_biomass_length must have corresponding records in Crab_fish_invert_abundance."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - crabinvert records missing for records provided in crabmass") 
+
     print("End Crab Trap Logic Checks...")
 
     ''' disabled check by Paul - doesn't make any sessions should be a combination of deployment date/time vs retrieve date/time - 3dec2021
