@@ -3,7 +3,7 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 import re
 
 def crabtrap(all_dfs):
@@ -55,6 +55,32 @@ def crabtrap(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+    print("Begin Crab Trap Logic Checks...")
+    # Logic Check 1: crabtrap_metadata & crabfishinvert_abundance
+    # Logic Check 1a: crabmeta records not found in crabinvert
+    args.update({
+        "dataframe": crabmeta,
+        "tablename": "tbl_crabtrap_metadata",
+        "badrows": checkLogic(crabmeta, crabinvert, cols = ['siteid', 'estuaryname', 'traptype', 'traplocation', 'stationno', 'replicate'], df1_name = "Crabtrap_metadata", df2_name = "Crab_fish_invert_abundance_data"), 
+        "badcolumn": "siteid, estuaryname, traptype, traplocation, stationno, replicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in Crabtrap_metadata must have corresponding records in Crab_fish_invert_abundance."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - crabtrap_metadata records not found in crabfishinvert_abundance") 
+    # Logic Check 1b: crabmeta records missing for records provided by crabinvert
+    args.update({
+        "dataframe": crabinvert,
+        "tablename": "tbl_crabfishinvert_abundance",
+        "badrows": checkLogic(crabinvert, crabmeta, cols = ['siteid', 'estuaryname', 'traptype', 'traplocation', 'stationno', 'replicate'], df1_name = "Crab_fish_invert_abundance_data", df2_name = "Crabtrap_metadata"), 
+        "badcolumn": "siteid, estuaryname, traptype, traplocation, stationno, replicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in Crab_fish_invert_abundance must have corresponding records in Crabtrap_metadata."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - crabtrap_metadata records missing for records provided in crabfishinvert_abundance") 
+
+    print("End Crab Trap Logic Checks...")
 
     ''' disabled check by Paul - doesn't make any sessions should be a combination of deployment date/time vs retrieve date/time - 3dec2021
     # Check: starttime format validation
