@@ -3,7 +3,7 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 
 def vegetation(all_dfs):
     
@@ -43,6 +43,37 @@ def vegetation(all_dfs):
         "is_core_error": False,
         "error_message": ""
     }
+
+    print("Begin Vegetation Logic Checks..")
+    # Note: Vegetation submission should always have vegetativecover_data. Metadata and vegetation data must have corresponding records.
+    # Epifauna will sometimes, but not always be submitted. There may be only a subset of epifauna_data or none at all. - confirmed by Jan (26 May 2022)
+    # Logic Check 1: sample_metadata & vegetativecover_data
+    # Logic Check 1a: vegmeta records not found in vegdata
+    args.update({
+        "dataframe": vegmeta,
+        "tablename": "tbl_vegetation_sample_metadata",
+        "badrows": checkLogic(vegmeta, vegdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'], df1_name = "sample_metadata", df2_name = "vegetationcover_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in sample_metadata must have corresponding records in vegetationcover_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sample_metadata records not found in vegetationcover_data") 
+    # Logic Check 1b: vegmeta records missing for records provided by vegdata
+    args.update({
+        "dataframe": vegdata,
+        "tablename": "tbl_vegetativecover_data",
+        "badrows": checkLogic(vegdata, vegmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'], df1_name = "vegetationcover_data", df2_name = "sample_metadata"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in vegetationcover_data must have corresponding records in sample_metadata."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sample_metadata records missing for records provided in vegetationcover_data") 
+    # Logic Check 2: epidata records have corresponding sample_metadata records (not vice verse since epifauna data may not always be collected)
+    
+
+    print("End Vegetation Logic Checks..")
     
     args.update({
         "dataframe": vegdata,
