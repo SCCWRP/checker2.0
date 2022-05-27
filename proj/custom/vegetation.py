@@ -80,6 +80,7 @@ def vegetation(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logic - sample_metadata records missing for records provided in vegetationcover_data") 
+    del badrows
     # Logic Check 2: epidata records have corresponding sample_metadata records (not vice verse since epifauna data may not always be collected)
     # aka sample_metadata records missing for records provided by epidata
     args.update({
