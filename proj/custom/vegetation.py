@@ -83,16 +83,25 @@ def vegetation(all_dfs):
     del badrows
     # Logic Check 2: epidata records have corresponding sample_metadata records (not vice verse since epifauna data may not always be collected)
     # aka sample_metadata records missing for records provided by epidata
+    # checkLogic does not work properly for this df comparison - revised to use same approach as Logic Check 1b
+    tmp = epidata.merge(
+        vegmeta.assign(present = 'yes'), 
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'],
+        how = 'left'
+    )
+    badrows = tmp[pd.isnull(tmp.present)].index.tolist()
+
     args.update({
         "dataframe": epidata,
         "tablename": "tbl_epifauna_data",
-        "badrows": checkLogic(epidata, vegmeta, cols = ['siteid', 'estuaryname', 'samplecollectiondate', 'stationno', 'transectreplicate'], df1_name = "epifauna_data", df2_name = "sample_metadata"), 
+        "badrows": badrows,
         "badcolumn": "siteid, estuaryname, samplecollectiondate, stationno, transectreplicate",
         "error_type": "Logic Error",
         "error_message": "Records in epifauna_data must have corresponding records in sample_metadata."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logic - sample_metadata records missing for records provided in epifauna_data") 
+    del badrows
 
     print("End Vegetation Logic Checks..")
     
