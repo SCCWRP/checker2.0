@@ -2,7 +2,8 @@
 
 from inspect import currentframe
 from flask import current_app, g
-from .functions import checkData, get_badrows
+from pandas import DataFrame
+from .functions import checkData, get_badrows, checkLogic
 
 def sedimentgrainsize_lab(all_dfs):
     
@@ -50,6 +51,38 @@ def sedimentgrainsize_lab(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
+    # Logic Checks
+    eng = g.eng
+    sql = eng.execute("SELECT * FROM tbl_sedgrainsize_metadata")
+    sql_df = DataFrame(sql.fetchall())
+    sql_df.columns = sql.keys()
+    sedmeta = sql_df
+    del sql_df
+    print("Begin Sediment Grain Size Lab Logic Checks...")
+    # Logic Check 1: sedimentgrainsize_metadata (db) & sediment_labbatch_data (submission), sedimentgrainsize_metadata records do not exist in database
+    args = {
+        "dataframe": sedbatch,
+        "tablename": 'tbl_sedgrainsize_labbatch_data',
+        "badrows": checkLogic(sedbatch, sedmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'samplelocation'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedimentGrainSize_metadata"),
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, samplelocation",
+        "error_type": "Logic Error",
+        "error_message": "Field submission for sediment grain size labbatch data is missing. Please verify that the sediment grain size field data has been previously submitted."
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sediment grain size metadata records do not exist in database for sediment grain size labbatch data submission")
+
+    # Logic Check 2: sedgrainsize_labbatch_data & sedgrainsize_data must have corresponding records within session submission
+    # Logic Check 2a: sedgrainsize_data missing records provided by sedgrainsize_labbatch_data
+    args.update({
+        "dataframe": sedbatch,
+        "tablename": "tbl_sedgrainsize_labbatch_data",
+        "badrows": checkLogic(sedbatch, sed, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedGrainSize_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid",
+        "error_type": "Logic Error",
+        "error_message": "Records in sedimentgrainsize_labbatch_data must have corresponding records in sedgrainsize_data. Missing records in sedgrainsize_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - missing sedgrainsize_data records")
 
     
     return {'errors': errs, 'warnings': warnings}
