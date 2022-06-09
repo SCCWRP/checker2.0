@@ -77,8 +77,8 @@ def sedimentgrainsize_lab(all_dfs):
     args.update({
         "dataframe": sedbatch,
         "tablename": "tbl_sedgrainsize_labbatch_data",
-        "badrows": checkLogic(sedbatch, sed, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedGrainSize_data"), 
-        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid",
+        "badrows": checkLogic(sedbatch, sed, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'labreplicate'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedGrainSize_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid, labreplicate",
         "error_type": "Logic Error",
         "error_message": "Records in sedimentgrainsize_labbatch_data must have corresponding records in sedgrainsize_data. Missing records in sedgrainsize_data."
     })
@@ -88,7 +88,7 @@ def sedimentgrainsize_lab(all_dfs):
     # Logic Check 2b: sedgrainsize_labbatch_data missing records provided by sedgrainsize_data
     tmp = sed.merge(
         sedbatch.assign(present = 'yes'), 
-        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'matrix'],
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'matrix', 'labreplicate'],
         how = 'left'
     )
     badrows = tmp[pd.isnull(tmp.present)].index.tolist()
@@ -96,7 +96,7 @@ def sedimentgrainsize_lab(all_dfs):
         "dataframe": sed,
         "tablename": "tbl_sedgrainsize_data",
         "badrows": badrows,
-        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid, matrix",
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid, matrix, labreplicate",
         "error_type": "Logic Error",
         "error_message": "Records in sedgrainsize_data must have corresponding records in sedgrainsize_labbatch_data. Missing records in sedgrainsize_labbatch_data."
     })
