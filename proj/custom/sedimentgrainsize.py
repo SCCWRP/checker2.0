@@ -3,6 +3,7 @@
 from inspect import currentframe
 from flask import current_app, g
 from pandas import DataFrame
+import pandas as pd
 from .functions import checkData, get_badrows, checkLogic
 
 def sedimentgrainsize_lab(all_dfs):
@@ -83,6 +84,26 @@ def sedimentgrainsize_lab(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logic - missing sedgrainsize_data records")
+
+    # Logic Check 2b: sedgrainsize_labbatch_data missing records provided by sedgrainsize_data
+    tmp = sed.merge(
+        sedbatch.assign(present = 'yes'), 
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid'],
+        how = 'left'
+    )
+    badrows = tmp[pd.isnull(tmp.present)].index.tolist()
+    args.update({
+        "dataframe": sed,
+        "tablename": "tbl_sedgrainsize_data",
+        "badrows": badrows,
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid",
+        "error_type": "Logic Error",
+        "error_message": "Records in sedgrainsize_data must have corresponding records in sedgrainsize_labbatch_data. Missing records in sedgrainsize_labbatch_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - missing sedgrainsize_labbatch_data records")
+
+    print("End Sediment Grain Size Lab Logic Checks...")
 
     
     return {'errors': errs, 'warnings': warnings}
