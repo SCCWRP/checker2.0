@@ -88,7 +88,7 @@ def sedimentgrainsize_lab(all_dfs):
     # Logic Check 2b: sedgrainsize_labbatch_data missing records provided by sedgrainsize_data
     tmp = sed.merge(
         sedbatch.assign(present = 'yes'), 
-        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid'],
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'matrix'],
         how = 'left'
     )
     badrows = tmp[pd.isnull(tmp.present)].index.tolist()
@@ -96,7 +96,7 @@ def sedimentgrainsize_lab(all_dfs):
         "dataframe": sed,
         "tablename": "tbl_sedgrainsize_data",
         "badrows": badrows,
-        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid",
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid, matrix",
         "error_type": "Logic Error",
         "error_message": "Records in sedgrainsize_data must have corresponding records in sedgrainsize_labbatch_data. Missing records in sedgrainsize_labbatch_data."
     })
