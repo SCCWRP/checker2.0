@@ -181,6 +181,21 @@ def fill_empty_cells(all_dfs):
 # because every project will have those non-generalizable, one off, "have to hard code" kind of fixes
 # and this project is no exception
 def hardcoded_fixes(all_dfs):
+    if 'tbl_bruv_metadata' in all_dfs.keys():
+        bruvmeta = all_dfs['tbl_bruv_metadata']
+
+        # 6/14/2022 Jan says there are files failing because the time format check is failing
+        # It was in fact failing because of the way excel handles time etc.
+        # this is a way to try and clean up the data before it gets checked
+        bruvmeta.bruvintime = bruvmeta.bruvintime.apply(
+            lambda x:
+            str(x)[:-3] if bool(re.match("([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$", str(x))) else x
+        )
+        bruvmeta.bruvouttime = bruvmeta.bruvouttime.apply(
+            lambda x:
+            str(x)[:-3] if bool(re.match("([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$", str(x))) else x
+        )
+        all_dfs['tbl_bruv_metadata'] = bruvmeta
     return all_dfs
 
 '''
@@ -257,6 +272,6 @@ def clean_data(all_dfs):
     
     #all_dfs = clean_speciesnames(all_dfs)
     #all_dfs = fill_speciesnames(all_dfs)
-    #all_dfs = hardcoded_fixes(all_dfs) # That one is customized for BMP at this moment -- change to empa specific fixes
+    all_dfs = hardcoded_fixes(all_dfs)
 
     return all_dfs

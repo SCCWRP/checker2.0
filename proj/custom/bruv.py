@@ -95,6 +95,15 @@ def bruv_field(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     '''
+
+
+
+    print("bruvmeta.head()['bruvintime']")
+    print(bruvmeta.head()['bruvintime'])
+    print("bruvmeta.head()['bruvouttime']")
+    print(bruvmeta.head()['bruvouttime'])
+
+
     # Check: bruvmetadata bruvintime time validation
     timeregex = "([01]?[0-9]|2[0-3]):[0-5][0-9]$" #24 hour clock HH:MM time validation
     badrows_bruvintime = bruvmeta[
