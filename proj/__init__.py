@@ -165,7 +165,7 @@ app.datasets = {
         'spatialtable': 'tbl_bruv_metadata'
     },
     'bruv_lab':{
-        'tables': ['tbl_protocol_metadata','tbl_bruv_data'],
+        'tables': ['tbl_protocol_metadata','tbl_bruv_videolog','tbl_bruv_data'],
         'login_fields': ['login_email','login_agency'],
         'function': bruv_lab,
     },
