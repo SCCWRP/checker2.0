@@ -47,29 +47,8 @@ def index():
     )
     
 
-    agencies = pd.read_sql("SELECT agencyname, agencycode FROM lu_agency", eng)
-    agencies = {a[0]:a[1] for a in agencies.values}
-    print(agencies)
-
-    estuaries = pd.read_sql("SELECT DISTINCT estuary_name FROM mobile_estuary_info", eng).estuary_name.to_list()
-    notinmsf_estuaries = pd.read_sql(
-        """
-        SELECT DISTINCT estuary_name FROM mobile_estuary_info
-        WHERE estuary_name NOT IN 
-        (SELECT DISTINCT(estuary_name) FROM msf_site_metadata)
-        """, eng).estuary_name.to_list()
-    #estuaries = [x for x in estuaries if x not in fake_estuaries]
-    dates = pd.read_sql("SELECT DISTINCT estuary_date FROM mobile_estuary_info", eng).estuary_date.to_list()
-    dates = [x.strftime('%m-%d-%Y') for x in dates]
     
-    return render_template(
-        'index.html', 
-        projectname = current_app.project_name,
-        agencies = agencies,
-        estuaries = estuaries,
-        notinmsf_estuaries = notinmsf_estuaries,
-        dates = dates
-    )
+    return render_template('index.html')
 
 
 

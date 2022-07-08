@@ -4,7 +4,7 @@ from inspect import currentframe
 from flask import current_app
 from .functions import checkData, get_badrows
 
-def example(all_dfs):
+def __example__(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
     
@@ -21,22 +21,22 @@ def example(all_dfs):
     # This is the convention that was followed in the old checker
     
     # This data type should only have tbl_example
-    # example = all_dfs['tbl_example']
+    # __example__ = all_dfs['tbl___example__']
 
     errs = []
     warnings = []
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
-    args = {
-        "dataframe": df,
-        "tablename": tbl,
-        "badrows": [],
-        "badcolumn": "",
-        "error_type": "",
-        "is_core_error": False,
-        "error_message": ""
-    }
+    # args = {
+    #     "dataframe": __example__,
+    #     "tablename": 'tbl___example__',
+    #     "badrows": [],
+    #     "badcolumn": "",
+    #     "error_type": "",
+    #     "is_core_error": False,
+    #     "error_message": ""
+    # }
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({

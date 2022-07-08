@@ -22,89 +22,11 @@
           <div class="card-body">
             <div id="data-logger-raw-form-container">
               <form id="main-login-form">
-                <div class="login-input-container form-group" id="datatype-select-container">
-                  <label for="datatype-select">Select the Submission Type:</label>
-                  <select class="form-control" id="datatype-select" name="login_datatype">
-                    <option value="logger">SOP 1 - WQ Logger</option>
-                    <option value="discretewq">SOP 2 - Discrete Water Quality</option>
-                    <option value="nutrients_field">SOP 3 - Nutrients Field</option>
-                    <option value="nutrients_lab">SOP 3 - Nutrients Lab</option>
-                    <option value="edna_field">SOP 4 - eDNA Field</option>
-                    <option value="edna_lab">SOP 4 - eDNA Lab</option>
-                    <option value="sedimentgrainsize_field">SOP 5 - Sediment Grain Size Field</option>
-                    <option value="sedimentgrainsize_lab">SOP 5 - Sediment Grain Size Lab</option>
-                    <option value="benthicinfauna_field">SOP 6 - Benthic Infauna Field</option>
-                    <option value="benthicinfauna_lab">SOP 6 - Benthic Infauna Lab</option>
-                    <option value="macroalgae">SOP 7 - Macroalgae</option>
-                    <option value="sav">SOP 7 - SAV</option>
-                    <option value="bruv_field">SOP 8 - BRUV Field</option>
-                    <option value="bruv_lab">SOP 8 - BRUV Lab</option>
-                    <option value="fishseines">SOP 9 - Fish Seines</option>
-                    <option value="crabtrap">SOP 10 - Crab Trap</option>
-                    <option value="vegetation">SOP 11 - Vegetation</option>
-                    <option value="feldspar">SOP 13 - Feldspar</option>
-
-                    <!-- 
-                    <option value="sav">SAV</option>
-                    <option value="bruv_field">BRUV Field</option>
-                    <option value="bruv_lab">BRUV Lab</option>
-                    <option value="fishseines">Fish Seines</option>
-                    <option value="crabtrap">Crab Trap</option>
-                    <option value="vegetation">Vegetation</option>
-                    <option value="nutrients_field">Nutrients Field</option>
-                    <option value="nutrients_lab">Nutrients Lab</option>
-                    <option value="edna_field">eDNA Field</option>
-                    <option value="edna_lab">eDNA Lab</option>
-                    <option value="feldspar">Feldspar</option>
-                    <option value="sedimentgrainsize_field">Sediment Grain Size Field</option>
-                    <option value="sedimentgrainsize_lab">Sediment Grain Size Lab</option>
-                    <option value="discretewq">Discrete Water Quality</option>
-                    <option value="benthicinfauna_field">Benthic Infauna Field</option>
-                    <option value="benthicinfauna_lab">Benthic Infauna Lab</option>
-                    <option value="logger">Logger</option>
-                    <option value="macroalgae">Macroalgae</option>
-                    -->
-                  </select>
-                </div>
-                <br>
                 <div class="login-input-container form-group">
                   <label for="login_email">Enter your email address:</label>
                   <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
                 </div>
-                <br />
-                <div class="form-group form-group-dynamic" id="agency-select-container">
-                  <label for="agency-select">Select your agency:</label>
-                  <select class="form-control" id="agency-select" name="login_agency">
-                    <option value="none" id="default-hidden-agency-select" selected disabled hidden></option>
-                    {% for agencyname, agencycode in agencies.items() %}
-                    <option value="{{agencycode}}">{{agencyname}}</option>
-                    {%endfor%}
-                  </select>
-                </div>
-                <br>
-                <!-- Estuary'names Dropdown -->
-                <!-- <div class="form-group form-group-dynamic" id="estuary-select-container">
-                  <label for="estuary-select">Select the estuary:</label>
-                  <select class="form-control" id="estuary-select" name="login_estuary">
-                    <option value="none" id="default-hidden-estuary-select" selected disabled hidden></option>
-                    {% for estuary in estuaries %}
-                      {% if estuary in notinmsf_estuaries %}
-                        <option value="{{estuary}}" disabled="disabled" title="Please submit the metadata for this estuary using the Microsoft Form">{{estuary}}</option>
-                      {% else %}
-                        <option value="{{estuary}}">{{estuary}}</option>
-                      {% endif %}
-                    {%endfor%}
-                  </select>
-                </div>
-                </br> -->
-                <!-- Start Date Dropdown -->
-                <!-- <div class="form-group raw-required form-group-dynamic" id="startdate-select-container">
-                  <label for="startdate-select">Select date range: </label>
-                  <select class="form-control" id="startdate-select" name="login_startdate">
-                    <option value="none" id="default-hidden-estuary-select" selected disabled hidden></option>
-                  </select>
-                </div>
-                <br /> -->
+               
                 <div class="login-input-container form form-group" id="login-form-submit-btn-container">
                   <button class="btn btn-secondary" type="submit">Sign in</button>
                 </div>

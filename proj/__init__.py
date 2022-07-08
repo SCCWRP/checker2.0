@@ -7,28 +7,9 @@ from .main import upload
 from .login import homepage
 from .load import finalsubmit
 from .download import download
-from .cleardemo import clear_test_data
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
 from .core.functions import fetch_meta
-from .custom.sav import sav #def fcn in .py
-from .custom.bruv import bruv_field, bruv_lab #def fcn in .py
-from .custom.fishseines import fishseines #def fcn in .py
-from .custom.crabtrap import crabtrap
-from .custom.vegetation import vegetation #def fcn in .py
-#from .custom.nutrients import nutrients_field, nutrients_lab #def fcn in .py
-#from .custom.edna import edna_field, edna_lab #def fcn in .py
-#from .custom.sedimentgrainsize import sedimentgrainsize_field, sedimentgrainsize_lab #def fcn in .py
-from .custom.discretewq import discretewq #def fcn in .py
-from .custom.benthicinfauna import benthicinfauna_field, benthicinfauna_lab #def fcn in .py
-from .custom.feldspar import feldspar #def fcn in .py
-from .custom.logger import logger #def fcn in .py
-from .custom.macroalgae import macroalgae #def fcn in .py
-from .custom.bruv_visual_map import bruv_visual_map
-from .custom.sav_visual_map import sav_visual_map
-from .custom.veg_visual_map import veg_visual_map
-from .custom.fish_visual_map import fish_visual_map
-
 # Dynamic Imports Here
 
 app = Flask(__name__, static_url_path='/static')
@@ -103,118 +84,9 @@ app.datasets = {
     #   these lists are treated as sets when it does matching.
     #   i think they have to be stored here as lists because sets are not json serializable?
     #   NOTE BE SURE TO PUT THEM IN THE ORDER YOU NEED THEM TO BE LOADED
+    #    If order doesnt matter then that above comment can be disregarded
     # function
     #   the custom checks function associated with the datatype. Imported up top
-    'sav':{
-        'tables': ['tbl_protocol_metadata','tbl_sav_metadata','tbl_savpercentcover_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': sav,
-        'map_func': sav_visual_map,
-        'spatialtable': 'tbl_sav_metadata'
-    },
-    
-    # --- SOP 2: Water Quality --- #
-    'discretewq':{
-        'tables': ['tbl_protocol_metadata','tbl_waterquality_metadata','tbl_waterquality_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': discretewq
-    },
-    
-    # --- SOP 3: Nutrients --- #
-   # 'nutrients_lab':{
-   #     'tables': ['tbl_protocol_metadata','tbl_nutrients_labbatch_data','tbl_nutrients_data'],
-   #     'login_fields': ['login_email','login_agency'],
-   #     'function': nutrients_lab
-   # },
-   # 'nutrients_field':{
-   #     'tables': ['tbl_protocol_metadata','tbl_nutrients_metadata'],
-   #     'login_fields': ['login_email','login_agency'],
-   #     'function': nutrients_field
-   # },
-    
-    # --- SOP 4: eDNA --- #
-   # 'edna_field':{
-   #     'tables': ['tbl_protocol_metadata','tbl_edna_metadata'],
-   #     'login_fields': ['login_email','login_agency'],
-   #     'function': edna_field
-   # },
-   # 'edna_lab':{
-   #     'tables': ['tbl_protocol_metadata','tbl_edna_water_labbatch_data','tbl_edna_sed_labbatch_data','tbl_edna_data'],
-   #     'login_fields': ['login_email','login_agency'],
-   #     'function': edna_lab
-   # },
-    
-    # --- SOP 5: Sediment Grain Size --- #
-   # 'sedimentgrainsize_field':{
-   #     'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_metadata'],
-   #     'login_fields': ['login_email','login_agency'],
-   #     'function': sedimentgrainsize_field
-   # },
-   # 'sedimentgrainsize_lab':{
-   #     'tables': ['tbl_protocol_metadata', 'tbl_sedgrainsize_data', 'tbl_sedgrainsize_labbatch_data'],
-   #     'login_fields': ['login_email','login_agency'],
-   #     'function': sedimentgrainsize_lab
-   # },
-
-    #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
-    # change to bruvmeta
-    'bruv_field':{
-        #'tables': ['tbl_protocol_metadata','tbl_bruv_metadata','tbl_bruv_data'],
-        'tables': ['tbl_protocol_metadata','tbl_bruv_metadata'],
-        'login_fields': ['login_email','login_agency'],
-        'function': bruv_field,
-        'map_func': bruv_visual_map,
-        'spatialtable': 'tbl_bruv_metadata'
-    },
-    'bruv_lab':{
-        'tables': ['tbl_protocol_metadata','tbl_bruv_videolog','tbl_bruv_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': bruv_lab,
-    },
-    'fishseines':{
-        'tables': ['tbl_protocol_metadata','tbl_fish_sample_metadata','tbl_fish_abundance_data','tbl_fish_length_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': fishseines,
-        'map_func': fish_visual_map,
-        'spatialtable': 'tbl_fish_sample_metadata'
-    },
-    'crabtrap': {
-        'tables': ['tbl_protocol_metadata','tbl_crabtrap_metadata','tbl_crabfishinvert_abundance','tbl_crabbiomass_length'], 
-        'login_fields': ['login_email','login_agency'],
-        'function': crabtrap
-    },
-    'vegetation':{
-        'tables': ['tbl_protocol_metadata','tbl_vegetation_sample_metadata','tbl_vegetativecover_data','tbl_epifauna_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': vegetation,
-        'map_func': veg_visual_map,
-        'spatialtable': 'tbl_vegetation_sample_metadata'
-    },
-    'benthicinfauna_field':{
-        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata'],
-        'login_fields': ['login_email','login_agency'],
-        'function': benthicinfauna_field
-    },
-    'benthicinfauna_lab':{
-        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
-        'login_fields': ['login_email','login_agency'],
-        'function': benthicinfauna_lab
-    },
-    'feldspar':{
-        'tables': ['tbl_protocol_metadata','tbl_feldspar_metadata','tbl_feldspar_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': feldspar
-    },
-    'logger':{
-        'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data','tbl_logger_other_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': logger
-    },
-    'macroalgae':{
-        'tables': ['tbl_protocol_metadata','tbl_macroalgae_sample_metadata','tbl_algaecover_data','tbl_floating_data'],
-        'login_fields': ['login_email','login_agency'],
-        'function': macroalgae
-    }
 }
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
@@ -223,7 +95,6 @@ app.register_blueprint(upload)
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
-app.register_blueprint(clear_test_data)
 app.register_blueprint(scraper)
 app.register_blueprint(templater)
 
