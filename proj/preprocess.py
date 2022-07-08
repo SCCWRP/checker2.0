@@ -265,7 +265,7 @@ def clean_data(all_dfs):
     print("before filling empty values")
     #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
-    all_dfs = fill_empty_cells(all_dfs)
+    #all_dfs = fill_empty_cells(all_dfs) # commenting out for now
     print("after filling empty values")
     #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
