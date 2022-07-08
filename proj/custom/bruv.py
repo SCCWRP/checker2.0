@@ -2,8 +2,9 @@
 
 from inspect import currentframe
 import pandas as pd
+from pandas import DataFrame
 from flask import current_app, g
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 import re
 import time
 
@@ -211,23 +212,29 @@ def bruv_lab(all_dfs):
     # This data type should only have tbl_example
     # example = all_dfs['tbl_example']
 
+    print("did it break here?")
     protocol = all_dfs['tbl_protocol_metadata']
     bruvdata = all_dfs['tbl_bruv_data']
+    bruvvideo = all_dfs['tbl_bruv_videolog']
     errs = []
     warnings = []
+
+    print("bruvvideo")
+    print(bruvvideo['samplecollectiondate'])
+    print("bruvdata")
+    print(bruvdata['samplecollectiondate'])
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     args = {
-        "dataframe": df,
-        "tablename": tbl,
+        "dataframe": pd.DataFrame({}),
+        "tablename": '',
         "badrows": [],
         "badcolumn": "",
         "error_type": "",
         "is_core_error": False,
         "error_message": ""
     }
-
     # Example of appending an error (same logic applies for a warning)
     # args.update({
     #   "badrows": get_badrows(df[df.temperature != 'asdf']),
@@ -236,6 +243,100 @@ def bruv_lab(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+
+    # Custom Checks
+    # Check 1: bruv_videolog Ns col must be a postive integer
+    args = {
+        "dataframe": bruvdata,
+        "tablename": 'tbl_bruv_data',
+        "badrows": bruvdata[bruvdata['ns'] < 0].index.tolist(),
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, camerareplicate",
+        "error_type": "Value Error",
+        "error_message": "Ns must be a positive integer. Field cannot be left blank or filled with -88."
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - bruv metadata records do not exist in database for bruv lab submission") #tested
+    # Logic Checks
+    print("Begin BRUV Lab Logic Checks...")
+    eng = g.eng
+    sql = eng.execute("SELECT * FROM tbl_bruv_metadata")
+    sql_df = DataFrame(sql.fetchall())
+    sql_df.columns = sql.keys()
+    bruvmeta = sql_df
+    del sql_df
+    # Logic Check 1: bruv_metadata (db) & bruv_videolog (submission), bruv_metadata records do not exist in database
+    # double check these columns -- seems right for now, but these tables may be revised - zaib 17jun2022
+    args = {
+        "dataframe": bruvvideo,
+        "tablename": 'tbl_bruv_videolog',
+        "badrows": checkLogic(bruvvideo, bruvmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'camerareplicate'], df1_name = "BRUV_videolog", df2_name = "BRUV_metadata"),
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, camerareplicate",
+        "error_type": "Logic Error",
+        "error_message": "Field submission for bruv videolog data is missing. Please verify that the bruv field data has been previously submitted."
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - bruv metadata records do not exist in database for bruv lab submission") #tested
+
+    # Logic Check 2: bruv_videolog & bruv_data must have corresponding records within session submission iff bruv_videolog['fish'] = yes
+    # check  modified by jan's instruction 6jul22
+    # Logic Check 2a: bruv_data missing records provided by bruv_videolog (only if fish field is yes)
+    tmp = bruvvideo[bruvvideo['fish'] == 'Yes']
+    #using tmp instead of bruvvideo for badrows 
+    args.update({
+        "dataframe": bruvvideo,
+        "tablename": "tbl_bruv_videolog",
+        "badrows": checkLogic(tmp, bruvdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'camerareplicate', 'filename', 'videoorder'], df1_name = "BRUV_videolog", df2_name = "BRUV_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, camerareplicate, filename, videoorder",
+        "error_type": "Logic Error",
+        "error_message": "Records in bruv_videolog have must have corresponding records in bruv_data. Missing records in bruv_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - missing bruv_data records") #tested
+
+    # Logic Check 2b: bruv_videolog missing records provided by bruv_data
+    if bruvdata.empty: #Bug fix: when df empty, date cols are recognized as object. cast type to pandas datetime type.
+        bruvdata['samplecollectiondate'] = pd.to_datetime(bruvdata['samplecollectiondate'])
+    print("these are the dtypes: ")
+    print(bruvdata.dtypes)
+    #tmp = bruvvideo[bruvvideo['fish'] == 'Yes']
+    tmp = bruvdata.merge(
+        bruvvideo.assign(present = 'yes'), 
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'camerareplicate', 'filename', 'videoorder'],
+        how = 'left'
+    )
+    badrows = tmp[(pd.isnull(tmp.present)) & (tmp['fish'] == 'Yes')].index.tolist()
+    args.update({
+        "dataframe": bruvdata,
+        "tablename": "tbl_bruv_data",
+        "badrows": badrows,
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, camerareplicate, filename, videoorder",
+        "error_type": "Logic Error",
+        "error_message": "Records in bruv_data must have corresponding records in bruv_videolog. Missing records in bruv_videolog."
+    })
+    errs = [*errs, checkData(**args)]
+    del tmp
+    print("check ran - logic - missing bruv_videolog records") #tested
+    print("End BRUV Lab Logic Checks...")
+
+    # Logic Check 2c: bruv_data should NOT have corresponding records if fish col (in bruvvideo) is 'no'
+    #tmp = bruvvideo[bruvvideo['fish'] == 'No']
+    #using tmp instead of bruvvideo for badrows 
+    tmp = bruvdata.merge(
+        bruvvideo.assign(present = 'yes'), 
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'camerareplicate', 'filename', 'videoorder'],
+        how = 'left'
+    )
+    badrows = tmp[(tmp['present'] == 'yes') & (tmp['fish'] == 'No')].index.tolist()
+    args.update({
+        "dataframe": bruvdata,
+        "tablename": "tbl_bruv_data",
+        "badrows": badrows, 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, camerareplicate, filename, videoorder",
+        "error_type": "Logic Error",
+        "error_message": "Records in bruv_videolog should not have corresponding records in bruv_data. If fish column is filled with 'no', then bruv_data should not have a corresponding record."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - extranneous bruv_data records") #testing
 
     #tbl_bruv_data will have the species column check, yet to be tested
     def multicol_lookup_check(df_to_check,lookup_df, check_cols, lookup_cols):
@@ -247,11 +348,13 @@ def bruv_lab(all_dfs):
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)
-
+    print("read in fish lookup")
     lookup_sql = f"SELECT * from lu_fishmacrospecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    check_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname', 'status']
+    #check_cols = ['scientificname', 'commonname', 'status']
+    check_cols = ['scientificname', 'commonname']
+    #lookup_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(bruvdata, lu_species, check_cols, lookup_cols)
     
