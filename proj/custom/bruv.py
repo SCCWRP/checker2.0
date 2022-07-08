@@ -219,10 +219,9 @@ def bruv_lab(all_dfs):
     errs = []
     warnings = []
 
-    print("bruvvideo")
-    print(bruvvideo['samplecollectiondate'])
-    print("bruvdata")
-    print(bruvdata['samplecollectiondate'])
+    # read in samplecollectiondate as pandas datetime so merging bruv dfs (incl metadata) without dtype conflict
+    bruvvideo['samplecollectiondate'] = pd.to_datetime(bruvvideo['samplecollectiondate'])
+    bruvdata['samplecollectiondate'] = pd.to_datetime(bruvdata['samplecollectiondate'])
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
@@ -256,6 +255,18 @@ def bruv_lab(all_dfs):
     }
     errs = [*errs, checkData(**args)]
     print("check ran - logic - bruv metadata records do not exist in database for bruv lab submission") #tested
+
+    # Check 2: bruv_data check on ['in_out','certainty']
+    args = {
+        "dataframe": bruvdata,
+        "tablename": 'tbl_bruv_data',
+        "badrows": bruvdata[(bruvdata['in_out'] == 'in') & (pd.isnull(bruvdata['certainty']))].index.tolist(),
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, camerareplicate",
+        "error_type": "Value Error",
+        "error_message": "Invalid entry for certainty column. Since in_out column is 'in', then certainty must have a nonempty value."
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - value - bruv_data - invalid certainty value") #tested
     # Logic Checks
     print("Begin BRUV Lab Logic Checks...")
     eng = g.eng
@@ -263,6 +274,9 @@ def bruv_lab(all_dfs):
     sql_df = DataFrame(sql.fetchall())
     sql_df.columns = sql.keys()
     bruvmeta = sql_df
+    print("this is bruvmeta ----------------")
+    print(bruvmeta)
+    print(bruvmeta['samplecollectiondate'])
     del sql_df
     # Logic Check 1: bruv_metadata (db) & bruv_videolog (submission), bruv_metadata records do not exist in database
     # double check these columns -- seems right for now, but these tables may be revised - zaib 17jun2022
@@ -281,7 +295,6 @@ def bruv_lab(all_dfs):
     # check  modified by jan's instruction 6jul22
     # Logic Check 2a: bruv_data missing records provided by bruv_videolog (only if fish field is yes)
     tmp = bruvvideo[bruvvideo['fish'] == 'Yes']
-    #using tmp instead of bruvvideo for badrows 
     args.update({
         "dataframe": bruvvideo,
         "tablename": "tbl_bruv_videolog",
@@ -294,11 +307,6 @@ def bruv_lab(all_dfs):
     print("check ran - logic - missing bruv_data records") #tested
 
     # Logic Check 2b: bruv_videolog missing records provided by bruv_data
-    if bruvdata.empty: #Bug fix: when df empty, date cols are recognized as object. cast type to pandas datetime type.
-        bruvdata['samplecollectiondate'] = pd.to_datetime(bruvdata['samplecollectiondate'])
-    print("these are the dtypes: ")
-    print(bruvdata.dtypes)
-    #tmp = bruvvideo[bruvvideo['fish'] == 'Yes']
     tmp = bruvdata.merge(
         bruvvideo.assign(present = 'yes'), 
         on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'camerareplicate', 'filename', 'videoorder'],
@@ -319,8 +327,6 @@ def bruv_lab(all_dfs):
     print("End BRUV Lab Logic Checks...")
 
     # Logic Check 2c: bruv_data should NOT have corresponding records if fish col (in bruvvideo) is 'no'
-    #tmp = bruvvideo[bruvvideo['fish'] == 'No']
-    #using tmp instead of bruvvideo for badrows 
     tmp = bruvdata.merge(
         bruvvideo.assign(present = 'yes'), 
         on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'camerareplicate', 'filename', 'videoorder'],
