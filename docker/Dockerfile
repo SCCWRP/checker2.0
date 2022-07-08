@@ -21,15 +21,15 @@ RUN pip3 install xlsxwriter
 RUN pip3 install openpyxl
 RUN pip3 install numpy 
 RUN pip3 install pandas 
-
-# Below were packages used for the EMPA checker, which did some map checks and geoprocessing
-# RUN pip3 install postgis
-# ENV PROJ_DIR=/usr/
-# RUN pip3 install fiona
-# RUN pip3 install shapely
-# ENV PROJ_LIBDIR=/usr/lib
-# ENV PROJ_INCDIR=/usr/lib
-# RUN pip3 install geopandas 
+RUN pip3 install postgis
+ENV PROJ_DIR=/usr/
+RUN pip3 install fiona
+RUN pip3 install shapely
+ENV PROJ_LIBDIR=/usr/lib
+ENV PROJ_INCDIR=/usr/lib
+RUN pip3 install geopandas 
+RUN pip3 install folium 
+RUN pip3 install matplotlib 
 #RUN pip3 install opencv-python
 
 RUN mkdir -p /var/www/checker/

@@ -89,8 +89,8 @@ def main():
         sheet: pd.read_excel(
             excel_path, 
             sheet_name = sheet,
-            skiprows = current_app.excel_offset, 
-            na_values = ['']
+            skiprows = current_app.excel_offset
+            #na_values = ['']
         )
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
@@ -121,12 +121,12 @@ def main():
     print("match(all_dfs)")
     #print(match(all_dfs))
 
-    print("match_dataset")
-    print(match_dataset)
-    print("match_report")
-    print(match_report)
-    print("all_dfs")
-    print(all_dfs)
+    # print("match_dataset")
+    # print(match_dataset)
+    # print("match_report")
+    # print(match_report)
+    # print("all_dfs")
+    # print(all_dfs)
 
     #NOTE if all tabs in all_dfs matched a database table, but there is still no match_dataset
     # then the problem probably lies in __init__.py
@@ -169,7 +169,7 @@ def main():
     #  We want to limit the manual cleaning of the data that the user has to do
     #  This function will strip whitespace on character fields and fix columns to match lookup lists if they match (case insensitive)
 
-    #print("preprocessing and cleaning data")
+    print("preprocessing and cleaning data")
     # We are not sure if we want to do this
     # some projects like bight prohibit this
     all_dfs = clean_data(all_dfs)
@@ -192,14 +192,15 @@ def main():
         sheet: pd.read_excel(
             excel_path, 
             sheet_name = sheet,
-            skiprows = current_app.excel_offset, 
+            skiprows = current_app.excel_offset,
             na_values = ['']
         )
         for sheet in pd.ExcelFile(excel_path).sheet_names
         if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
     }
     print("all_dfs after read back in")
-    print(all_dfs)
+    #print(all_dfs)
+
     
     # ----------------------------------------- #
 
@@ -217,14 +218,17 @@ def main():
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
 
+    print("dbmetadata")
+    #print(dbmetadata)
+
    
     # tack on core errors to errors list
     
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = False) 
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
     print("Right after core runs")
 
     errs.extend(core_output['core_errors'])
@@ -285,10 +289,11 @@ def main():
         errs = [e for e in errs if len(e) > 0]
         warnings = [w for w in warnings if len(w) > 0]
 
-        print("errs")
-        print(errs)
-        print("warnings")
-        print(warnings)
+        # commenting out errs and warnings print statements
+        #print("errs")
+        #print(errs)
+        #print("warnings")
+        #print(warnings)
 
         print("DONE - Custom Checks")
 
@@ -330,9 +335,13 @@ def main():
     # Therefore the row number in the errors and warnings will only match with their excel file's row if the column headers are actually in 
     #   the first row of the excel file.
     # These next few lines of code should correct that
-
+    for e in errs: 
+        assert type(e['rows']) == list, \
+            "rows key in errs dict must be a list"
     errs = correct_row_offset(errs, offset = current_app.excel_offset)
+    print("errs populated")
     warnings = correct_row_offset(warnings, offset = current_app.excel_offset)
+    print("warnings populated")
 
 
     # -------------------------------------------------------------------------------- #
@@ -370,7 +379,7 @@ def main():
         "table_to_tab_map" : session['table_to_tab_map']
     }
     
-    print(returnvals)
+    #print(returnvals)
 
     print("DONE with upload routine, returning JSON to browser")
     return jsonify(**returnvals)
@@ -380,14 +389,14 @@ def main():
 def getmap(submissionid, datatype):
     datatype = str(datatype)
     if datatype not in ('sav','bruv','fishseines','vegetation'):
-        return "Map not found ¯\_(ツ)_/¯"
+        return "Map not found"
 
     map_path = os.path.join(os.getcwd(), "files", str(submissionid), f'{datatype}_map.html')
     if os.path.exists(map_path):
         html = open(map_path,'r').read()
         return render_template(f'map_template.html', map=html)
     else:
-        return "Map not found ¯\_(ツ)_/¯"
+        return "Map not found"
 
 
 

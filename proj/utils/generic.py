@@ -36,8 +36,8 @@ def collect_error_messages(errs):
         for r in e['rows']
     ]
 
-    print("output from generic.py before groupby: ")
-    print(output)
+    #print("output from generic.py before groupby: ")
+    #print(output)
 
     output = DataFrame(output).groupby(['row_number', 'table']) \
         .apply(
@@ -45,8 +45,8 @@ def collect_error_messages(errs):
             lambda x: '; '.join( list(x['message']) ) 
         ).to_dict() 
 
-    print("output from generic.py after groupby: ")
-    print(output)
+    #print("output from generic.py after groupby: ")
+    #print(output)
     
     return [{'row_number': k[0], 'table': k[1], 'message': v} for k, v in output.items()]
 
@@ -58,8 +58,8 @@ def correct_row_offset(lst, offset):
     # Therefore the row number in the errors and warnings will only match with their excel file's row if the column headers are actually in 
     #   the first row of the excel file.
     # These next few lines of code should correct that
-    print("lst: ")
-    print(lst)
+    #print("lst: ")
+    #print(lst)
     print("offset: ")
     print(offset)
 

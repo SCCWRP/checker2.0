@@ -3,6 +3,8 @@
 from flask import current_app, g
 import pandas as pd
 import re
+import time
+import numpy as np
 
 def strip_whitespace(all_dfs: dict):
     print("BEGIN Stripping whitespace function")
@@ -35,23 +37,23 @@ def strip_whitespace(all_dfs: dict):
         
         # Strip whitespace left side and right side
         table_df[all_varchar_cols] = table_df[all_varchar_cols].apply(
-            lambda x: x.astype(str).str.strip()
+            lambda col: col.apply(lambda x: str(x).strip() if not pd.isnull(x) else x)
         )
         all_dfs[f"{table_name}"] = table_df
     print("END Stripping whitespace function")
-    print(all_dfs)
     return all_dfs
 
 def fix_case(all_dfs: dict):
     print("BEGIN fix_case function")
     for table_name in all_dfs.keys():
         table_df = all_dfs[f'{table_name}'] 
-    #Among all the varchar cols, only get the ones tied to the lookup list
+    #Among all the varchar cols, only get the ones tied to the lookup list -- modified to only find lu_lists that are not of numeric types
         lookup_sql = f"""
             SELECT
                 kcu.column_name, 
                 ccu.table_name AS foreign_table_name,
-                ccu.column_name AS foreign_column_name 
+                ccu.column_name AS foreign_column_name,
+                isc.data_type AS column_data_type 
             FROM 
                 information_schema.table_constraints AS tc 
                 JOIN information_schema.key_column_usage AS kcu
@@ -60,9 +62,13 @@ def fix_case(all_dfs: dict):
                 JOIN information_schema.constraint_column_usage AS ccu
                 ON ccu.constraint_name = tc.constraint_name
                 AND ccu.table_schema = tc.table_schema
+                JOIN information_schema.columns as isc
+                ON isc.column_name = ccu.column_name
+                AND isc.table_name = ccu.table_name
             WHERE tc.constraint_type = 'FOREIGN KEY' 
             AND tc.table_name='{table_name}'
-            AND ccu.table_name LIKE 'lu_%%';
+            AND ccu.table_name LIKE 'lu_%%'
+            AND isc.data_type NOT IN ('integer', 'smallint', 'numeric');
         """
         lu_info = pd.read_sql(lookup_sql, g.eng)
            
@@ -82,7 +88,7 @@ def fix_case(all_dfs: dict):
             x : [
                 item 
                 for item in table_df[x] 
-                if item.lower() in list(map(str.lower,foreignkeys_luvalues[x]))
+                if str(item).lower() in list(map(str.lower,foreignkeys_luvalues[x])) # bug: 'lower' for 'str' objects doesn't apply to 'int' object
             ]  
             for x in lu_info.column_name
         }
@@ -99,7 +105,7 @@ def fix_case(all_dfs: dict):
                   item : new_item 
                   for item in foreignkeys_rawvalues[col] 
                   for new_item in foreignkeys_luvalues[col] 
-                  if item.lower() == new_item.lower()
+                  if str(item).lower() == new_item.lower()
             } 
             for col in foreignkeys_rawvalues.keys()
         }
@@ -108,49 +114,91 @@ def fix_case(all_dfs: dict):
     print("END fix_case function")
     return all_dfs
 
+#revise fill_empty_cells with 
+## qry = select * from information_schema.columns WHERE table_name = {table_name} 
+# for table_name in all_dfs.keys():
+# SELECT 
+#      column_name as col_name, 
+#       udt_name as dt
+# FROM information_schema.columns
+#       WHERE table_name='{table_name}'
+# table_sql = <qry>
+# table_info = pd.read_sql(table_sql, g.eng)
+# make sure no system_fields -- NOT IN app.system fields (see above)
+# Datatypes are retrieved from information schema to populate empty cells with -88 or 'Not recorded' for the fill_empty_cells function.
+#revised fill_empty_cells - zaib
+def fill_empty_cells(all_dfs):
+    for table_name in all_dfs.keys():
+        table_df = all_dfs[f'{table_name}']
+        table_sql = f"""
+            SELECT 
+                column_name as col_names,
+                udt_name as udt
+            FROM 
+                information_schema.columns
+            WHERE
+                table_name='{table_name}'
+            AND column_name NOT IN ('{"','".join(current_app.system_fields)}');
+            """
+        table_info = pd.read_sql(table_sql, g.eng)
+        for col in table_df.columns:
+            print("col: ", col)
+            #dt = table_df[col].dtype
+            #if dt == object: #fillna method seems to not be doing what is should :/
+                #table_df[col].fillna("", inplace = True)
+                #table_df[col] = table_df[col].fillna('')
+                #table_df[col].replace(np.nan, '', inplace = True)
+                #table_df[col].replace('NA', '', inplace = True)
+                #table_df[col] = table_df[col].replace(np.nan, '', regex = True)
+                #table_df[col] = table_df[col].replace(np.NaN, '', regex = True)
+                #print("table_df[col]")
+                #print(table_df[col])
+                #time.sleep(3)
+            #print(table_df[col].isna())
+            #time.sleep(3)
+            dt = table_info.loc[table_info['col_names']== col, 'udt'].iloc[0]
+            print("dt: ", dt)
+            #if dt == np.float64 or dt == np.int64: #numeric data type fills correctly!
+            if dt in ['int2','int4','numeric']: #,'timestamp']: # timestamp cant have a -88
+                #table_df[col].fillna('', inplace = True) # empty string
+                table_df[col].fillna(-88, inplace = True)
+            elif dt == 'timestamp':
+                table_df[col].fillna(pd.Timestamp('1950-01-01 00:00:00'), inplace = True)
+            else: # meaning dt in ['varchar']
+                # Hard coding "NR" rather than Not recorded only for this particular case
+                filler = 'NR' if table_name == 'tbl_nutrients_data' and col == 'qualifier' else 'Not recorded'
+                filler = "00:00:00" if col.lower().endswith("time") else filler
+                table_df[col].fillna(filler, inplace = True)
+                del filler
+
+            #print("table_df subset null")
+            #print(table_df[table_df[col].isnull()]) #all of these dfs returned empty >:(
+            #print(table_df[table_df[col].isna()])
+            #time.sleep(3)
+        all_dfs[f'{table_name}'] = table_df
+    return all_dfs
+
 # because every project will have those non-generalizable, one off, "have to hard code" kind of fixes
 # and this project is no exception
 def hardcoded_fixes(all_dfs):
-    if 'tbl_ceden_waterquality' in all_dfs.keys():
+    if 'tbl_bruv_metadata' in all_dfs.keys():
+        bruvmeta = all_dfs['tbl_bruv_metadata']
 
-        # hard coded fix for analytename column for water quality
-        all_dfs['tbl_ceden_waterquality']['analytename'] = all_dfs['tbl_ceden_waterquality'] \
-            .analytename \
-            .apply(
-                lambda x:
-                'Nitrogen, Total Kjeldahl'
-                if 'kjeldahl' in str(x).lower()
-
-                else 'Ammonia as N'
-                if 'ammonia' in str(x).lower()
-
-                else 'Total Organic Carbon'
-                if 'organic carbon' in str(x).lower()
-
-                else 'Hardness as CaCO3'
-                if ('hardness' in str(x).lower()) and ('carbonate' in str(x).lower())
-
-                else 'Nitrate as N'
-                if 'nitrogen, nitrate (no3) as n' in str(x).lower()
-
-                else 'SpecificConductivity'
-                if 'specific conductance' in str(x).lower()
-
-                else 'Nitrogen, Total'
-                if str(x).lower() == 'nitrogen'
-
-                else 'OrthoPhosphate as P'
-                if 'orthophosphate' in str(x).lower()
-                
-                else 'Nitrate + Nitrite as N'
-                if (('nitrate' in str(x).lower()) and ('nitrite' in str(x).lower()))
-
-                else x
-            )
-
+        # 6/14/2022 Jan says there are files failing because the time format check is failing
+        # It was in fact failing because of the way excel handles time etc.
+        # this is a way to try and clean up the data before it gets checked
+        bruvmeta.bruvintime = bruvmeta.bruvintime.apply(
+            lambda x:
+            str(x)[:-3] if bool(re.match("([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$", str(x))) else x
+        )
+        bruvmeta.bruvouttime = bruvmeta.bruvouttime.apply(
+            lambda x:
+            str(x)[:-3] if bool(re.match("([01]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$", str(x))) else x
+        )
+        all_dfs['tbl_bruv_metadata'] = bruvmeta
     return all_dfs
 
-
+'''
 def clean_speciesnames(all_dfs):
     
     all_dfs['tbl_fish_length_data']['scientificname'] = all_dfs['tbl_fish_length_data']['scientificname'] \
@@ -192,15 +240,38 @@ def fill_speciesnames(all_dfs):
         )
 
     return all_dfs
-
+'''
 
 
 def clean_data(all_dfs):
-
+    print("Before strip whitespace and any preprocessing")
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #rint('\n')
     all_dfs = strip_whitespace(all_dfs)
-    all_dfs = fix_case(all_dfs)
-    all_dfs = clean_speciesnames(all_dfs)
-    all_dfs = fill_speciesnames(all_dfs)
-    # all_dfs = hardcoded_fixes(all_dfs) # That one is customized for BMP at this moment
+    print("After strip whitespace")
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    #print('\n')
+    
+    #disabled to test checks -- jk enabled to test submit data
+    
+    print("Before fix case")
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+    all_dfs = fix_case(all_dfs)                # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
+    print("After fix case")
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+
+    print("before filling empty values")
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+    all_dfs = fill_empty_cells(all_dfs)
+    print("after filling empty values")
+    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
+    print('\n')
+    
+    #all_dfs = clean_speciesnames(all_dfs)
+    #all_dfs = fill_speciesnames(all_dfs)
+    all_dfs = hardcoded_fixes(all_dfs)
 
     return all_dfs

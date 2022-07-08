@@ -7,10 +7,12 @@ from .main import upload
 from .login import homepage
 from .load import finalsubmit
 from .download import download
+from .cleardemo import clear_test_data
 from .scraper import scraper
+from .templater import templater # for dynamic lookup lists called into template before output to user
 from .core.functions import fetch_meta
 from .custom.sav import sav #def fcn in .py
-from .custom.bruv import bruv #def fcn in .py
+from .custom.bruv import bruv_field, bruv_lab #def fcn in .py
 from .custom.fishseines import fishseines #def fcn in .py
 from .custom.crabtrap import crabtrap
 from .custom.vegetation import vegetation #def fcn in .py
@@ -18,9 +20,10 @@ from .custom.vegetation import vegetation #def fcn in .py
 #from .custom.edna import edna_field, edna_lab #def fcn in .py
 #from .custom.sedimentgrainsize import sedimentgrainsize_field, sedimentgrainsize_lab #def fcn in .py
 from .custom.discretewq import discretewq #def fcn in .py
-from .custom.benthicinfauna import benthicinfauna #def fcn in .py
+from .custom.benthicinfauna import benthicinfauna_field, benthicinfauna_lab #def fcn in .py
 from .custom.feldspar import feldspar #def fcn in .py
-#from .custom.logger import logger #def fcn in .py
+from .custom.logger import logger #def fcn in .py
+from .custom.macroalgae import macroalgae #def fcn in .py
 from .custom.bruv_visual_map import bruv_visual_map
 from .custom.sav_visual_map import sav_visual_map
 from .custom.veg_visual_map import veg_visual_map
@@ -61,8 +64,15 @@ app.project_name = environ.get("PROJNAME")
 app.script_root = 'checker'
 
 # Maintainers
-#app.maintainers = ['robertb@sccwrp.org', 'zaibq@sccwrp.org','duyn@sccwrp.org','nataliem@sccwrp.org' ,'minan@sccwrp.org', 'delaramm@sccwrp.org'] #,'pauls@sccwrp.org']
-app.maintainers = ['monted97@gmail.com']
+app.maintainers = ['empa-im@sccwrp.org',
+    'pauls@sccwrp.org',
+    'robertb@sccwrp.org',
+    'zaibq@sccwrp.org',
+    'duyn@sccwrp.org',
+    'nataliem@sccwrp.org' ,
+    'minan@sccwrp.org',
+    'delaramm@sccwrp.org'
+]
 
 # Mail From
 app.mail_from = 'admin@checker.sccwrp.org'
@@ -75,7 +85,7 @@ app.system_fields = [
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
-app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists']
+app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists'] # if separate tabs for lu's, reflect here
 
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
@@ -148,21 +158,19 @@ app.datasets = {
 
     #removing tbl_bruv_data since this with be separated as lab data later - zaib 7 oct 2021
     # change to bruvmeta
-    'bruv':{
+    'bruv_field':{
         #'tables': ['tbl_protocol_metadata','tbl_bruv_metadata','tbl_bruv_data'],
         'tables': ['tbl_protocol_metadata','tbl_bruv_metadata'],
         'login_fields': ['login_email','login_agency'],
-        'function': bruv,
+        'function': bruv_field,
         'map_func': bruv_visual_map,
         'spatialtable': 'tbl_bruv_metadata'
     },
-    # '''
-    # 'bruvlab':{
-    #     'tables': ['tbl_bruv_data'],
-    #     'login_fields': ['login_email','login_agency'],
-    #     'function': bruvlab,
-    # },
-    # '''
+    'bruv_lab':{
+        'tables': ['tbl_protocol_metadata','tbl_bruv_videolog','tbl_bruv_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': bruv_lab,
+    },
     'fishseines':{
         'tables': ['tbl_protocol_metadata','tbl_fish_sample_metadata','tbl_fish_abundance_data','tbl_fish_length_data'],
         'login_fields': ['login_email','login_agency'],
@@ -182,21 +190,31 @@ app.datasets = {
         'map_func': veg_visual_map,
         'spatialtable': 'tbl_vegetation_sample_metadata'
     },
-    'benthicinfauna':{
-        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
+    'benthicinfauna_field':{
+        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_metadata'],
         'login_fields': ['login_email','login_agency'],
-        'function': benthicinfauna
+        'function': benthicinfauna_field
+    },
+    'benthicinfauna_lab':{
+        'tables': ['tbl_protocol_metadata','tbl_benthicinfauna_labbatch','tbl_benthicinfauna_abundance','tbl_benthicinfauna_biomass'],
+        'login_fields': ['login_email','login_agency'],
+        'function': benthicinfauna_lab
     },
     'feldspar':{
         'tables': ['tbl_protocol_metadata','tbl_feldspar_metadata','tbl_feldspar_data'],
         'login_fields': ['login_email','login_agency'],
         'function': feldspar
-    }#,
-   # 'logger':{
-   #     'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data'],
-   #     'login_fields': ['login_email','login_agency'],
-   #     'function': logger
-   # }
+    },
+    'logger':{
+        'tables': ['tbl_protocol_metadata','tbl_wq_logger_metadata','tbl_logger_ctd_data','tbl_logger_mdot_data','tbl_logger_troll_data','tbl_logger_tidbit_data','tbl_logger_other_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': logger
+    },
+    'macroalgae':{
+        'tables': ['tbl_protocol_metadata','tbl_macroalgae_sample_metadata','tbl_algaecover_data','tbl_floating_data'],
+        'login_fields': ['login_email','login_agency'],
+        'function': macroalgae
+    }
 }
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
@@ -205,6 +223,7 @@ app.register_blueprint(upload)
 app.register_blueprint(homepage)
 app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
+app.register_blueprint(clear_test_data)
 app.register_blueprint(scraper)
-
+app.register_blueprint(templater)
 

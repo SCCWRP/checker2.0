@@ -62,7 +62,7 @@ def load():
         # Lowercase all column names first
         all_dfs[tbl].columns = [x.lower() for x in all_dfs[tbl].columns]
 
-        assert not all_dfs[tbl].empty, "Somehow an empty dataframe was about to be submitted"
+        #assert not all_dfs[tbl].empty, "Somehow an empty dataframe was about to be submitted"
 
 
         if not warnings.empty:

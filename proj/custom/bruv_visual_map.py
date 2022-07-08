@@ -6,7 +6,7 @@ import os
 from shapely.geometry import Point
 import branca
 from folium import plugins
-from .bruv import bruv
+from .bruv import bruv_field
 from inspect import currentframe
 from flask import current_app
 from .functions import checkData, get_badrows

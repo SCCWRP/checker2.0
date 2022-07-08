@@ -78,5 +78,41 @@ def get_badrows(df_badrows):
         ) \
         .values
     ]
+# imported checkLogic from microplastics
+# cols is the columns to match the dfs on primary key cols
+# checkLogic function previously automates the custom error message, but I have not generalized it here
+#def checkLogic(df1, df2, cols: list, error_type = "Logic Error", custom_error_message = None, df1_name = "", df2_name = ""):
+# removed custom_error_message as an argument... see args dict in custom checks
 
+# checkLogic() returns indices of rows with logic errors
+def checkLogic(df1, df2, cols: list, error_type = "Logic Error", df1_name = "", df2_name = ""):
+    ''' each record in df1 must have a corresponding record in df2'''
+    print(f"cols: {cols}")
+    print(f"df1 cols: {df1.columns.tolist()}")
+    print(set([x.lower() for x in cols]).issubset(set(df1.columns)))
 
+    print(f"df2 cols: {df2.columns.tolist()}")
+    assert \
+    set([x.lower() for x in cols]).issubset(set(df1.columns)), \
+    "({}) not in columns of {} ({})" \
+    .format(
+        ','.join([x.lower() for x in cols]), df1_name, ','.join(df1.columns)
+    )
+    print("passed 1st assertion")
+    assert \
+    set([x.lower() for x in cols]).issubset(set(df2.columns)), \
+    "({}) not in columns of {} ({})" \
+    .format(
+        ','.join([x.lower() for x in cols]), df2_name, ','.join(df2.columns)
+    )
+    print("passed 2nd assertion")
+    # 'Kristin wrote this code in ancient times.'
+    # 'I still don't fully understand what it does.'
+    # all() returns whether all elements are true
+    print("before badrows")
+    badrows = df1[~df1[[x.lower() for x in cols]].isin(df2[[x.lower() for x in cols]].to_dict(orient='list')).all(axis=1)].index.tolist()
+    print(f"badrows: {badrows}")
+    print("after badrows")
+    #consider raising error if cols list is not str (see mp) --- ask robert though bc maybe nah
+
+    return(badrows)

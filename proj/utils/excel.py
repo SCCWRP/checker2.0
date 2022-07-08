@@ -56,8 +56,8 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
     
     # for errors
     redFill = PatternFill(
-        start_color='FFFF0000',
-        end_color='FFFF0000',
+        start_color='FF8585',
+        end_color='FF8585',
         fill_type='solid'
     )
 

@@ -3,11 +3,12 @@
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData, get_badrows, checkLogic
 
 def sav(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
+    lu_list_script_root = current_app.script_root
     
     # function should be named after the dataset in app.datasets in __init__.py
     assert current_function_name in current_app.datasets.keys(), \
@@ -51,6 +52,33 @@ def sav(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+
+    print("Begin SAV Logic Checks...")
+    # Logic Check 1: sav_metadata & savpercentcover_data
+    # Logic Check 1a: savmeta records not found in savper
+    args.update({
+        "dataframe": savmeta,
+        "tablename": "tbl_sav_metadata",
+        "badrows": checkLogic(savmeta, savper, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate'], df1_name = "SAV_metadata", df2_name = "SAVpercentcover_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in SAV_metadata must have corresponding records in SAVpercentcover_data."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sav_metadata records not found in savpercent_data") 
+    # Logic Check 1b: savmeta records missing for records provided by savper
+    args.update({
+        "dataframe": savper,
+        "tablename": "tbl_savpercentcover_data",
+        "badrows": checkLogic(savper, savmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate'], df1_name = "SAVpercentcover_data", df2_name = "SAV_metadata"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in SAVpercentcover_data must have corresponding records in SAV_metadata."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - sav_metadata records missing for records provided in  savpercent_data") 
+
+    print("End SAV Logic Checks...")
     
     #(1) transectlength_m is nonnegative # tested
     args.update({
@@ -67,12 +95,13 @@ def sav(all_dfs):
     args.update({
         "dataframe": savmeta,
         "tablename": "tbl_sav_metadata",
-        "badrows":savmeta[((savmeta['transectlength_m'] < 0) | (savmeta['transectlength_m'] > 50)) & (savmeta['transectlength_m'] != -88)].index.tolist(),
+        "badrows":savmeta[(savmeta['transectlength_m'] > 50) & (savmeta['transectlength_m'] != -88)].index.tolist(),
         "badcolumn": "transectlength_m",
         "error_type" : "Value out of range",
         "error_message" : "Your transect length exceeds 50 m. A value over 50 will be accepted, but is not expected."
     })
     warnings = [*warnings, checkData(**args)]
+    print("check ran - tbl_sav_metadata - transectlength range")
 
     #(3) mulitcolumn check for species (scientificname, commonname, status) for tbl_savpercentcover_data
 
@@ -81,6 +110,8 @@ def sav(all_dfs):
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
         
         lookup_df = lookup_df.assign(match="yes")
+        #bug fix: read 'status' as string to avoid merging on float64 (from df_to_check) and object (from lookup_df) error
+        df_to_check['status'] = df_to_check['status'].astype(str)
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)
@@ -88,8 +119,10 @@ def sav(all_dfs):
 
     lookup_sql = f"SELECT * FROM lu_plantspecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    check_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname', 'status']
+    #check_cols = ['scientificname', 'commonname', 'status']
+    check_cols = ['scientificname', 'commonname']
+    #lookup_cols = ['scientificname', 'commonname', 'status']
+    lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(savper, lu_species, check_cols, lookup_cols)
     
@@ -97,10 +130,14 @@ def sav(all_dfs):
         "dataframe": savper,
         "tablename": "tbl_savpercentcover_data",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "commonname",
         "error_type" : "Multicolumn Lookup Error",
-        "error_message" : "The scientificname/commonname/status entry did not match the lookup list." # need to add href for lu_species
+        "error_message" : f'The scientificname/commonname entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_plantspecies" '
+                        'target="_blank">lu_plantspecies</a>' # need to add href for lu_species
     })
     errs = [*errs, checkData(**args)]
+    print("check ran - savpercentcover_data - multicol species")
     
     return {'errors': errs, 'warnings': warnings}
