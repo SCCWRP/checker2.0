@@ -55,6 +55,7 @@ def feldspar(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
+    ''' # likely deleting this custom check warning
     args.update({
         "dataframe": felddata,
         "tablename": "tbl_feldspar_data",
@@ -74,5 +75,6 @@ def feldspar(all_dfs):
         "error_message" : "Your Date format is not correct, must be YYYY-MM-DD."
     })
     errs = [*warnings, checkData(**args)]
+    '''
     
     return {'errors': errs, 'warnings': warnings}

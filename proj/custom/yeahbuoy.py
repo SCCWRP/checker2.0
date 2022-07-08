@@ -3,6 +3,9 @@ from xml.etree import ElementTree as et
 import requests
 
 def correct_depth_ctd(loggerc):
+    #define constants
+    rho = 1000.0 #kg/m^3 - density of H2O
+    g = 9.8 #g/m^2 - gravity
     #convert pressure variables from mH2O to cmH2O
     loggerc['pressure_cmh2o'] = loggerc['pressure_mh2o']*(10**2)
     #retrieve from buoy data
@@ -90,12 +93,26 @@ def parse_xml(eroot):
 from pandas.io.json import json_normalize
 def retrieve_noaa_weather_data(stationid='', product='', begin_date='', end_date='', units ='metric'):
     #headers: access_token
-    r = requests.get(f'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date={begin_date}&end_date={end_date}&station={stationid}&product={product}&units={units}&time_zone=gmt&application=ports_screen&format=json', headers=my_headers)
-    #results = r.json()['results']
-    data = r.json()['data']
-    #df = json_normalize(results)
-    df = json_normalize(data)
-    return(df)
+    res = None
+    while res is None:
+        try:
+            #connect
+            r = requests.get(f'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date={begin_date}&end_date={end_date}&station={stationid}&product={product}&units={units}&time_zone=gmt&application=ports_screen&format=json', headers=my_headers)
+            #results = r.json()['results']
+            if 'data' in r.json():
+                print("Buoy Station Data Found!")
+                data = r.json()['data']
+                #df = json_normalize(results)
+                df = json_normalize(data)
+                res = df
+                print("Data successfully retrieved.")
+            else:
+                print(f'Reponse from NOAA: {r}, {r.json()}')
+                res = pd.DataFrame({}) 
+                print("Returning empty dataframe.")
+        except requests.exceptions.RequestException as e: 
+            print(f'Error: {e}')
+    return(res)
 
 # Note: For retrieve_noaa_weather_data(), I am fixing bugs with reading the json for multiple requested datatypes and getting all records for provided begin_date and end_date (for beyond 31 day retrieval) with nested for loops, but the function above works for one datatype for sure (product='air_pressure').
 # test = retrieve_noaa_weather_data(stationid='9413450', product='air_pressure', begin_date='20210226 18:42', end_date='20210227 00:00', units ='metric'

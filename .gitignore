@@ -4,3 +4,4 @@ export
 logs
 .vscode
 testing/
+proj/custom/stations.xml

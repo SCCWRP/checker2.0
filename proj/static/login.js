@@ -89,9 +89,9 @@
 
 
 
-    document.getElementById('agency-select').addEventListener('change',function(){
+/*     document.getElementById('agency-select').addEventListener('change',function(){
         document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
-    })
+    }) */
 
 
 

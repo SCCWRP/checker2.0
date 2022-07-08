@@ -62,6 +62,7 @@ def checkPrecision(dataframe, tablename, eng, meta, *args, output = None, **kwar
             (col in meta[meta.udt_name == 'numeric'].column_name.values)
             and (col not in current_app.system_fields)
         ):
+
             prec = int(
                 meta.iloc[
                     meta[
@@ -182,6 +183,10 @@ def checkLength(dataframe, tablename, eng, meta, *args, output = None, **kwargs)
 def checkNotNull(dataframe, tablename, eng, meta, *args, output = None, **kwargs):
     print("BEGIN checkNotNULL")
 
+    if 'sampleid' in dataframe.columns:
+        print(dataframe.sampleid)
+        import time
+        time.sleep(3)
     ret = \
     [
         checkData(
@@ -190,7 +195,7 @@ def checkNotNull(dataframe, tablename, eng, meta, *args, output = None, **kwargs
             badrows = dataframe[
                     dataframe[col].apply(
                         lambda x:
-                        True if ((pd.isnull(x)) or (x == '')) else False
+                        True if ((pd.isnull(x)) or (x == '') or (str(x).lower() == 'nan')) else False
                     )
                 ].index.tolist(),
             badcolumn = col,

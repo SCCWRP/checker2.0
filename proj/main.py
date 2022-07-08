@@ -121,12 +121,12 @@ def main():
     print("match(all_dfs)")
     #print(match(all_dfs))
 
-    print("match_dataset")
-    print(match_dataset)
-    print("match_report")
-    print(match_report)
-    print("all_dfs")
-    print(all_dfs)
+    # print("match_dataset")
+    # print(match_dataset)
+    # print("match_report")
+    # print(match_report)
+    # print("all_dfs")
+    # print(all_dfs)
 
     #NOTE if all tabs in all_dfs matched a database table, but there is still no match_dataset
     # then the problem probably lies in __init__.py
@@ -199,7 +199,7 @@ def main():
         if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
     }
     print("all_dfs after read back in")
-    print(all_dfs)
+    #print(all_dfs)
 
     
     # ----------------------------------------- #
