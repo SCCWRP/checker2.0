@@ -10,7 +10,6 @@ from .download import download
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
 from .core.functions import fetch_meta
-# Dynamic Imports Here
 
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
@@ -87,6 +86,10 @@ app.datasets = {
     #    If order doesnt matter then that above comment can be disregarded
     # function
     #   the custom checks function associated with the datatype. Imported up top
+    # '__example__':{
+    #     'tables': ['tbl___example__'],
+    #     'login_fields': ['login_email']
+    # },
 }
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
