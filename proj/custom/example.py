@@ -16,21 +16,23 @@ def __example__(all_dfs):
     assert expectedtables.issubset(set(all_dfs.keys())), \
         f"""In function {current_function_name} - {expectedtables - set(all_dfs.keys())} not found in keys of all_dfs ({','.join(all_dfs.keys())})"""
 
+    # define errors and warnings list
+    errs = []
+    warnings = []
+
+
     # since often times checks are done by merging tables (Paul calls those logic checks)
     # we assign dataframes of all_dfs to variables and go from there
     # This is the convention that was followed in the old checker
     
     # This data type should only have tbl_example
-    # __example__ = all_dfs['tbl___example__']
-
-    errs = []
-    warnings = []
+    # example = all_dfs['tbl_example']
 
     # Alter this args dictionary as you add checks and use it for the checkData function
     # for errors that apply to multiple columns, separate them with commas
     # args = {
-    #     "dataframe": __example__,
-    #     "tablename": 'tbl___example__',
+    #     "dataframe": example,
+    #     "tablename": 'tbl_example',
     #     "badrows": [],
     #     "badcolumn": "",
     #     "error_type": "",
@@ -47,6 +49,4 @@ def __example__(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
-
-    
-    return {'errors': errs, 'warnings': warnings}
+    # return {'errors': errs, 'warnings': warnings}

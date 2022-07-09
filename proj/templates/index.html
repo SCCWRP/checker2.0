@@ -5,9 +5,16 @@
   <!--This helped so much: https://getbootstrap.com/docs/5.0/components/card/-->
   <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
   <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+  <script>
+    let script_root = {{request.script_root|tojson|safe}};
+    script_root = script_root.replace('/','');
+    console.log('script_root');
+    console.log(script_root);
+    
+  </script>
   <script src="{{url_for('static', filename='globals.js')}}"></script>
 </head>
-
+i
 <body>
   <main>
 

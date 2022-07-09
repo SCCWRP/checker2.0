@@ -1,4 +1,4 @@
-from os import environ
+import os, json
 from flask import Flask,current_app, g
 from sqlalchemy import create_engine
 
@@ -11,6 +11,8 @@ from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
 from .core.functions import fetch_meta
 
+CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
+
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
 
@@ -18,15 +20,15 @@ app.debug = True # remove for production
 # does your application require uploaded filenames to be modified to timestamps or left as is
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-app.config['MAIL_SERVER'] = '192.168.1.18'
+app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
 
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
-app.secret_key = environ.get("FLASK_APP_SECRET_KEY")
+app.secret_key = os.environ.get("FLASK_APP_SECRET_KEY")
 
 # set the database connection string, database, and type of database we are going to point our application at
-#app.eng = create_engine(environ.get("DB_CONNECTION_STRING"))
+#app.eng = create_engine(os.environ.get("DB_CONNECTION_STRING"))
 def connect_db():
-    return create_engine(environ.get("DB_CONNECTION_STRING"))
+    return create_engine(os.environ.get("DB_CONNECTION_STRING"))
 
 @app.before_request
 def before_request():
@@ -38,24 +40,19 @@ def teardown_request(exception):
         g.eng.dispose()
 
 # Project name
-app.project_name = environ.get("PROJNAME")
+app.project_name = os.environ.get("PROJNAME")
 
 # script root (for any links we put, mainly lookup lists)
-app.script_root = 'checker'
+app.script_root = os.environ.get('FLASK_APP_SCRIPT_ROOT')
 
 # Maintainers
-app.maintainers = ['empa-im@sccwrp.org',
+app.maintainers = [
     'pauls@sccwrp.org',
-    'robertb@sccwrp.org',
-    'zaibq@sccwrp.org',
-    'duyn@sccwrp.org',
-    'nataliem@sccwrp.org' ,
-    'minan@sccwrp.org',
-    'delaramm@sccwrp.org'
+    'robertb@sccwrp.org'
 ]
 
 # Mail From
-app.mail_from = 'admin@checker.sccwrp.org'
+app.mail_from = os.environ.get('FLASK_APP_MAIL_FROM')
 
 # system fields
 app.system_fields = [
@@ -70,7 +67,7 @@ app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists'] # if separate ta
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
 # NESE offsets by 2 rows
-app.excel_offset = 0
+app.excel_offset = int(os.environ.get('FLASK_APP_EXCEL_OFFSET'))
 
 # data sets / groups of tables for datatypes will be defined here in __init__.py
 ## (Zaib) Changes to make to the dataset: 
@@ -78,19 +75,9 @@ app.excel_offset = 0
 ## into <datatype>meta and <datatype>data for field and lab, respectively. 
 ## Adjust the functions within the <datatype>.py files to split the field and lab checks. 
 ## 
-app.datasets = {
-    # tables
-    #   these lists are treated as sets when it does matching.
-    #   i think they have to be stored here as lists because sets are not json serializable?
-    #   NOTE BE SURE TO PUT THEM IN THE ORDER YOU NEED THEM TO BE LOADED
-    #    If order doesnt matter then that above comment can be disregarded
-    # function
-    #   the custom checks function associated with the datatype. Imported up top
-    # '__example__':{
-    #     'tables': ['tbl___example__'],
-    #     'login_fields': ['login_email']
-    # },
-}
+assert os.path.exists(os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')), \
+    f"{os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')} configuration file not found"
+app.datasets = json.loads( open( os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json'), 'r' ).read() )
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 

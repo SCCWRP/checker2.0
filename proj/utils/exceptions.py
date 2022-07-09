@@ -3,7 +3,7 @@ from flask import jsonify
 
 def default_exception_handler(mail_from, errmsg, maintainers, project_name, login_info, submissionid, mail_server, attachment = None):
     print("Checker application came across an error")
-    #print(errmsg) # commenting out due to unicodeencodeerror
+    print(errmsg) # commenting out due to unicodeencodeerror
     response = jsonify(
         {
             'critical_error': True,

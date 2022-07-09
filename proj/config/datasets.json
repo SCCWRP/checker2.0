@@ -1,0 +1,6 @@
+{
+    "example": {
+        "tables": ["tbl___example__"],
+        "login_fields": ["login_email"]
+    }
+}

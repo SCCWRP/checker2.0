@@ -66,7 +66,7 @@ def login():
 
     # Something that may or may not be specific for this project, but
     # based on the dataset, there are different login fields that are relevant
-    assert login_info.get('login_datatype') in current_app.datasets.keys(), f"login_datatype form field value {login_info.get('login_datatype')} not found in current_app.datasets.keys()"
+    # assert login_info.get('login_datatype') in current_app.datasets.keys(), f"login_datatype form field value {login_info.get('login_datatype')} not found in current_app.datasets.keys()"
     session['login_info'] = {k: v for k,v in login_info.items() if k in current_app.datasets.get(login_info.get('login_datatype')).get('login_fields')}
     
     print(session.get('login_info'))
@@ -100,33 +100,6 @@ def login():
 
     return jsonify(msg="login successful")
 
-
-@homepage.route('/startdates', methods = ['GET','POST'])
-def startdates():
-    
-    #eng = current_app.eng
-
-    estuary_name = request.form.get('login_estuary')
-
-    print("estuary_name")
-    print(estuary_name)
-    
-    startdates = pd.read_sql(
-        f"""
-            SELECT DISTINCT estuary_date 
-            FROM mobile_estuary_info
-            WHERE estuary_name IN ('{estuary_name}')
-        """,
-        g.eng
-    ).estuary_date.to_list()
-
-    startdates = [x.strftime("%Y-%m-%d") for x in startdates]
-    
-    enddates = [x.strftime('%Y-%m-%d') for x in [datetime.datetime.strptime(x, '%Y-%m-%d')  + relativedelta(months=1) for x in startdates]]
-    daterange = [x + "_" + y for x,y in zip(startdates,enddates)]
-    print("daterange")
-    print(daterange)
-    return jsonify(startdates = daterange)
 
     
 # When an exception happens when the browser is sending requests to the homepage blueprint, this routine runs
