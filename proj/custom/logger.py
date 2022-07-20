@@ -179,10 +179,18 @@ def logger(all_dfs):
     # Logic Check 3: wq_metadata & Troll_data
     # Logic Check 3a: metadata records not found in Troll_data
     if 'troll' in loggermeta['sensortype'].unique().tolist():
+        loggertroll['sensorid'] = loggertroll['sensorid'].astype(str)
+        tmp = loggermeta.merge(
+            loggertroll.assign(present= 'yes'), 
+            on = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], 
+            how = 'left'
+        )
+        badrows = tmp[pd.isnull(tmp.present)].index.tolist()
+        #checkLogic(loggermeta[loggermeta['sensortype'] == 'troll'], loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data")
         args.update({
             "dataframe": loggermeta,
             "tablename": "tbl_wq_logger_metadata",
-            "badrows": checkLogic(loggermeta[loggermeta['sensortype'] == 'troll'], loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data"), 
+            "badrows": badrows, 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Each record in WQ_metadata must have corresponding record(s) in Troll_data."
@@ -191,21 +199,25 @@ def logger(all_dfs):
         print("check ran - wq_metadata vs logger_troll_data") # no data submitted for troll
 
     # Logic Check 3b: metadata record missing for records provided by Troll_data
+    ##### REVISED LOGIC CHECK # need to add if not empty
     if not loggertroll.empty:
+        loggertroll['sensorid'] = loggertroll['sensorid'].astype(str)
+        tmp = loggertroll.merge(
+            loggermeta.assign(present= 'yes'), 
+            on = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], 
+            how = 'left'
+        )
+        badrows = tmp[pd.isnull(tmp.present)].index.tolist()
         args.update({
             "dataframe": loggertroll,
             "tablename": "tbl_logger_troll_data",
-            "badrows": checkLogic(loggertroll, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Troll_data", df2_name = "WQ_metadata"), 
+            "badrows": badrows, 
             "badcolumn": "siteid, estuaryname, stationno, sensortype, sensorid",
             "error_type": "Logic Error",
             "error_message": "Records in Troll_data must have a corresponding record in WQ_metadata."
         })
         errs = [*errs, checkData(**args)]
-        print(loggertroll)
-        print("checklogic res")
-        print(checkLogic(loggertroll, loggermeta, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "Troll_data", df2_name = "WQ_metadata"))
-        print("----------------------------------")
-        print("check ran - logger_troll_data vs wq_metadata") # tested
+    print("check ran - logger_troll_data vs wq_metadata") # tested
     ##########
     # Check: Bad sensortype entry for troll_data
     if ['troll'] != loggertroll['sensortype'].unique().tolist(): # 'troll' is NOT the sensortype provided, more sensortypes filled
