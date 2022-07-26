@@ -178,7 +178,7 @@ def main():
     #   With the way the code is structured, that should always be the case, but the assert statement will let us know if we messed up or need to fix something 
     #   Technically we could write it back with the original tab names, and use the tab_to_table_map in load.py,
     #   But for now, the tab_table_map is mainly used by the javascript in the front end, to display error messages to the user
-    writer = pd.ExcelWriter(excel_path)
+    writer = pd.ExcelWriter(excel_path, engine = 'xlsxwriter', options = {"strings_to_formulas":False})
     for tblname in all_dfs.keys():
         all_dfs[tblname].to_excel(writer, sheet_name = tblname, startrow = current_app.excel_offset, index=False)
     writer.save()
