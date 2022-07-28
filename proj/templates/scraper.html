@@ -1,0 +1,44 @@
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+  <style>
+	.datatablerowhighlight {
+    		background-color: #ECFFB3 !important;
+	}
+  </style>
+  <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript">
+  	$(document).ready( function () {
+    		$('#mytable').DataTable( { "pageLength": -1 } );
+	} );
+  </script>
+</head>
+<body>
+<h3>Lookup list: {{ list }}</h3><hr>
+<table id="mytable" class="display">
+{% for k in scraper %}
+	{% if loop.index == 1 %}
+		<thead>
+		<tr>
+		{% for t in k.keys() %}
+			{% if t == primary: %}
+				<th class="datatablerowhighlight"><h6>Lookup list value:</h6> {{ t }} </th>
+			{% else %}
+				<th> {{ t }} </th>
+			{% endif %}
+		{% endfor %}
+		</tr>
+		</thead>
+		<tbody>
+	{% endif %}
+	<tr>
+	{% for key,value in k.items() %}
+		<td> {{ value }} </td>
+	{% endfor %}
+	</tr>
+{% endfor %}
+	</tbody>
+</table>
+</body>
+</html>
