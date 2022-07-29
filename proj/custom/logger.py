@@ -185,7 +185,7 @@ def logger(all_dfs):
             on = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], 
             how = 'left'
         )
-        badrows = tmp[pd.isnull(tmp.present)].index.tolist()
+        badrows = tmp[pd.isnull(tmp.present) & (tmp['sensorid'] == 'troll')].index.tolist()
         #checkLogic(loggermeta[loggermeta['sensortype'] == 'troll'], loggertroll, cols = ['siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid'], df1_name = "WQ_metadata", df2_name = "Troll_data")
         args.update({
             "dataframe": loggermeta,
@@ -196,7 +196,7 @@ def logger(all_dfs):
             "error_message": "Each record in WQ_metadata must have corresponding record(s) in Troll_data."
         })
         errs = [*errs, checkData(**args)]
-        print("check ran - wq_metadata vs logger_troll_data") # no data submitted for troll
+        print("check ran - wq_metadata vs logger_troll_data") # tested
 
     # Logic Check 3b: metadata record missing for records provided by Troll_data
     ##### REVISED LOGIC CHECK # need to add if not empty
