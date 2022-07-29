@@ -69,7 +69,8 @@ def chemistry(all_dfs):
 
     chem = chem.merge(lu_analyte[['analytename','analyteclass']], on = 'analytename', how = 'left')
 
-    print("one")
+
+    print("Check - For Nutrient analytes, results must be reported in mg/L")
     badrows = chem[(chem.analyteclass.isin(['Nutrients'])) & (~chem.unit.isin(['mg/L']))].index.tolist()
     args.update({
         "badrows": badrows,
@@ -80,7 +81,7 @@ def chemistry(all_dfs):
     errs = [*errs, checkData(**args)]
 
 
-    print("two")
+    print("Check - For all analytes other than those deemed to be Nutrients, results must be reported in ug/L")
     badrows = chem[(~chem.analyteclass.isin(['Nutrients'])) & (~chem.unit.isin(['ug/L']))].index.tolist()
     args.update({
         "badrows": badrows,
@@ -90,7 +91,7 @@ def chemistry(all_dfs):
     })
     errs = [*errs, checkData(**args)]
 
-    print("three")
+    print("Check - The Result value should not be a negative number")
     badrows = chem[chem.result < 0].index.tolist()
     args.update({
         "badrows": badrows,
@@ -101,7 +102,7 @@ def chemistry(all_dfs):
     errs = [*errs, checkData(**args)]
 
 
-    print("four")
+    print("Check - If Result value is a non-negative value which is less than the RL, this is considered a Non Detect, so the Result Qualifier should say 'Not Detected'")
     badrows = chem[(chem.result >= 0) & (chem.result < chem.rl) & (~chem.resultqualifier.isin(['Not Detected']))].index.tolist()
     args.update({
         "badrows": badrows,
@@ -112,7 +113,7 @@ def chemistry(all_dfs):
     errs = [*errs, checkData(**args)]
 
 
-    print("five")
+    print("Check - If Result value is missing, the result qualifier should be Not Analyzed or Not Detected")
     badrows = chem[pd.isnull(chem.result) & (~chem.resultqualifier.isin(['Not Analyzed','Not Detected']))].index.tolist()
     args.update({
         "badrows": badrows,
