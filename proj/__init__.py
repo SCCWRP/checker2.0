@@ -62,7 +62,7 @@ app.system_fields = [
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
-app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists'] # if separate tabs for lu's, reflect here
+app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists', 'Results_Example'] # if separate tabs for lu's, reflect here
 
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file

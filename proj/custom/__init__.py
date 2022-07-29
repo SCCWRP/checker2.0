@@ -1,1 +1,1 @@
-from example import __example__
+from .chemistry import chemistry
