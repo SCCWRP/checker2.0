@@ -244,18 +244,69 @@ def bruv_lab(all_dfs):
     # errs = [*errs, checkData(**args)]
 
     # Custom Checks
-    # Check 1: bruv_videolog Ns col must be a postive integer
+    # Check 1: bruv_videolog MaxNs col must be a postive integer 
     args = {
         "dataframe": bruvdata,
         "tablename": 'tbl_bruv_data',
-        "badrows": bruvdata[bruvdata['ns'] < 0].index.tolist(),
+        "badrows": bruvdata[bruvdata['maxns'] < 0].index.tolist(),
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, camerareplicate",
         "error_type": "Value Error",
-        "error_message": "Ns must be a positive integer. Field cannot be left blank or filled with -88."
+        "error_message": "MaxNs must be a positive integer or left blank."
     }
     errs = [*errs, checkData(**args)]
     print("check ran - logic - bruv metadata records do not exist in database for bruv lab submission") #tested
 
+    # Check: if in_out = 'out', maxn & maxns MUST be NULL
+    args = {
+        "dataframe": bruvdata,
+        "tablename": 'tbl_bruv_data',
+        "badrows": bruvdata[(bruvdata['in_out'] == 'out') & ((~bruvdata['maxn'].isna()) | (~bruvdata['maxns'].isna()))].index.tolist(),
+        "badcolumn": "in_out, maxn, maxns",
+        "error_type": "Value Error",
+        "error_message": "Invalid entry for MaxN/MaxNs column. Since in_out column is 'out', then both MaxN/MaxNs must be empty."
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - value - bruv_data - invalid maxn/maxns value (out)") #tested #working
+
+    # Check: if in_out = 'in', maxn & maxns MUST be INTEGER values
+    args = {
+        "dataframe": bruvdata,
+        "tablename": 'tbl_bruv_data',
+        "badrows": bruvdata[(bruvdata['in_out'] == 'in') & ((bruvdata['maxn'].isna()) | (bruvdata['maxns'].isna()))].index.tolist(),
+        "badcolumn": "in_out, maxn, maxns",
+        "error_type": "Value Error",
+        "error_message": "Invalid entry for MaxN/MaxNs column. Since in_out column is 'in', then both MaxN/MaxNs must have an integer value and cannot be left empty."
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - value - bruv_data - invalid maxn/maxns value (in)") #tested #working
+
+    # Check: MaxN = sum(MaxNs) for i = 0, 1,2,.., where i is the rows per grouped_df on grouped_cols
+    # grouped_cols = ['siteid','estuaryname','stationno','samplecollectiondate','camerareplicate','foventeredtime','fovlefttime','in_out'] 
+    cols = ['siteid','estuaryname','stationno','samplecollectiondate','camerareplicate','foventeredtime','fovlefttime','in_out'] 
+    # keep origial indices for marking file
+    bruvdata['tmp_row'] = bruvdata.index
+    #subsetting for 'in_out' == 'in' so that there are fewer keys to loop through
+    grouped_df = bruvdata[bruvdata['in_out'] == 'in'].groupby(cols) 
+    gb = grouped_df.groups
+    key_list_from_gb = gb.keys()
+    badrows = [] #initialized to append
+    for key, values in gb.items():
+        if key in key_list_from_gb: #this is by unique group
+            tmp = bruvdata.loc[values]
+            brows = tmp[(tmp['maxn'] != tmp['maxns'].sum())].tmp_row.tolist()
+            #extend adds second list elts to first list
+            badrows.extend(brows) #this will be populated to the badrows key in the args dict
+    bruvdata = bruvdata.drop(columns=['tmp_row'])
+    args = {
+        "dataframe": bruvdata,
+        "tablename": 'tbl_bruv_data',
+        "badrows": badrows,
+        "badcolumn": "maxns, maxn",
+        "error_type": "Value Error",
+        "error_message": "MaxN is the sum of all/each species counts (MaxNs) within a given frame. Each record with the same FOV frame should have the same value for MaxN."
+    }
+    errs = [*errs, checkData(**args)]
+    print("check ran - value - bruv_data - maxn as sum of maxns by group")
     # Check 2: bruv_data check on ['in_out','certainty']
     args = {
         "dataframe": bruvdata,
