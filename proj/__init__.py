@@ -71,6 +71,7 @@ app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists', 'Results_Example
 # NESE offsets by 2 rows
 app.excel_offset = int(os.environ.get('FLASK_APP_EXCEL_OFFSET'))
 
+
 # data sets / groups of tables for datatypes will be defined in datasets.json in the proj/config folder
 assert os.path.exists(os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')), \
     f"{os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')} configuration file not found"
@@ -108,6 +109,20 @@ for datasetname, dataset in app.datasets.items():
             )
             
             cursor.execute(command)
+            print(dataset)
+            for tablename in dataset.get('tables'):
+                print(f"Attempting to add login fields to {tablename}")
+                print(fieldname)
+                command = sql.SQL(
+                    """
+                    ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {field} VARCHAR(255);
+                    """
+                ).format(
+                    field = sql.Identifier(fieldname),
+                    table = sql.Identifier(tablename)
+                )
+                cursor.execute(command)
+
 
 
 

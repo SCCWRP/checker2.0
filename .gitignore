@@ -3,11 +3,17 @@ export/*
 logs
 .vscode
 testing/
-proj/custom/stations.xml
+
+# ignore xml and datasets.json config files
+proj/custom/*.xml
 proj/config/datasets.json
+
+# ignore pycache directories
 __pycache__/
 proj/__pycache__/
 proj/custom/__pycache__/
 proj/core/__pycache__/
 proj/utils/__pycache__/
 
+# ignore custom checks files
+proj/custom/*_custom.py
