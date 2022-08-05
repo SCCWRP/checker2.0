@@ -27,18 +27,51 @@ i
             {{projectname}} Checker
           </div>
           <div class="card-body">
-            <div id="data-logger-raw-form-container">
-              <form id="main-login-form">
-                <div class="login-input-container form-group">
-                  <label for="login_email">Enter your email address:</label>
-                  <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
-                </div>
-               
-                <div class="login-input-container form form-group" id="login-form-submit-btn-container">
-                  <button class="btn btn-secondary" type="submit">Sign in</button>
-                </div>
+            
+            <div>
+              <form id="dtype-form">
+                
               </form>
             </div>
+
+            <div>
+              {% for dtype in dtypes.keys() %}
+              <div>
+                <form class="login-form">
+                  <!-- <div class="login-input-container form-group">
+                    <label for="login_email">Enter your email address:</label>
+                    <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
+                  </div> -->
+                  {% for field in dtypes[dtype]['login_fields'] %}
+                  <div class="login-form-element-container login-{{field.fieldtype}}-container form-group">
+                    <label for="login_{{field.fieldname}}">{%if field.label %}{{field.label}}{% else %} {{field.fieldname}} {% endif %}:</label>
+                    {% if field.fieldtype == 'input' %}
+                    <input id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}" name="login_{{field.fieldname}}" class="form-control" placeholder="name@example.com">
+                    {% else %}
+                    <!--There should only be two kinds of form elements - selects and inputs--> 
+                    <select 
+                      id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}"
+                      name="login_{{field.fieldname}}" 
+                      class="form-control dynamic-select-item {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %}"
+                      data-dtype="{{dtype}}"
+                      data-index="{%if field.independent == 'True' %}-1{% else %}{{field.sequencenum}}{% endif %}"
+                      data-option-table="{{field.options_from_table}}"
+                      data-option-display-field="{{field.options_display_field}}"
+                      data-option-values-field="{{field.options_values_field}}"
+                    ></select>
+                    {% endif %}
+
+                  </div>  
+                  {% endfor %}
+                
+                  <div class="login-input-container form form-group" id="login-form-submit-btn-container">
+                    <button class="btn btn-secondary" type="submit">Sign in</button>
+                  </div>
+                </form>
+              </div>
+              {%endfor%}
+            </div>
+            
           </div>
         </div>
       </div>

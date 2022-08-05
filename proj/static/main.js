@@ -1,48 +1,52 @@
 (function(){
-    const loginForm = document.getElementById("main-login-form");
+    
+    // const loginForm = document.getElementById("main-login-form");
+    const loginForms = document.getElementsByClassName("login-form");
     const fileForm = document.getElementById("file-submission-form");
 
-    //routine for when the user logs in
-    loginForm.addEventListener("submit", async function(e) {
-        e.preventDefault();
-        
-        if (document.getElementById('login_email').value === '') {
-            alert("Please enter an email address");
-            return;
-        }
+    Array.from(loginForms).forEach(loginForm => {
+        //routine for when the user logs in
+        loginForm.addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            if (loginForm.querySelector("[name='login_email']").value === '') {
+                alert("Please enter an email address");
+                return;
+            }
 
-        const formData = new FormData(this);
-        const response = await fetch(`/${script_root}/login`, {
-            method: 'post',
-            body: formData
-        });
-        console.log(response);
-        const result = await response.json();
-        console.log(result);
+            const formData = new FormData(this);
+            const response = await fetch(`/${script_root}/login`, {
+                method: 'post',
+                body: formData
+            });
+            console.log(response);
+            const result = await response.json();
+            console.log(result);
 
-        // handling the case where there was a critical error
-        if (result.critical_error) {
-            // critical_error_handler defined in globals.js
-            critical_error_handler(result.contact)
-        } else if (Object.keys(result).includes("user_error_msg")) {
-            alert(result.user_error_msg);
-            window.location = `/${script_root}`;
-        }
-        
-        // we can possibly validate the email address on the python side and return a message in "result"
-        // and handle the situation accordingly
-        document.querySelector("#login-outer-container").style.display = "none";
-        document.querySelector(".before-submit").classList.remove("hidden");
+            // handling the case where there was a critical error
+            if (result.critical_error) {
+                // critical_error_handler defined in globals.js
+                critical_error_handler(result.contact)
+            } else if (Object.keys(result).includes("user_error_msg")) {
+                alert(result.user_error_msg);
+                window.location = `/${script_root}`;
+            }
+            
+            // we can possibly validate the email address on the python side and return a message in "result"
+            // and handle the situation accordingly
+            document.querySelector("#login-outer-container").style.display = "none";
+            document.querySelector(".before-submit").classList.remove("hidden");
 
-        // Add drag and drop event listener only after the user signs in
-        document.querySelector("body").addEventListener('drop', function(event){
-            event.stopPropagation();
-            event.preventDefault();
-            const dropped_files = event.dataTransfer.files;
-            document.querySelector('#file-submission-form input.form-control-file').files = dropped_files;
-            document.querySelector('#file-submission-form').requestSubmit();
-        });
+            // Add drag and drop event listener only after the user signs in
+            document.querySelector("body").addEventListener('drop', function(event){
+                event.stopPropagation();
+                event.preventDefault();
+                const dropped_files = event.dataTransfer.files;
+                document.querySelector('#file-submission-form input.form-control-file').files = dropped_files;
+                document.querySelector('#file-submission-form').requestSubmit();
+            });
 
+        })
     })
     
 

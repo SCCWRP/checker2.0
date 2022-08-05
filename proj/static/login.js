@@ -1,98 +1,65 @@
-(function (){
+{
+    console.log("Hello world")
+    // This is for the select dropdowns that are not dependent on other select items
+    Array.from(document.querySelectorAll('select.dynamic-select-item[data-index]')).forEach(async function(elem, i, arr) {
+        
+        let valuesField = elem.dataset.optionValuesField;
+        let displayField = elem.dataset.optionDisplayField;
+        let table = elem.dataset.optionTable;
+        
+        if (Number(elem.dataset.index) >= 1){
+            elem.addEventListener('change', async function(e){
+                
+                nextElem = elem.parentElement.parentElement.querySelector(`select.dynamic-select-item[data-index="${Number(elem.dataset.index) + 1}"]`)
 
-    // const updateSelectInput = async function (route) {
+                if (nextElem) {
+                    let previousElements = arr.filter(d => (d.dataset.index < nextElem.dataset.index) && (d.dataset.index >= 1) )
+                    .map(d => {
+                        return new Object({
+                            "value": d.value, // the value of the select item
+                            "fieldname" : d.dataset.optionValuesField // the name attribute of the select item
+                        })
+                    })
+                    .map(d => {
+                        return `${d.fieldname}=${d.value}`
+                    })
+                    .join('&')
+                    
+                    console.log("previousElements")
+                    console.log(previousElements)
+                    
+                    let resp = await fetch(`
+                        /${script_root}/login_values?valuefield=${nextElem.dataset.optionValuesField}&displayfield=${nextElem.dataset.optionDisplayField}&table=${nextElem.dataset.optionTable}&${previousElements}
+                    `);
+                    
+                    let data = await resp.json()
 
-    //         // console.assert(
-    //         //     ['testsite'].includes(route),
+                    nextElem.innerHTML = `<option value="none" selected disabled hidden></option>`;
+                    data.data.forEach(d => {
+                        nextElem.innerHTML += `
+                            <option value="${d.actualvalue}">${d.displayvalue}</option>
+                        `
+                    })
+                }
+            })
 
-    //         //     {"route": route, "message": "must be 'testsite'"}
-    //         // )
+            // after adding the event listener, we shouldnt populate the select items of the select items that depend on previous ones
+            if (Number(elem.dataset.index) > 1){
+                return;
+            }
 
-    //         /*  Now go get the collectiondates that correspond to the sitecode they just selected 
-    //         and update the collectiondates input */
-    //         let formData = new FormData();
-    //         formData.append('login_estuary', document.getElementById('estuary-select').value);
-    //         let response = await fetch(
-    //             // all of the routes on the flask app have an 's' at the end
-    //             // i mean the routes for updating form inputs
-    //             `/${script_root}/${route}s`, 
-    //             {
-    //                 method: 'post',
-    //                 body: formData
-    //             }
-    //         );
-    //         console.log(response);
-    //         const result = await response.json();
-    //         console.log(result);
-    //         let data;
+        }
 
-    //         // in cases where there are many login fields, switch case makes more sense
-    //         switch (route) {
-    //             case 'startdate':
-    //                 data = result.startdates;
-    //                 break;
-    //             default:    
-    //                 console.log(`bad arg ${route} passed to updateInputs function`);
-    //                 return;
-    //         }
-            
-    //         console.log("data");
-    //         console.log(data);
-    
-    //         if ( Number(data.length) === 0 ){
-    //             // yes, for the BMP project, this will always say Testsite unless they change something
-    //             // always better to keep it flexible in case they request more features
-    //             alert(`No ${route} found for this agency`)
-    //             return;
-    //         }
-            
-    //         // append data as options to the select item
-    //         data.map(c => {
-    //             switch (route) {
-    //                 case 'startdates':
-    //                     // for enddate, set the innerHTML
-    //                     document.getElementById(`${route}-select`).innerHTML = `
-    //                         <option value="${c}" selected>${c}</option>
-    //                     `
-    //                     // unhide submit button
-    //                     document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
-    //                 default:
-    //                     // for the rest of the cases, append to the HTML
-    //                     document.getElementById(`${route}-select`).innerHTML += `
-    //                         <option value="${c}">${c}</option>
-    //                     `
-    //             }
-    //         });
-            
+        let resp = await fetch(`
+            /${script_root}/login_values?valuefield=${valuesField}&displayfield=${displayField}&table=${table}
+        `);
 
-    // }
-    // document.getElementById("estuary-select").addEventListener('change', async function (){
-       
-    //     // reset startdate when they change the estuary
-    //     document.getElementById('startdate-select')
-    //         .innerHTML = `<option value="none" selected disabled hidden></option>`;
-    //     // document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
-    //     // if (document.querySelector("input[type='radio'][name='login_datatype']:checked").value === 'calibration') {
-    //     //     // if they are submitting calibration, the submit button should not be hidden
-    //     //     document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
-    //     // } else {
-    //     //     // since startdate were reset, we need to hide the submit button again
-    //     //     // also this should only happen if they are not submitting calibration
-    //     //     document.getElementById('login-form-submit-btn-container').classList.add('hidden');
-    //     // }
-
-    //     updateSelectInput('startdate')
-
-    // })
-
-
-
-
-
-/*     document.getElementById('agency-select').addEventListener('change',function(){
-        document.getElementById('login-form-submit-btn-container').classList.remove('hidden');
-    }) */
-
-
-
-})()
+        let data = await resp.json();
+        elem.innerHTML = `<option value="none" selected disabled hidden></option>`;
+        data.data.forEach(d => {
+            elem.innerHTML += `
+                <option value="${d.actualvalue}">${d.displayvalue}</option>
+            `
+        })
+    })
+}

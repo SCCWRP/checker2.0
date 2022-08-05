@@ -1,0 +1,20 @@
+{
+    "chemistry": {
+        "tables": ["tbl_chemistryresults"], 
+        "login_fields": [
+            {
+                "fieldname": "login_agency",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode"
+            }, 
+            {
+                "fieldname": "login_email",
+                "fieldtype": "input"
+            }
+        ]
+        
+    }
+}

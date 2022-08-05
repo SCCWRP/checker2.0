@@ -78,6 +78,8 @@ app.excel_offset = int(os.environ.get('FLASK_APP_EXCEL_OFFSET'))
 assert os.path.exists(os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')), \
     f"{os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')} configuration file not found"
 app.datasets = json.loads( open( os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json'), 'r' ).read() )
+print("app.datasets")
+print(app.datasets)
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 
