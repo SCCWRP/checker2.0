@@ -2,6 +2,7 @@ import time, os
 import pandas as pd
 from flask import session, Blueprint, current_app, request, render_template, jsonify, g
 from .utils.exceptions import default_exception_handler
+from .utils.login import get_login_field
 
 homepage = Blueprint('homepage', __name__)
 #projName = os.environ["PROJNAME"]
@@ -44,11 +45,33 @@ def index():
         """
     )
     
+    return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets )
 
+
+@homepage.route('/login_values')
+def login_values():
+    eng = g.eng
+    print("request.args")
+    print(request.args)
+
+    # request.args is an immutable dictionary, we turn it into a regular dictionary to use the "pop" method
+    args = dict(request.args)
+
+    assert 'table' in args.keys(), 'in login_values: table not specified in query string args'
+    assert 'displayfield' in args.keys(), 'in login_values: displayfield not specified in query string args'
+    assert 'valuefield' in args.keys(), 'in login_values: valuefield not specified in query string args'
     
-    return render_template('index.html', projectname = current_app.project_name)
+    table = args.pop('table')
+    displayfield = args.pop('displayfield')
+    valuefield = args.pop('valuefield')
 
-
+    data = get_login_field(
+        table,
+        displayfield,
+        valuefield,
+        **args
+    )
+    return jsonify(data = data)
 
 
 @homepage.route('/login', methods = ['GET','POST'])

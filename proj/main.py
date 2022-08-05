@@ -180,7 +180,12 @@ def main():
     #   But for now, the tab_table_map is mainly used by the javascript in the front end, to display error messages to the user
     writer = pd.ExcelWriter(excel_path, engine = 'xlsxwriter', options = {"strings_to_formulas":False})
     for tblname in all_dfs.keys():
-        all_dfs[tblname].to_excel(writer, sheet_name = tblname, startrow = current_app.excel_offset, index=False)
+        all_dfs[tblname].to_excel(
+            writer, 
+            sheet_name = tblname, 
+            startrow = current_app.excel_offset, 
+            index=False
+        )
     writer.save()
     
     # Yes this is weird but if we write the all_dfs back to the excel file, and read it back in,

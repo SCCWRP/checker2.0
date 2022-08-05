@@ -1,6 +1,22 @@
 {
-    "example": {
-        "tables": ["tbl___example__"],
-        "login_fields": ["login_email"]
+    "chemistry": {
+        "tables": ["tbl_chemistryresults"], 
+        "login_fields": [
+            {
+                "fieldname": "agency",
+                "fieldtype": "select",
+                "independent": "True",
+                "options_from_table": "lu_agency",
+                "options_display_field": "agencyname",
+                "options_values_field": "agencycode",
+                "label" : "Agency or Laboratory"
+            }, 
+            {
+                "fieldname": "email",
+                "fieldtype": "input",
+                "label" : "Email Address"
+            }
+        ]
+        
     }
 }

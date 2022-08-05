@@ -4,3 +4,4 @@ logs
 .vscode
 testing/
 proj/custom/stations.xml
+proj/config/datasets.json

@@ -1,6 +1,8 @@
-import os, json
+import os, json, re
 from flask import Flask,current_app, g
 from sqlalchemy import create_engine
+import psycopg2
+from psycopg2 import sql
 
 # import blueprints to register them
 from .main import upload
@@ -62,22 +64,52 @@ app.system_fields = [
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
-app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists'] # if separate tabs for lu's, reflect here
+app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists', 'Results_Example'] # if separate tabs for lu's, reflect here
 
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
 # NESE offsets by 2 rows
 app.excel_offset = int(os.environ.get('FLASK_APP_EXCEL_OFFSET'))
 
-# data sets / groups of tables for datatypes will be defined here in __init__.py
-## (Zaib) Changes to make to the dataset: 
-## Split datatypes that have field and lab data templates split (see Teams 'Final Templates')
-## into <datatype>meta and <datatype>data for field and lab, respectively. 
-## Adjust the functions within the <datatype>.py files to split the field and lab checks. 
-## 
+# data sets / groups of tables for datatypes will be defined in datasets.json in the proj/config folder
 assert os.path.exists(os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')), \
     f"{os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')} configuration file not found"
 app.datasets = json.loads( open( os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json'), 'r' ).read() )
+print("app.datasets")
+print(app.datasets)
+
+print("Be sure not to prefix the login fields with 'login' in the datasets.json config file")
+
+# This we can use for adding the login columns
+
+# It will be better in the future to simply store these in the environment separately
+constring = re.search("postgresql://(\w+):(\w+)@(.+):(\d+)/(\w+)", os.environ.get('DB_CONNECTION_STRING')).groups()
+connection = psycopg2.connect(
+    host=constring[2],
+    database=constring[4],
+    user=constring[0],
+    password=constring[1],
+)
+
+connection.set_session(autocommit=True)
+
+for datasetname, dataset in app.datasets.items():
+    fields = [f"login_{f.get('fieldname')}" for f in dataset.get('login_fields')]
+    with connection.cursor() as cursor:
+        for fieldname in fields:
+            print("Attempting to add field to submission tracking table")
+            print(fieldname)
+            command = sql.SQL(
+                """
+                ALTER TABLE submission_tracking_table ADD COLUMN IF NOT EXISTS {field} VARCHAR(255);
+                """
+            ).format(
+                field = sql.Identifier(fieldname),
+            )
+            
+            cursor.execute(command)
+
+
 
 # need to assert that the table names are in (SELECT table_name FROM information_schema.tables)
 
