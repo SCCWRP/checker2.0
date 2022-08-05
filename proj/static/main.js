@@ -9,7 +9,7 @@
         loginForm.addEventListener("submit", async function(e) {
             e.preventDefault();
             
-            if (loginForm.querySelector("[name='login_email']").value === '') {
+            if (loginForm.querySelector("input[name='login_email']").value === '') {
                 alert("Please enter an email address");
                 return;
             }

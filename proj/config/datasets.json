@@ -8,29 +8,13 @@
                 "independent": "True",
                 "options_from_table": "lu_agency",
                 "options_display_field": "agencyname",
-                "options_values_field": "agencycode"
-            }, 
-            {
-                "fieldname": "analyteclass",
-                "fieldtype": "select",
-                "independent": "False",
-                "sequencenum": 1,
-                "options_from_table": "lu_analyte",
-                "options_display_field": "analyteclass",
-                "options_values_field": "analyteclass"
-            }, 
-            {
-                "fieldname": "analytename",
-                "fieldtype": "select",
-                "independent": "False",
-                "sequencenum": 2,
-                "options_from_table": "lu_analyte",
-                "options_display_field": "analytename",
-                "options_values_field": "analytename"
+                "options_values_field": "agencycode",
+                "label" : "Agency or Laboratory"
             }, 
             {
                 "fieldname": "email",
-                "fieldtype": "input"
+                "fieldtype": "input",
+                "label" : "Email Address"
             }
         ]
         
