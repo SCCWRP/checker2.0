@@ -5,3 +5,9 @@ logs
 testing/
 proj/custom/stations.xml
 proj/config/datasets.json
+__pycache__/
+proj/__pycache__/
+proj/custom/__pycache__/
+proj/core/__pycache__/
+proj/utils/__pycache__/
+
