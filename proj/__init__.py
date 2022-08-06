@@ -56,11 +56,9 @@ app.maintainers = [
 # Mail From
 app.mail_from = os.environ.get('FLASK_APP_MAIL_FROM')
 
-# system fields
+# system fields for all applications
 app.system_fields = [
-    'objectid','globalid','created_date','created_user',
-    'last_edited_date','last_edited_user',
-    'login_email','login_agency','login_datatype','login_estuary','login_startdate','login_enddate','submissionid','warnings'
+    'objectid', 'globalid', 'created_date', 'created_user', 'last_edited_date','last_edited_user', 'submissionid', 'warnings', 'login_email'
 ]
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
@@ -122,6 +120,9 @@ for datasetname, dataset in app.datasets.items():
                     table = sql.Identifier(tablename)
                 )
                 cursor.execute(command)
+            
+            # login fields need to be in the system fields list
+            app.system_fields.append(fieldname)
 
 
 
