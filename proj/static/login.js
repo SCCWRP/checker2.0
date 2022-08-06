@@ -62,4 +62,12 @@
             `
         })
     })
+
+
+    document.getElementById('datatype-select').addEventListener('change', function(e){
+        Array.from(document.getElementsByClassName('login-form')).forEach(loginForm => {
+            loginForm.classList.add('hidden');
+        })
+        document.getElementById(`${this.value}-login-form`).classList.remove('hidden');
+    })
 }

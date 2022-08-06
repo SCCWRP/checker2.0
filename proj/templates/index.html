@@ -30,14 +30,19 @@ i
             
             <div>
               <form id="dtype-form">
-                
+                <label for="html">Select Submission Type:</label><br>
+                <select id="datatype-select" class = "form-control" name="dtype_select">
+                  {% for dtype in dtypes.keys() %}
+                    <option value = {{dtype}}>{{dtype}}</option>
+                  {% endfor %}
+                </select>
               </form>
             </div>
-
+            <br>
             <div>
               {% for dtype in dtypes.keys() %}
               <div>
-                <form class="login-form">
+                <form class="login-form {% if loop.index > 1 %} hidden {% endif %}" id="{{dtype}}-login-form">
                   <!-- <div class="login-input-container form-group">
                     <label for="login_email">Enter your email address:</label>
                     <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
