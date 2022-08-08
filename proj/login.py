@@ -6,12 +6,23 @@ from .utils.login import get_login_field
 
 homepage = Blueprint('homepage', __name__)
 #projName = os.environ["PROJNAME"]
-@homepage.route('/', methods = ['GET','POST'])
+@homepage.route('/', methods = ['GET', 'POST', 'DELETE'])
 def index():
     eng = g.eng
 
     # upon new request clear session, reset submission ID, reset submission directory
-    session.clear()
+    # Hold off for now, trying new login system - 8/8/2022
+    if request.method == 'DELETE':
+        session.clear()
+        return jsonify(msg="Session info cleared")
+
+    if session.get('login_info') :
+        login_info = dict()
+        for k in session.get('login_info').keys():
+            # Here we are essentially renaming keys of dictionary
+            login_info[str(k).replace('login_','').capitalize()] = session.get('login_info').get(k)
+
+        return render_template('index.html', login_info = login_info)
 
     session['submissionid'] = int(time.time())
     session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
@@ -45,7 +56,7 @@ def index():
         """
     )
     
-    return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets )
+    return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets, login_info = False )
 
 
 @homepage.route('/login_values')

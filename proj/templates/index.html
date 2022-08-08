@@ -21,6 +21,7 @@ i
     <div class="container" id="main-outer-container">
 
       <!--login screen-->
+      {% if not login_info %}
       <div class="container" id="login-outer-container">
         <div class="card inner-container" id="login-inner-container">
           <div class="card-header">
@@ -81,12 +82,13 @@ i
           </div>
         </div>
       </div>
+      {% else %}
       <!--End login screen-->
 
 
 
       <!--File submission form-->
-      <div class="before-submit container hidden">
+      <div class="before-submit container">
         <div class="card inner-container">
           <div class="card-header">
             <div class="card-title">
@@ -94,22 +96,36 @@ i
             </div>
           </div>
           <div class="card-body">
+            
+            <div class="container login-info-title">
+              Current Session Login Information:
+            </div>
+            {% for k, v in login_info.items() %}
+            <div class="row container login-info-container">
+              <div class="col-md-4 login-info-container login-info-key">{{k}}:</div><div class="col-md-8 login-info-container login-info-value">{{v}}</div>
+            </div>
+            {% endfor %}
+            <br>
             <div class="row container file-form-container">
               <form id="file-submission-form">
                 <div class="row form-group file-submission-form-row">
                   <input type="file" name="files" class="form-control-file" multiple>
                 </div>
                 <div class="row form-group file-submission-form-row">
-                  <button type="submit" class="btn btn-dark">submit data</button>
+                  <button type="submit" class="btn btn-dark">Submit Data</button>
                 </div>
               </form>
+            </div>
+            <br>
+            <div class="row container">
+              <button class="btn btn-dark" id="clear-session-button">Clear Session Info and Start New Submission Session</button>
             </div>
 
           </div>
         </div>
       </div>
       <!--End file submission form-->
-
+      {% endif %}
 
 
 

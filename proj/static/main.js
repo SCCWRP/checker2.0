@@ -31,12 +31,8 @@
                 alert(result.user_error_msg);
                 window.location = `/${script_root}`;
             }
-            
-            // we can possibly validate the email address on the python side and return a message in "result"
-            // and handle the situation accordingly
-            document.querySelector("#login-outer-container").style.display = "none";
-            document.querySelector(".before-submit").classList.remove("hidden");
 
+            // if there was no application failure, we can proceed
             // Add drag and drop event listener only after the user signs in
             document.querySelector("body").addEventListener('drop', function(event){
                 event.stopPropagation();
@@ -46,12 +42,23 @@
                 document.querySelector('#file-submission-form').requestSubmit();
             });
 
+            // With the session data now posted, if should display the file submission form
+            // We will need to post some kind of button that allows them to clear session data and start fresh too
+            window.location = `/${script_root}`;
+            
+            // we can possibly validate the email address on the python side and return a message in "result"
+            // and handle the situation accordingly
+            // document.querySelector("#login-outer-container").style.display = "none";
+            // document.querySelector(".before-submit").classList.remove("hidden");
+
+            
+
         })
     })
     
 
     // routine for submitting the file(s)
-    fileForm.addEventListener("submit", async function(e) {
+    fileForm?.addEventListener("submit", async function(e) {
         
         e.stopPropagation();
         e.preventDefault();
@@ -105,6 +112,17 @@
         //document.querySelector(".file-form-container").classList.add("hidden");
 
     })
+
+    if (document.getElementById('clear-session-button')){
+        document.getElementById('clear-session-button').addEventListener('click', async function(){
+            const response = await fetch(`/${script_root}/`, {
+                method: 'delete'
+            });
+            console.log(response);
+            const result = await response.json();
+            window.location = `/${script_root}/`;
+        })
+    }
 
 
 })()

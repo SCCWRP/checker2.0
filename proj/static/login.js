@@ -64,7 +64,7 @@
     })
 
 
-    document.getElementById('datatype-select').addEventListener('change', function(e){
+    document.getElementById('datatype-select')?.addEventListener('change', function(e){
         Array.from(document.getElementsByClassName('login-form')).forEach(loginForm => {
             loginForm.classList.add('hidden');
         })

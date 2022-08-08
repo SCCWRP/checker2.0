@@ -161,3 +161,13 @@ span.table-not-matched {
 #dataprovider-button {
     font-size: 0.8rem;
 }
+
+.login-info-container {
+    align-content: flex-start;
+    text-align: left;
+}
+
+.login-info-title {
+    align-content: center;
+    text-align: center;
+}
