@@ -1,9 +1,9 @@
 import pandas as pd
 import multiprocessing as mp
-import re, time, sys
+import re, time
 from math import log10
-from pandas import DataFrame, isnull
 from functools import lru_cache
+import datetime
 
 def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error = True, error_message = "Error", errors_list = [], q = None):
     if len(badrows) > 0:

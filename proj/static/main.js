@@ -97,14 +97,24 @@
                 } else {
                     document.getElementById('final-warning-container').classList.add('hidden');
                 }
+
+                // No errors, so be sure the errors tab header isnt flagging anything with the red alert aymbols
+                document.getElementById('errors-report-header').classList.remove('error-alert');
+                document.getElementById('errors-report-header').innerText = document.getElementById('errors-report-header').innerText.replace('❗ ','')
+
             } else {
+                // display what needs to show to let them know they have issues with the file
                 document.querySelector("#reload-button-container").classList.remove("hidden");
                 document.getElementById('errors-report-header').classList.add('error-alert');
                 document.getElementById('errors-report-header').innerText = `❗ Errors`;
                 document.getElementById('errors-report-header').addEventListener('click', function(e) {
                     this.classList.remove('error-alert');
-                    document.getElementById('errors-report-header').innerText = document.getElementById('errors-report-header').innerText.replace('❗ ','')
+                    this.innerText = this.innerText.replace('❗ ','')
                 });
+                
+                // In the case where there are errors, no matter what we want to cover up this div
+                // This div is only to be shown in the event that they are ready for final submit, but they have warnings
+                document.getElementById('final-warning-container').classList.add('hidden');
             }
         }
         if (Object.keys(result).includes("warnings")) {
@@ -116,6 +126,9 @@
                     document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
                 });
             }
+        } else {
+            // No warnings, so make sure that warnings alerting container is not showing
+            document.getElementById('final-warning-container').classList.add('hidden');
         }
 
         buildReport(result);
