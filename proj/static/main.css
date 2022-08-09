@@ -7,7 +7,7 @@ body {
 }
 body::after {
     content: "";
-    background: url(estuary.png) no-repeat center center fixed;
+    background: url(lake.png) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
