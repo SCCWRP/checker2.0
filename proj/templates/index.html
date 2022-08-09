@@ -58,13 +58,19 @@ i
                     <select 
                       id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}"
                       name="login_{{field.fieldname}}" 
-                      class="form-control dynamic-select-item {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %}"
+                      class="form-control {% if not field.static_options %}dynamic-select-item{% endif %} {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %}"
                       data-dtype="{{dtype}}"
                       data-index="{%if field.independent == 'True' %}-1{% else %}{{field.sequencenum}}{% endif %}"
-                      data-option-table="{{field.options_from_table}}"
-                      data-option-display-field="{{field.options_display_field}}"
-                      data-option-values-field="{{field.options_values_field}}"
-                    ></select>
+                      {% if field.options_from_table %} data-option-table="{{field.options_from_table}}"{% endif %}
+                      {% if field.options_display_field %} data-option-display-field="{{field.options_display_field}}"{% endif %}
+                      {% if field.options_values_field %} data-option-values-field="{{field.options_values_field}}"{% endif %}
+                    >
+                    {% if field.static_options %}
+                    {% for opt in field.static_options %}
+                      <option value="{{opt}}">{{opt}}</option>
+                    {% endfor %}
+                    {%endif%}
+                  </select>
                     {% endif %}
 
                   </div>  
