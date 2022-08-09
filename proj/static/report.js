@@ -43,7 +43,17 @@ const buildReport = (res) => {
     document.getElementById("excel-markup-download").classList.remove('hidden')
     document.getElementById("excel-markup-download").setAttribute("href",`/${script_root}/download/${res.submissionid}/${res.marked_filename}`) ;
     
-    
+    // Error report summary table for the front page
+    if (res.errs) {
+        const totalErrorsCount = res.errs.length;
+        const coreErrorsCount = res.errs.filter(err => {return err.is_core_error}).length;
+        const customErrorsCount = res.errs.filter(err => {return !err.is_core_error}).length;
+        const warningsCount = res.warnings ? res.warnings.length : 0;
+        document.getElementById('total-errors-count').innerText = totalErrorsCount;
+        document.getElementById('core-errors-count').innerText = coreErrorsCount;
+        document.getElementById('custom-errors-count').innerText = customErrorsCount;
+        document.getElementById('total-warnings-count').innerText = warningsCount;
+    }
 
     // errors
     const errs_tables_headers = [...new Set(res.errs.map(e => res.table_to_tab_map[e.table]))]

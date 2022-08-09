@@ -200,8 +200,25 @@ i
 
                   </li>
                   <li class="list-group-item" id="excel-download-container">
-                    <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report
-                        Markup</a></p>
+                    <p>
+                      <a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a>
+                    </p>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Total Errors:</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="total-errors-count"></div>
+                    </div>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Core Errors (Tier 1 Checks):</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="core-errors-count"></div>
+                    </div>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Custom Errors (Tier 2 Checks):</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="custom-errors-count"></div>
+                    </div>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Total Warnings:</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="total-warnings-count"></div>
+                    </div>
                   </li>
                 </ul>
 
