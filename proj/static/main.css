@@ -171,3 +171,11 @@ span.table-not-matched {
     align-content: center;
     text-align: center;
 }
+
+.error-alert {
+    background-color: #ffaaa3;
+}
+
+.warning-alert {
+    background-color: #d8f96a;
+}

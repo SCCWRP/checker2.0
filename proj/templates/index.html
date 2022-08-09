@@ -166,7 +166,8 @@ i
               <div class="col-sm submission-info-tab-header" id="warnings-report-header">
                 Warnings
               </div>
-              <div class="col-sm submission-info-tab-header" id="map-report-header">
+              <div class="col-sm submission-info-tab-header hidden" id="map-report-header">
+                <!--For certain projects that want map checks, we can add javascript that can unhide this tab header / tab body-->
                 Map
               </div>
             </div>
@@ -198,7 +199,7 @@ i
                     </div>
 
                   </li>
-                  <li class="list-group-item hidden">
+                  <li class="list-group-item" id="excel-download-container">
                     <p><a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report
                         Markup</a></p>
                   </li>
@@ -214,13 +215,26 @@ i
                       </h5>
                       <h6 class="card-subtitle">
                         You may click the button below to reload and login again,
-                        or you may drag and drop a file on the page again
+                        or you may drag and drop a file anywhere on the page again
                       </h6>
                     </div>
                     <div class="card-body">
                       <button class="btn btn-secondary btn-lg btn-block btn-reload">
                         Reload the application
                       </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="container hidden" id="final-warning-container">
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title">
+                        There were warnings with your file
+                      </h5>
+                    </div>
+                    <div class="card-body">
+                      You may still submit your data, but it is recommended you double check the warnings tab at the top right
                     </div>
                   </div>
                 </div>
@@ -319,6 +333,7 @@ i
               </div>
 
 
+              <!--Only for certain projects that will require a map or map checks-->
               <div id="map-report-body" class="map-report-body-outer-container container submission-info-tab-body hidden">
                 
                 <iframe id="visual-map" width="1100" height="900" src="" ></iframe>

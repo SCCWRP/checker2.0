@@ -90,8 +90,31 @@
             if (result['errs'].length == 0){
                 document.querySelector("#final-submit-button-container").classList.remove("hidden");
                 addFinalSubmitListener()
+                if (result.warnings?.length > 0) {
+                    // Cover the case where there are no errors but there are warnings
+                    // Giving the user a final warning/final chance to check their warnings
+                    document.getElementById('final-warning-container').classList.remove('hidden');
+                } else {
+                    document.getElementById('final-warning-container').classList.add('hidden');
+                }
             } else {
                 document.querySelector("#reload-button-container").classList.remove("hidden");
+                document.getElementById('errors-report-header').classList.add('error-alert');
+                document.getElementById('errors-report-header').innerText = `❗ ${document.getElementById('errors-report-header').innerText}`;
+                document.getElementById('errors-report-header').addEventListener('click', function(e) {
+                    this.classList.remove('error-alert');
+                    document.getElementById('errors-report-header').innerText = document.getElementById('errors-report-header').innerText.replace('❗ ','')
+                });
+            }
+        }
+        if (Object.keys(result).includes("warnings")) {
+            if (result['warnings'].length > 0){
+                document.getElementById('warnings-report-header').classList.add('warning-alert');
+                document.getElementById('warnings-report-header').innerText = `⚠️ ${document.getElementById('warnings-report-header').innerText}`;
+                document.getElementById('warnings-report-header').addEventListener('click', function(e) {
+                    this.classList.remove('warning-alert');
+                    document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
+                });
             }
         }
 
