@@ -117,18 +117,19 @@
                 document.getElementById('final-warning-container').classList.add('hidden');
             }
         }
-        if (Object.keys(result).includes("warnings")) {
-            if (result['warnings'].length > 0){
-                document.getElementById('warnings-report-header').classList.add('warning-alert');
-                document.getElementById('warnings-report-header').innerText = `⚠️ Warnings`;
-                document.getElementById('warnings-report-header').addEventListener('click', function(e) {
-                    this.classList.remove('warning-alert');
-                    document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
-                });
-            }
+        if (Object.keys(result).includes("warnings") && (result['warnings'].length > 0) ) {
+            document.getElementById('warnings-report-header').classList.add('warning-alert');
+            document.getElementById('warnings-report-header').innerText = `⚠️ Warnings`;
+            document.getElementById('warnings-report-header').addEventListener('click', function(e) {
+                this.classList.remove('warning-alert');
+                document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
+            });
         } else {
             // No warnings, so make sure that warnings alerting container is not showing
             document.getElementById('final-warning-container').classList.add('hidden');
+
+            document.getElementById('warnings-report-header').classList.remove('warning-alert');
+            document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
         }
 
         buildReport(result);
