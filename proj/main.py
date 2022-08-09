@@ -11,7 +11,6 @@ from .core.core import core
 from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
-from .utils.mail import send_mail
 from .utils.exceptions import default_exception_handler
 from .custom import *
 
