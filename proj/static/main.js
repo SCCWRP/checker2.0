@@ -100,7 +100,7 @@
             } else {
                 document.querySelector("#reload-button-container").classList.remove("hidden");
                 document.getElementById('errors-report-header').classList.add('error-alert');
-                document.getElementById('errors-report-header').innerText = `❗ ${document.getElementById('errors-report-header').innerText}`;
+                document.getElementById('errors-report-header').innerText = `❗ Errors`;
                 document.getElementById('errors-report-header').addEventListener('click', function(e) {
                     this.classList.remove('error-alert');
                     document.getElementById('errors-report-header').innerText = document.getElementById('errors-report-header').innerText.replace('❗ ','')
@@ -110,7 +110,7 @@
         if (Object.keys(result).includes("warnings")) {
             if (result['warnings'].length > 0){
                 document.getElementById('warnings-report-header').classList.add('warning-alert');
-                document.getElementById('warnings-report-header').innerText = `⚠️ ${document.getElementById('warnings-report-header').innerText}`;
+                document.getElementById('warnings-report-header').innerText = `⚠️ Warnings`;
                 document.getElementById('warnings-report-header').addEventListener('click', function(e) {
                     this.classList.remove('warning-alert');
                     document.getElementById('warnings-report-header').innerText = document.getElementById('warnings-report-header').innerText.replace('⚠️ ','')
