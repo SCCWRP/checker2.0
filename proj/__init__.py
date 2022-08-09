@@ -11,9 +11,19 @@ from .load import finalsubmit
 from .download import download
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
-from .core.functions import fetch_meta
+
 
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
+
+
+BASIC_CONFIG_FILEPATH = os.path.join(CUSTOM_CONFIG_PATH, 'basic-config.json')
+assert os.path.exists(BASIC_CONFIG_FILEPATH), "basic-config.json not found"
+
+BASIC_CONFIG = json.loads(open(BASIC_CONFIG_FILEPATH, 'r').read())
+
+assert all([item in BASIC_CONFIG.keys() for item in ["EXCEL_OFFSET", "SYSTEM_FIELDS", "EXCEL_TABS_TO_IGNORE", "MAINTAINERS"]]), \
+    """ "EXCEL_OFFSET", "SYSTEM_FIELDS", "EXCEL_TABS_TO_IGNORE", "MAINTAINERS" not found in the keys of the basic config file """
+
 
 app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
@@ -47,27 +57,25 @@ app.project_name = os.environ.get("PROJNAME")
 # script root (for any links we put, mainly lookup lists)
 app.script_root = os.environ.get('FLASK_APP_SCRIPT_ROOT')
 
-# Maintainers
-app.maintainers = [
-    'pauls@sccwrp.org',
-    'robertb@sccwrp.org'
-]
 
-# Mail From
-app.mail_from = os.environ.get('FLASK_APP_MAIL_FROM')
+# Maintainers
+app.maintainers = BASIC_CONFIG.get('MAINTAINERS')
 
 # system fields for all applications
-app.system_fields = [
-    'objectid', 'globalid', 'created_date', 'created_user', 'last_edited_date','last_edited_user', 'submissionid', 'warnings', 'login_email'
-]
+app.system_fields = BASIC_CONFIG.get('SYSTEM_FIELDS')
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
-app.tabs_to_ignore = ['Instructions','glossary','Lookup Lists', 'Results_Example'] # if separate tabs for lu's, reflect here
+app.tabs_to_ignore = BASIC_CONFIG.get('EXCEL_TABS_TO_IGNORE') # if separate tabs for lu's, reflect here
 
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
 # NESE offsets by 2 rows
-app.excel_offset = int(os.environ.get('FLASK_APP_EXCEL_OFFSET'))
+app.excel_offset = BASIC_CONFIG.get('EXCEL_OFFSET')
+
+
+
+# Mail From
+app.mail_from = os.environ.get('FLASK_APP_MAIL_FROM')
 
 
 # data sets / groups of tables for datatypes will be defined in datasets.json in the proj/config folder
@@ -82,7 +90,7 @@ print("Be sure not to prefix the login fields with 'login' in the datasets.json 
 # This we can use for adding the login columns
 
 # It will be better in the future to simply store these in the environment separately
-constring = re.search("postgresql://(\w+):(\w+)@(.+):(\d+)/(\w+)", os.environ.get('DB_CONNECTION_STRING')).groups()
+constring = re.search("postgresql://(\w+):(.+)@(.+):(\d+)/(\w+)", os.environ.get('DB_CONNECTION_STRING')).groups()
 connection = psycopg2.connect(
     host=constring[2],
     database=constring[4],
