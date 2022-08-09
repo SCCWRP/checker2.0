@@ -12,6 +12,9 @@ finalsubmit = Blueprint('finalsubmit', __name__)
 @finalsubmit.route('/load', methods = ['GET','POST'])
 def load():
 
+    # This was put in because there was a bug on the JS side where the form was submitting twice, causing data to attempt to load twice, causing a critical error
+    print("REQUEST MADE TO /load")
+
     assert session.get('submissionid') is not None, "No submissionID, session may have expired"
 
     # Errors and warnings are stored in a directory in a json since it is likely that they will exceed 4kb in many cases
@@ -108,21 +111,10 @@ def load():
             f"""There is a mismatch between the table names listed in __init__.py current_app.datasets
             and the keys of all_dfs (datatype: {session.get('datatype')}"""
     
-    # Foreign Key constraints will make it so that tables need to be loaded in a certain order
-    # META:
-    #  1) tbl_testsite
-    #  2) tbl_bmpinfo
-    #  3) tbl_watershed
-    #  4) tbl_monitoringstation
-    # MONITORING
-    #  1) tbl_precipitation
-    #  2) tbl_ceden_waterquality
-    #  3) tbl_flow
 
-
-    # This will make sure they get loaded in the correct order to not violate foreign key constraints
+    # Now go through each tab and load to the database
     for tbl in current_app.datasets.get(session.get('datatype')).get('tables'):
-        print("Loading Data. Be sure that the tables are in the correct order in __init__.py datasets")
+        print(f"Loading Data to {tbl}. Be sure that the tables are in the correct order in __init__.py datasets")
         print("If foreign key relationships are set, the tables need to be loadede in a particular order")
         all_dfs[tbl].to_geodb(tbl, g.eng)
  
@@ -185,6 +177,9 @@ def load():
         """
     )
 
+    # They should not be able to submit with the same SubmissionID
+    # Clear session after successful final submit
+    session.clear()
 
     return jsonify(user_notification="Sucessfully loaded data")
 

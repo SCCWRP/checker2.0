@@ -161,6 +161,7 @@ def main():
     )
 
 
+
     # ----------------------------------------- #
     # Pre processing data before Core checks
     #  We want to limit the manual cleaning of the data that the user has to do
@@ -217,9 +218,6 @@ def main():
         tblname: fetch_meta(tblname, g.eng)
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
-
-    print("dbmetadata")
-    #print(dbmetadata)
 
    
     # tack on core errors to errors list
