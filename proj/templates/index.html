@@ -82,10 +82,9 @@ i
           </div>
         </div>
       </div>
-      {% else %}
       <!--End login screen-->
-
-
+      {% else %}
+      <script src="{{url_for('static', filename='drop.js')}}"></script>
 
       <!--File submission form-->
       <div class="before-submit container">
@@ -357,9 +356,6 @@ i
             <div class="row">
               <div class="col-sm">
                 <button class="btn btn-primary btn-reload">Reload the application</button>
-              </div>
-              <div class="col-sm">
-                <button class="btn btn-info btn-sccwrp">Go to the SCCWRP website</button>
               </div>
             </div>
           </div>

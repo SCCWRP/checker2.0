@@ -2,7 +2,7 @@
 
 from inspect import currentframe
 from flask import current_app
-from .functions import checkData, get_badrows
+from .functions import checkData
 
 def __example__(all_dfs):
     
@@ -42,7 +42,7 @@ def __example__(all_dfs):
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
-    #   "badrows": get_badrows(df[df.temperature != 'asdf']),
+    #   "badrows": df[df.temperature != 'asdf'].index.tolist(),
     #   "badcolumn": "temperature",
     #   "error_type" : "Not asdf",
     #   "error_message" : "This is a helpful useful message for the user"

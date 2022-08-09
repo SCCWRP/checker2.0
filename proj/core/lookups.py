@@ -1,5 +1,5 @@
 import pandas as pd
-from .functions import checkData, get_badrows
+from .functions import checkData
 from flask import current_app
 
 # q is a multiprocessing.Queue()

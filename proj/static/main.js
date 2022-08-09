@@ -32,16 +32,6 @@
                 window.location = `/${script_root}`;
             }
 
-            // if there was no application failure, we can proceed
-            // Add drag and drop event listener only after the user signs in
-            document.querySelector("body").addEventListener('drop', function(event){
-                event.stopPropagation();
-                event.preventDefault();
-                const dropped_files = event.dataTransfer.files;
-                document.querySelector('#file-submission-form input.form-control-file').files = dropped_files;
-                document.querySelector('#file-submission-form').requestSubmit();
-            });
-
             // With the session data now posted, if should display the file submission form
             // We will need to post some kind of button that allows them to clear session data and start fresh too
             window.location = `/${script_root}`;

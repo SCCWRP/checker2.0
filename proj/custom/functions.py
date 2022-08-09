@@ -31,58 +31,7 @@ def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_erro
     return {}
         
 
-def get_badrows(df_badrows):
-    """
-    df_badrows is a dataframe filtered down to the rows which DO NOT meet the criteria of the check. 
-    errmsg is self explanatory
-    """
 
-    assert isinstance(df_badrows, DataFrame), "in function get_badrows, df_badrows argument is not a pandas DataFrame"
-    
-
-    if df_badrows.empty:
-        return []
-
-    return [
-        {
-            # row number is the row number in the excel file
-            'row_number': int(rownum),
-            'value': val if not isnull(val) else '',
-            # Individualized error message is mainly for the Lookup list error in core checks
-            # All other checks have generic error messages, and in this case the error message doesnt need to be stored here,
-            # Since this "message" key, value pair in the "rows" dictionary was for error messages which contain the 
-            #  value the user entered
-            'message': ""
-        } 
-        for rownum, val in
-        df_badrows \
-        .apply(
-            lambda row:
-            (
-                row.name,
-
-                # We wont be including the specific cell value in the error message for custom checks, 
-                # it would be too complicated to implement in the cookie cutter type fashion that we are looking for, 
-                # since the cookie cutter model that we have with the other checker proved effective for faster onboarding of new people to writing their own checks. 
-                # Plus in my opinion, the inclusion of the specific value is really mostly helpful for the lookup list error. 
-                # The only reason why the dictionary still includes this item is for the sake of consistency - 
-                # (all the other "badrows" dictionaries are formatted in this way, since there are a few error types in core checks where the specific cell value was included.) 
-                # This is ok since Core checks is 99.9% not going to change or have any additional features added, 
-                # thus we dont need to make it super convenient for others to add checks
-
-                # Note that for this "get_badrows" function, it works essentially the same way as the previous checker, 
-                # where the user basically provides a line of code to subset the dataframe, along with an accompanying error message
-                None
-            ),
-            axis = 1
-        ) \
-        .values
-    ]
-# imported checkLogic from microplastics
-# cols is the columns to match the dfs on primary key cols
-# checkLogic function previously automates the custom error message, but I have not generalized it here
-#def checkLogic(df1, df2, cols: list, error_type = "Logic Error", custom_error_message = None, df1_name = "", df2_name = ""):
-# removed custom_error_message as an argument... see args dict in custom checks
 
 # checkLogic() returns indices of rows with logic errors
 def checkLogic(df1, df2, cols: list, error_type = "Logic Error", df1_name = "", df2_name = ""):

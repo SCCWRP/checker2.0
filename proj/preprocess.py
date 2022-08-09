@@ -25,6 +25,7 @@ def strip_whitespace(all_dfs: dict):
                 information_schema.columns 
             WHERE 
                 table_name = '{table_name}'
+                AND column_name NOT LIKE 'login_%%'
                 AND column_name NOT IN ('{"','".join(current_app.system_fields)}');
             """, 
              g.eng

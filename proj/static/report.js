@@ -36,6 +36,9 @@ const buildReport = (res) => {
         }
     ).join("");
 
+    // stop if no dataset was matched
+    if(!res.match_dataset) return;
+
     // Let them download their marked excel file
     document.getElementById("excel-markup-download").setAttribute("href",`/${script_root}/download/${res.submissionid}/${res.marked_filename}`) ;
     
