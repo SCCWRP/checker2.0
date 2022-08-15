@@ -54,7 +54,14 @@ i
                   <div class="login-form-element-container login-{{field.fieldtype}}-container form-group">
                     <label for="login_{{field.fieldname}}">{%if field.label %}{{field.label}}{% else %} {{field.fieldname}} {% endif %}:</label>
                     {% if field.fieldtype == 'input' %}
-                    <input id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}" name="login_{{field.fieldname}}" class="form-control" placeholder="name@example.com">
+                    <input 
+                      id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" 
+                      type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}" 
+                      name="login_{{field.fieldname}}" 
+                      class="form-control" 
+                      placeholder="{% if field.fieldname == 'email' %}name@example.com{% else %}{% endif %}"
+                      {% if field.fieldname != 'email' %}{% if field.defaultvalue %}value="{{field.defaultvalue}}"{% endif %}{% endif %}
+                    >
                     {% else %}
                     <!--There should only be two kinds of form elements - selects and inputs--> 
                     <select 
