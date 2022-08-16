@@ -58,7 +58,7 @@ i
                       id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" 
                       type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}" 
                       name="login_{{field.fieldname}}" 
-                      class="form-control" 
+                      class="form-control login-form-element" 
                       placeholder="{% if field.fieldname == 'email' %}name@example.com{% else %}{% endif %}"
                       {% if field.fieldname != 'email' %}{% if field.defaultvalue %}value="{{field.defaultvalue}}"{% endif %}{% endif %}
                     >
@@ -67,7 +67,7 @@ i
                     <select 
                       id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}"
                       name="login_{{field.fieldname}}" 
-                      class="form-control {% if not field.static_options %}dynamic-select-item{% endif %} {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %}"
+                      class="form-control {% if not field.static_options %}dynamic-select-item{% endif %} {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %} login-form-element"
                       data-dtype="{{dtype}}"
                       data-index="{%if field.independent == 'True' %}-1{% else %}{{field.sequencenum}}{% endif %}"
                       {% if field.options_from_table %} data-option-table="{{field.options_from_table}}"{% endif %}

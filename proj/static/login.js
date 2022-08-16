@@ -34,7 +34,7 @@
                     
                     let data = await resp.json()
 
-                    nextElem.innerHTML = `<option value="none" selected disabled hidden></option>`;
+                    nextElem.innerHTML = `<option value="" selected disabled hidden></option>`;
                     data.data.forEach(d => {
                         nextElem.innerHTML += `
                             <option value="${d.actualvalue}">${d.displayvalue}</option>
@@ -47,7 +47,6 @@
             if (Number(elem.dataset.index) > 1){
                 return;
             }
-
         }
 
         let resp = await fetch(`
@@ -55,7 +54,7 @@
         `);
 
         let data = await resp.json();
-        elem.innerHTML = `<option value="none" selected disabled hidden></option>`;
+        elem.innerHTML = `<option value="" selected disabled hidden></option>`;
         data.data.forEach(d => {
             elem.innerHTML += `
                 <option value="${d.actualvalue}">${d.displayvalue}</option>

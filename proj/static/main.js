@@ -14,6 +14,18 @@
                 return;
             }
 
+            let missingFields = [];
+            Array.from(loginForm.querySelectorAll('.login-form-element')).forEach(elem => {
+                if (elem.value === '') {
+                    let tmp = elem.getAttribute('name').trim().toLowerCase().replace('login_','').replace(/_/,' ').replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+                    missingFields.push(tmp)
+                }
+            })
+            if (missingFields.length > 0) {
+                alert(`The login form is missing required information: ${missingFields.join(', ')}`);
+                return;
+            }
+
             const formData = new FormData(this);
             const response = await fetch(`/${script_root}/login`, {
                 method: 'post',
