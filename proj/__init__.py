@@ -1,5 +1,6 @@
 from os import environ
 from flask import Flask,current_app, g
+from flask_cors import CORS
 from sqlalchemy import create_engine
 
 # import blueprints to register them
@@ -33,7 +34,7 @@ app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
 
 
-# does your application require uploaded filenames to be modified to timestamps or left as is
+CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
 app.config['MAIL_SERVER'] = '192.168.1.18'
@@ -223,5 +224,6 @@ app.register_blueprint(finalsubmit)
 app.register_blueprint(download)
 app.register_blueprint(clear_test_data)
 app.register_blueprint(scraper)
+#app.register_blueprint(templater_old)
 app.register_blueprint(templater)
 
