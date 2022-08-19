@@ -1,0 +1,181 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+}
+body::after {
+    content: "";
+    background: url(lake.png) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    /* opacity: 0.7; */
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    z-index: -1;   
+  }
+
+div.main-outer-container {
+    opacity: 0.5;
+}
+
+
+.card.inner-container {
+    margin: auto;
+    width: 40%;
+    z-index: 9;
+    position: absolute;
+    background-color: #f2f2f2;
+    left: 30%;
+    top:15%;
+    box-shadow: 0.3rem 0.3rem 0.3rem rgba(0, 8, 7, 0.5);
+    padding: 0.1rem;
+    text-align: center;
+}
+
+
+/* 
+    I figure if there was never a use case for the important tag, it wouldnt exist right?
+    The way the front end application is set up, i want it so that whenever an element has a hidden class it should not show. 
+    Plain and simple
+
+    I cant imagine an element having a hidden class but we would still want it displayed
+
+    So i want to make sure this wins the cascade over any of the bootstrap css
+*/
+.hidden {
+    display: none !important;
+}
+
+
+.errors-report-tab-button{
+    cursor: pointer;
+    border: 1px solid rgba(226, 226, 226,0.5);
+    border-radius: 0.1rem;
+    background-color: #ebebeb;
+    text-align: center;
+    padding: 0.5rem;
+}
+.submission-info-tab-header{
+    cursor: pointer;
+    border: 1px solid rgba(226, 226, 226,0.5);
+    border-radius: 0.1rem;
+    background-color: #ebebeb;
+    text-align: center;
+    padding: 0.5rem;
+}
+.tab-header{
+    cursor: pointer;
+    border: 1px solid rgba(226, 226, 226,0.5);
+    border-radius: 0.1rem;
+    background-color: #ebebeb;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.submission-info-tab-header.active {
+    background-color: #dddddd;
+}
+.submission-info-tab-header:hover {
+    background-color: #d1d1d1;
+}
+
+.tab-header.active {
+    background-color: #dddddd;
+}
+.tab-header:hover {
+    background-color: #d1d1d1;
+}
+
+.row.file-submission-form-row {
+    padding: 0.2rem;
+    margin:0.2rem;
+}
+
+span.table-matched {
+    color:green;
+}
+span.table-not-matched {
+    color:red;
+}
+
+.errors-report-header {
+    background-color: #f2f2f2;
+}
+.errors-report-cell {
+    border: 1px solid rgba(226, 226, 226,0.5);
+    text-align: center;
+}
+
+.warnings-report-header {
+    background-color: #f2f2f2;
+}
+.warnings-report-cell {
+    border: 1px solid rgba(226, 226, 226,0.5);
+    text-align: center;
+}
+
+#main-outer-container {
+    padding: 2rem;
+}
+
+#loader-gif-container .card-body {
+    text-align: center
+}
+
+#loader-gif-container .card-header {
+    text-align: center
+}
+
+#loader-gif-container #loader-gif {
+    display: inline-block;
+}
+
+.submission-report-inner-container {
+    padding-bottom: 0.5rem;
+}
+
+
+#after-submit-sucess-card-header {
+    text-align: center;
+}
+
+.form-check.form-check-radio {
+    display: inline-block;
+}
+
+#logger-radio-label-container {
+    margin-bottom: 0.7rem;
+}
+
+#dataprovider-button-container {
+    font-size: 0.8rem;
+}
+
+#dataprovider-button {
+    font-size: 0.8rem;
+}
+
+.login-info-container {
+    align-content: flex-start;
+    text-align: left;
+}
+
+.login-info-title {
+    align-content: center;
+    text-align: center;
+}
+
+.error-alert {
+    background-color: #ffaaa3;
+}
+
+.warning-alert {
+    background-color: #d8f96a;
+}

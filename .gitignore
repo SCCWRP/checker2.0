@@ -1,0 +1,21 @@
+files/*
+export/*
+logs
+.vscode
+testing/
+
+# ignore xml and datasets.json config files
+proj/custom/*.xml
+proj/config/datasets.json
+proj/config/config.json
+
+# ignore pycache directories
+__pycache__/
+proj/__pycache__/
+proj/custom/__pycache__/
+proj/core/__pycache__/
+proj/utils/__pycache__/
+
+# ignore custom checks files
+# for the bight checker, we will not ignore
+proj/custom/*_custom.py
