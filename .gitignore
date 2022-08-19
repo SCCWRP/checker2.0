@@ -17,5 +17,4 @@ proj/core/__pycache__/
 proj/utils/__pycache__/
 
 # ignore custom checks files
-# for the bight checker, we will not ignore
 proj/custom/*_custom.py
