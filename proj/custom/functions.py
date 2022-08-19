@@ -1,5 +1,5 @@
 import json, os
-from pandas import isnull, DataFrame, 
+from pandas import isnull, DataFrame
 
 def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error = False, error_message = "Error", errors_list = [], q = None):
     
