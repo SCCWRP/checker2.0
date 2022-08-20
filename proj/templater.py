@@ -15,7 +15,6 @@ import numpy as np
 import openpyxl
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils.dataframe import dataframe_to_rows
-#from flask import send_from_directory, render_template, request, redirect, Response, jsonify,send_file, json, current_app
 
 # dynamic lookup lists to template
 
@@ -54,7 +53,7 @@ def template():
         'edna_field',
         'edna_lab',
         'sedimentgrainsize_field',
-        'sedimentgrainsize_lab'
+        'sedimentgrainsize_lab',
         'benthicinfauna_field',
         'benthicinfauna_lab',
         'macroalgae',
@@ -279,52 +278,59 @@ def template():
 
     del i, lu_list
 
-    print("export file")
-    print(f"datatype: {datatype}, {datatype.upper()}")
-    excel_file = f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx"
-    excel_writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
-    print("creating workbook")
-    workbook = excel_writer.book
-    print(" ===== created workbook ===== ")
-    print("reading the template in")
+    # print("export file")
+    # print(f"datatype: {datatype}, {datatype.upper()}")
+    # excel_file = f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx"
+    # excel_writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
+    # print("creating workbook")
+    # workbook = excel_writer.book
+    # print(" ===== created workbook ===== ")
+    # print("reading the template in")
 
+    # Bug: When the application crashes, open files that should be appended seem to be corrupted since the file was not closed.
+        ## Not a problem for now since I changed the flow of the code.
+    # Bug Fix Attempt:  Include try... finally approach to explicitly close files -- -include this later
+    print("===== reading in template file =====")
+    print(f"datatype: {datatype}")
+    print(datatype in dtype)
     if datatype in dtype:
+        print(f"get template file for datatype: {datatype}")
         e_file = f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx"
-        xls = pd.ExcelFile(e_file)
+        print(f"this is the file: {e_file}")
+        ## The following returns an OrderedDict
+        xls = pd.read_excel(e_file, sheet_name=None, engine='openpyxl')
+        print("ordered dictionary keys: ")
+        print(xls.keys())
+        print(" made it here!!!  ")
     else: 
         print('invalid datatype')
     print('xls template for data type has been read')
 
-    # print("sheet 0 is the following: ")
-    # print("xls, sheet 0: ")
-    # print(pd.read_excel(xls, sheet_name = 0))
-
-    # using parse function instead: 
-    # previous bug was solved by changing to 'sheetname', but it seems the param is 'sheet_name'
-    print(xls.parse(sheet_name = 0))
-
-    print("The following are the sheetnames of xls: ")
-    print(xls.sheet_names)
+    print("The following are the sheet_names of xls: ")
+    print(xls.keys())
 
     #initialize lists
     list_of_df = []
     original_df = []
 
-    #enumerate the function to give list of the sheet_names
-    for i, sheet in enumerate(xls.sheet_names):
+    #enumerate the function to give list of the sheet_names - using OrderedDict keys()
+    for i, sheet in enumerate(xls.keys()):
         print("list_of_df: ")
         print(list_of_df)
-        list_of_df.append(pd.read_excel(xls, sheet_name = sheet))
+        #list_of_df.append(pd.read_excel(xls, sheet_name = sheet))
+        list_of_df.append(pd.read_excel(e_file, sheet_name = sheet))
         print("Printing sheet name: ")
         print(sheet)
         print("Printing sheet contents: ")
-        print(pd.read_excel(xls, sheet_name = sheet))
-        original_df.append(pd.read_excel(xls, sheet_name = sheet))
+        #print(pd.read_excel(xls, sheet_name = sheet))
+        print(pd.read_excel(e_file, sheet_name = sheet))
+        original_df.append(pd.read_excel(e_file, sheet_name = sheet))
         #lowercase
         #list_of_df[i].columns = map(str.lower(), list_of_df[i].columns)
         list_of_df[i].columns = [str(x).lower() for x in list_of_df[i].columns]
 
     del i, sheet
+    print("removed intermediate variables...")
 
     ## GRAB LOOKUP LISTS RFOM DB
     print("These are original sheets :")
@@ -355,6 +361,9 @@ def template():
         return pkeytable
 
     pkeytable = findprimary(lookup_list)
+    print("-----------------------------")
+    print(" Printing pkey table below...")
+    print("-----------------------------")
     print(pkeytable)
 
     def highlight_primary_key_column(dict):
@@ -376,6 +385,7 @@ def template():
     for i, lu_list in enumerate(list_of_lu_needed):
         # It's easier to use pd.read_sql in my opinion
         sql_df = pd.read_sql("SELECT * FROM " + lu_list, eng)
+        print("retrieved sql_df for lookups...")
         #sql_df = sql_df[[x for x in sql_df.columns if x not in app.system_fields]] # no app.system_fields here
         sql_df = sql_df[[x for x in sql_df.columns if x not in system_fields]]
         templater = dict({lu_list:sql_df})
@@ -388,10 +398,33 @@ def template():
             columndict.update(test)
     columnlist.extend(tmplist)
     #export original_df to the excel file
-    for i in range(len(original_df)): 
-        original_df[i].to_excel(excel_writer, sheet_name = xls.sheet_names[i], startrow = 1,index = False,header = False)
+    print("exporting to original_df to excel file")
+    # create excel_writer object here?
+    print("==================================================")
+    print("==================================================")
+    print("==================================================")
+    #print("export file")
+    excel_file = f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx"
+    excel_writer = pd.ExcelWriter(excel_file, engine='xlsxwriter')
+    #print("creating workbook object")
+    #workbook = excel_writer.book
+    #print(" ===== created workbook ===== ")
+    
+    print("this is what original_df is populated with: ")
+    print(original_df)
+
+    # e_file : file path used to read and write to workbook for any updates
+    for i, sheet in enumerate(xls.keys()):
+        print(f"length of original_df: {len(original_df)}")
+        print(f"i: {i}")
+        print(f"sheet: {sheet}")
+        print(f"e_file: {e_file}")
+        original_df[i].to_excel(excel_writer, sheet_name = sheet, startrow = 1,index = False,header = False)
+        print(" please print so i know it did in fact work as expected ")
+        print("========================================================")
         workbook = excel_writer.book
-        worksheet = excel_writer.sheets[xls.sheet_names[i]]
+        worksheet = excel_writer.sheets[sheet]
+        print("fixed yet another baby bug")
         #bold indicated foreign keys, otherwise not bold 
         #format 1 is for FOREIGN KEY COLUMNS
         format1= workbook.add_format({'bold':False, 'text_wrap': True,'fg_color': '#D7D6D6'}) 
@@ -413,6 +446,9 @@ def template():
         format4.set_align('center')
         format4.set_align('vcenter')
         format4.set_rotation(90)
+        if sheet == 'Instructions':
+            print(f"sheet: {sheet}")
+            continue
         for col_num,col_name in enumerate(original_df[i].columns.values):
             if   (col_name.lower() in primarykeylist) & (col_name.lower() not in columnlist)  : 
                 worksheet.write(0,col_num,col_name,format3)
@@ -426,6 +462,7 @@ def template():
             else:
                 worksheet.write(0,col_num,col_name,format2)
                 worksheet.set_row(0,170)
+    del i, sheet
 
     ### ADD THE LOOKUPS TO THE FILE: 
     #Add the look_up lists to the excel file
@@ -460,6 +497,7 @@ def template():
     ###############################################################################
     #               D A T A   V A L I D A T I O N  D E S C R I P T I O N          #
     ###############################################################################
+    print("Begin Data Validation Descriptions...")
     # populate df_glossary from database
     sql = eng.execute("SELECT * FROM tbl_glossary;")
     sql_df = DataFrame(sql.fetchall())
@@ -497,19 +535,22 @@ def template():
         print(tmp)
         print("\n")
         field_df_dict = dict(zip(tmp['field_name'], tmp['definition']))
-        print(field_df_dict)
+        #print(field_df_dict)
         print("\n")
         n = len(tmp.field_name.tolist()) - 1
+        print(f"n: {n}")
         for row in sh.iter_rows(min_row=1, min_col=1, max_row=1, max_col=n):
             for cell in row:
                 print(cell)
                 print(cell.value, end=" ")
                 dv = DataValidation()
-                s = str(field_df_dict[cell.value])
-                print(s)
+                s = str(field_df_dict[cell.value]) if cell.value is not None else None
+                #maybe just dont print it
+                #print(f"s: {s}")
                 dv.prompt = s
                 sh.add_data_validation(dv)
                 dv.add(cell)
+                print("data validation description added to cell")
 
     wb.save(e_file)
     wb.close()
