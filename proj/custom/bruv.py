@@ -282,7 +282,7 @@ def bruv_lab(all_dfs):
 
     # Check: MaxN = sum(MaxNs) for i = 0, 1,2,.., where i is the rows per grouped_df on grouped_cols
     # grouped_cols = ['siteid','estuaryname','stationno','samplecollectiondate','camerareplicate','foventeredtime','fovlefttime','in_out'] 
-    cols = ['siteid','estuaryname','stationno','samplecollectiondate','camerareplicate','foventeredtime','fovlefttime','in_out'] 
+    cols = ['siteid','estuaryname','stationno','samplecollectiondate','camerareplicate','videoorder','foventeredtime','fovlefttime','in_out'] 
     # keep origial indices for marking file
     bruvdata['tmp_row'] = bruvdata.index
     #subsetting for 'in_out' == 'in' so that there are fewer keys to loop through
@@ -293,6 +293,9 @@ def bruv_lab(all_dfs):
     for key, values in gb.items():
         if key in key_list_from_gb: #this is by unique group
             tmp = bruvdata.loc[values]
+            #print("=============== printing tmp for maxn maxns check ==================")
+            #print(tmp)
+            #print("=============== tmp printed ==================")
             brows = tmp[(tmp['maxn'] != tmp['maxns'].sum())].tmp_row.tolist()
             #extend adds second list elts to first list
             badrows.extend(brows) #this will be populated to the badrows key in the args dict
@@ -408,10 +411,10 @@ def bruv_lab(all_dfs):
     print("read in fish lookup")
     lookup_sql = f"SELECT * from lu_fishmacrospecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
-    #check_cols = ['scientificname', 'commonname', 'status']
-    check_cols = ['scientificname', 'commonname']
-    #lookup_cols = ['scientificname', 'commonname', 'status']
-    lookup_cols = ['scientificname', 'commonname']
+    check_cols = ['scientificname', 'commonname', 'status']
+    #check_cols = ['scientificname', 'commonname']
+    lookup_cols = ['scientificname', 'commonname', 'status']
+    #lookup_cols = ['scientificname', 'commonname']
 
     badrows = multicol_lookup_check(bruvdata, lu_species, check_cols, lookup_cols)
     

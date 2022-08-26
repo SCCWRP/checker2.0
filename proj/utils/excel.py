@@ -9,8 +9,8 @@ from math import floor
 def mark_workbook(all_dfs, excel_path, errs, warnings):
     assert session.get('submission_dir') is not None, "function - mark_workbook - session submission dir is not defined."
     orig_filename = excel_path.rsplit('/', 1)[-1]
-    filename = orig_filename.split('.')[0]
-    ext = orig_filename.split('.')[-1]
+    filename = orig_filename.rsplit('.',1)[0]
+    ext = orig_filename.rsplit('.',1)[-1]
     marked_path = os.path.join(session.get('submission_dir'), f"{filename}-marked.{ext}")
     
     # copy the excel file and have "marked" in the name, and we will mark this excel file
