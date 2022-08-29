@@ -4,8 +4,8 @@ logs
 .vscode
 testing/
 
-# ignore xml and datasets.json config files
-proj/custom/*.xml
+# ignore custom folder and datasets.json config files
+proj/custom/
 proj/config/datasets.json
 proj/config/config.json
 
@@ -16,5 +16,3 @@ proj/custom/__pycache__/
 proj/core/__pycache__/
 proj/utils/__pycache__/
 
-# ignore custom checks files
-proj/custom/*_custom.py
