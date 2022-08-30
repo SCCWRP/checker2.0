@@ -9,7 +9,8 @@ RUN apt-get install -y vim
 RUN apt-get install -y libpq-dev && pip3 install psycopg2
 RUN apt-get install -y libgdal-dev
 RUN apt-get install -y libproj-dev
-RUN apt-get install -y cython cython3
+# RUN apt-get install -y cython cython3
+RUN apt-get install -y cython3
 RUN apt-get install -y python3-pyproj
 RUN pip3 install wheel
 RUN pip3 install uwsgi flask ipython
@@ -31,6 +32,7 @@ RUN pip3 install geopandas
 RUN pip3 install folium 
 RUN pip3 install matplotlib 
 RUN pip3 install arcgis 
+RUN pip3 install scipy 
 #RUN pip3 install opencv-python
 
 RUN mkdir -p /var/www/checker/
