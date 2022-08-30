@@ -9,7 +9,8 @@ RUN apt-get install -y vim
 RUN apt-get install -y libpq-dev && pip3 install psycopg2
 RUN apt-get install -y libgdal-dev
 RUN apt-get install -y libproj-dev
-RUN apt-get install -y cython cython3
+# RUN apt-get install -y cython cython3
+RUN apt-get install -y cython3
 RUN apt-get install -y python3-pyproj
 RUN pip3 install wheel
 RUN pip3 install uwsgi flask ipython
