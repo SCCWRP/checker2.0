@@ -32,7 +32,7 @@ app.debug = True # remove for production
 # does your application require uploaded filenames to be modified to timestamps or left as is
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
+app.config['MAIL_SERVER'] = CONFIG.get('MAIL_SERVER')
 
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
 app.secret_key = os.environ.get("FLASK_APP_SECRET_KEY")
@@ -56,10 +56,10 @@ def teardown_request(exception):
         g.eng.dispose()
 
 # Project name
-app.project_name = os.environ.get("PROJNAME")
+app.project_name = CONFIG.get("PROJECTNAME")
 
 # script root (for any links we put, mainly lookup lists)
-app.script_root = os.environ.get('FLASK_APP_SCRIPT_ROOT')
+app.script_root = CONFIG.get('APP_SCRIPT_ROOT')
 
 
 # Maintainers
