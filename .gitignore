@@ -17,3 +17,5 @@ proj/utils/__pycache__/
 
 # ignore custom checks files
 proj/custom/*_custom.py
+
+docker/truedeploy.sh
