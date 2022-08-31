@@ -56,7 +56,7 @@ def index():
         """
     )
     
-    return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets, login_info = False )
+    return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets, global_login_form = current_app.global_login_form, login_info = False )
 
 
 @homepage.route('/login_values')

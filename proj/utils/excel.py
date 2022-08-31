@@ -26,7 +26,7 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
             errs_cells[table].append(
                 {
                     'row_index': r,
-                    'column_index': all_dfs[table].columns.get_loc(str(col).strip()),
+                    'column_index': all_dfs[table].columns.get_loc(str(col).strip().lower()),
                     'message': e.get('error_message')
                 }
             )
@@ -43,7 +43,7 @@ def mark_workbook(all_dfs, excel_path, errs, warnings):
             warnings_cells[table].append(
                 {
                     'row_index': r,
-                    'column_index': all_dfs[table].columns.get_loc(str(col).strip()),
+                    'column_index': all_dfs[table].columns.get_loc(str(col).strip().lower()),
                     'message': f"{w.get('error_message')} (Warning)"
                 }
             )

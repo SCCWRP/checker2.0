@@ -16,13 +16,13 @@ from .templater import templater # for dynamic lookup lists called into template
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
 
 
-BASIC_CONFIG_FILEPATH = os.path.join(CUSTOM_CONFIG_PATH, 'basic-config.json')
-assert os.path.exists(BASIC_CONFIG_FILEPATH), "basic-config.json not found"
+CONFIG_FILEPATH = os.path.join(CUSTOM_CONFIG_PATH, 'config.json')
+assert os.path.exists(CONFIG_FILEPATH), "config.json not found"
 
-BASIC_CONFIG = json.loads(open(BASIC_CONFIG_FILEPATH, 'r').read())
+CONFIG = json.loads(open(CONFIG_FILEPATH, 'r').read())
 
-assert all([item in BASIC_CONFIG.keys() for item in ["EXCEL_OFFSET", "SYSTEM_FIELDS", "EXCEL_TABS_TO_IGNORE", "MAINTAINERS"]]), \
-    """ "EXCEL_OFFSET", "SYSTEM_FIELDS", "EXCEL_TABS_TO_IGNORE", "MAINTAINERS" not found in the keys of the basic config file """
+assert all([item in CONFIG.keys() for item in ["EXCEL_OFFSET", "SYSTEM_FIELDS", "EXCEL_TABS_TO_IGNORE", "MAINTAINERS", "DATASETS"]]), \
+    """ "EXCEL_OFFSET", "SYSTEM_FIELDS", "EXCEL_TABS_TO_IGNORE", "MAINTAINERS", "DATASETS" not found in the keys of the basic config file """
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -59,18 +59,18 @@ app.script_root = os.environ.get('FLASK_APP_SCRIPT_ROOT')
 
 
 # Maintainers
-app.maintainers = BASIC_CONFIG.get('MAINTAINERS')
+app.maintainers = CONFIG.get('MAINTAINERS')
 
 # system fields for all applications
-app.system_fields = BASIC_CONFIG.get('SYSTEM_FIELDS')
+app.system_fields = CONFIG.get('SYSTEM_FIELDS')
 
 # just in case we want to set aside certain tab names that the application should ignore when reading in an excel file
-app.tabs_to_ignore = BASIC_CONFIG.get('EXCEL_TABS_TO_IGNORE') # if separate tabs for lu's, reflect here
+app.tabs_to_ignore = CONFIG.get('EXCEL_TABS_TO_IGNORE') # if separate tabs for lu's, reflect here
 
 # number of rows to skip when reading in excel files
 # Some projects will give templates with descriptions above column headers, in which case we have to skip a row when reading in the excel file
 # NESE offsets by 2 rows
-app.excel_offset = BASIC_CONFIG.get('EXCEL_OFFSET')
+app.excel_offset = CONFIG.get('EXCEL_OFFSET')
 
 
 
@@ -78,12 +78,12 @@ app.excel_offset = BASIC_CONFIG.get('EXCEL_OFFSET')
 app.mail_from = os.environ.get('FLASK_APP_MAIL_FROM')
 
 
-# data sets / groups of tables for datatypes will be defined in datasets.json in the proj/config folder
-assert os.path.exists(os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')), \
-    f"{os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json')} configuration file not found"
-app.datasets = json.loads( open( os.path.join(CUSTOM_CONFIG_PATH, 'datasets.json'), 'r' ).read() )
+app.datasets = CONFIG.get('DATASETS')
+
 print("app.datasets")
 print(app.datasets)
+
+app.global_login_form = CONFIG.get('GLOBAL_LOGIN_FORM') # may be a nonetype object
 
 print("Be sure not to prefix the login fields with 'login' in the datasets.json config file")
 
