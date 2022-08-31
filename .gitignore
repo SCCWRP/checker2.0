@@ -4,9 +4,10 @@ logs
 .vscode
 testing/
 
-# ignore xml and datasets.json config files
-proj/custom/*.xml
+# ignore custom folder and datasets.json config files
+proj/custom/
 proj/config/datasets.json
+proj/config/config.json
 
 # ignore pycache directories
 __pycache__/
