@@ -116,6 +116,14 @@ def load():
     for tbl in current_app.datasets.get(session.get('datatype')).get('tables'):
         print(f"Loading Data to {tbl}. Be sure that the tables are in the correct order in __init__.py datasets")
         print("If foreign key relationships are set, the tables need to be loadede in a particular order")
+        
+        # These columns are needed in all submission tables, but they are often overlooked
+        g.eng.execute(
+            f"""
+            ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS submissionid int4 NOT NULL;
+            ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS warnings VARCHAR(5000);
+            """
+        )
         all_dfs[tbl].to_geodb(tbl, g.eng)
  
 
@@ -147,7 +155,7 @@ def load():
     # So we know the massive argument list of the data receipt function, which is like the notification email for successful submission
     #def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, originalfile, tables, eng, mailserver, *args, **kwargs):
     data_receipt(
-        send_from = 'admin@checker.sccwrp.org',
+        send_from = current_app.mail_from,
         always_send_to = current_app.maintainers,
         login_email = session.get('login_info').get('login_email'),
         dtype = session.get('datatype'),
