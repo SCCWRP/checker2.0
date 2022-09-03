@@ -84,6 +84,20 @@ def macroalgae(all_dfs):
 
     print("End Macroalgae Logic Checks...")
 
+    # CoverType & Species Check: if covertype is plant, then scientificname CANNOT be 'Not recorded'
+    # if covertype is not plant, then scientificname can be 'Not recorded' - no check needs to be written for this one
+    args.update({
+        "dataframe": algaecover,
+        "tablename": "tbl_algaecover_data",
+        "badrows": algaecover[(algaecover['covertype'] == 'plant') & (algaecover['scientificname'] == 'Not recorded')].index.tolist(), 
+        "badcolumn": "covertype, scientificname",
+        "error_type": "Value Error",
+        "error_message": "CoverType is 'plant' so the ScientificName must be a value other than 'Not recorded'."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - algaecover_data - covertype is plant, sciname must be an actual plant") 
+
+
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
@@ -119,6 +133,19 @@ def macroalgae(all_dfs):
 
     errs = [*errs, checkData(**args)]
     print("check ran - algeacover_data - multicol species") 
+
+    # ALGAE FLOATING DATA CHECKS
+    # EstimatedCover & ScientificName Check: if estimatedcover is 0, then scientificname MUST be 'Not recorded'
+    args.update({
+        "dataframe": algaefloating,
+        "tablename": "tbl_floating_data",
+        "badrows": algaefloating[(algaefloating['estimatedcover'] == 0) & (algaefloating['scientificname'] != 'Not recorded')].index.tolist(), 
+        "badcolumn": "estimatedcover, scientificname",
+        "error_type": "Value Error",
+        "error_message": "EstimatedCover is 0. The ScientificName MUST be 'Not recorded'."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - floating_data - estimatedcover is 0, sciname must be NR") 
 
     badrows = multicol_lookup_check(algaefloating, lu_species, check_cols, lookup_cols)
 
