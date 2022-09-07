@@ -44,6 +44,19 @@ def macroalgae(all_dfs):
         "error_message": ""
     }
 
+    # generalizing multicol_lookup_check
+    def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+
+        lookup_df = lookup_df.assign(match="yes")
+        #bug fix: read 'status' as string to avoid merging on float64 (from df_to_check) and object (from lookup_df) error
+        if 'status' in df_to_check.columns.tolist():
+            df_to_check['status'] = df_to_check['status'].astype(str)
+        merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
     # Example of appending an error (same logic applies for a warning)
     # args.update({
     #   "badrows": get_badrows(df[df.temperature != 'asdf']),
@@ -52,7 +65,58 @@ def macroalgae(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+    print("Begin Macroalgae Multicol Checks for matching SiteID to EstuaryName...")
+    lookup_sql = f"SELECT * FROM lu_siteid;"
+    lu_siteid = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['siteid','estuaryname']
+    lookup_cols = ['siteid','estuary']
+    # Multicol - algaemeta
+    args.update({
+        "dataframe": algaemeta,
+        "tablename": "tbl_macroalgae_sample_metadata",
+        "badrows": multicol_lookup_check(algaemeta,lu_siteid, check_cols, lookup_cols),
+        "badcolumn":"siteid, estuaryname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": f'The siteid/estuaryname entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_siteid" '
+                        'target="_blank">lu_siteid</a>'
+        
+    })
+    print("check ran - multicol lookup, siteid and estuaryname - algaemeta")
+    errs = [*errs, checkData(**args)]
+    # Multicol - algaecover
+    args.update({
+        "dataframe": algaecover,
+        "tablename": "tbl_algaecover_data",
+        "badrows": multicol_lookup_check(algaecover,lu_siteid, check_cols, lookup_cols),
+        "badcolumn":"siteid, estuaryname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": f'The siteid/estuaryname entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_siteid" '
+                        'target="_blank">lu_siteid</a>'
+        
+    })
+    print("check ran - multicol lookup, siteid and estuaryname - algaecover")
+    errs = [*errs, checkData(**args)]
+    # Multicol - algaefloating
+    args.update({
+        "dataframe": algaefloating,
+        "tablename": "tbl_floating_data",
+        "badrows": multicol_lookup_check(algaefloating,lu_siteid, check_cols, lookup_cols),
+        "badcolumn":"siteid, estuaryname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": f'The siteid/estuaryname entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_siteid" '
+                        'target="_blank">lu_siteid</a>'
+        
+    })
+    print("check ran - multicol lookup, siteid and estuaryname - algaefloating")
+    errs = [*errs, checkData(**args)]
 
+    print("End Macroalgae Multicol Checks for matching SiteID to EstuaryName...")
 
     
    # return {'errors': errs, 'warnings': warnings}
@@ -96,18 +160,6 @@ def macroalgae(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     print("check ran - algaecover_data - covertype is plant, sciname must be an actual plant") 
-
-
-    def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
-        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
-        assert isinstance(lookup_cols, list), "lookup columns is not a list"
-
-        lookup_df = lookup_df.assign(match="yes")
-        #bug fix: read 'status' as string to avoid merging on float64 (from df_to_check) and object (from lookup_df) error
-        df_to_check['status'] = df_to_check['status'].astype(str)
-        merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
-        badrows = merged[pd.isnull(merged.match)].index.tolist()
-        return(badrows)
 
     lookup_sql = f"SELECT * FROM lu_plantspecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
