@@ -118,6 +118,17 @@ def macroalgae(all_dfs):
 
     print("End Macroalgae Multicol Checks for matching SiteID to EstuaryName...")
 
+    # transectlength_m must be postive (> 0)
+    args.update({
+        "dataframe": algaemeta,
+        "tablename": "tbl_macroalgae_sample_metadata",
+        "badrows": algaemeta[algaemeta['transect_length_m'] <= 0].index.tolist(),
+        "badcolumn": "transect_length_m",
+        "error_type" : "Value out of range",
+        "error_message" : "Transect length must be greater than 0."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - positive transect_length_m - algaemeta")
     
    # return {'errors': errs, 'warnings': warnings}
     print("Begin Macroalgae Logic Checks...")
