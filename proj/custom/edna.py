@@ -143,6 +143,7 @@ def edna_lab(all_dfs):
 def edna_field(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
+    lu_list_script_root = current_app.script_root
     
     # function should be named after the dataset in app.datasets in __init__.py
     assert current_function_name in current_app.datasets.keys(), \
@@ -189,5 +190,40 @@ def edna_field(all_dfs):
     # })
     # errs = [*errs, checkData(**args)]
 
+    # Multi column Lookup Check 
+    def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
+        assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
+        assert isinstance(lookup_cols, list), "lookup columns is not a list"
+
+        lookup_df = lookup_df.assign(match="yes")
+        #bug fix: read 'status' as string to avoid merging on float64 (from df_to_check) and object (from lookup_df) error
+        if 'status' in df_to_check.columns.tolist():
+            df_to_check['status'] = df_to_check['status'].astype(str)
+        merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
+        badrows = merged[pd.isnull(merged.match)].index.tolist()
+        return(badrows)
+
+    print("Begin eDNA Multicol Checks to check SiteID/EstuaryName pair...")
+    lookup_sql = f"SELECT * FROM lu_siteid"
+    lu_siteid = pd.read_sql(lookup_sql, g.eng)
+    check_cols = ['siteid','estuaryname']
+    lookup_cols = ['siteid','estuary']
+
+    # Multicol - algaemeta
+    args.update({
+        "dataframe": ednameta,
+        "tablename": "tbl_edna_metadata",
+        "badrows": multicol_lookup_check(ednameta,lu_siteid, check_cols, lookup_cols),
+        "badcolumn":"siteid, estuaryname",
+        "error_type": "Multicolumn Lookup Error",
+        "error_message": f'The siteid/estuaryname entry did not match the lookup list '
+                        '<a '
+                        f'href="/{lu_list_script_root}/scraper?action=help&layer=lu_siteid" '
+                        'target="_blank">lu_siteid</a>'
+        
+    })
+    print("check ran - multicol lookup, siteid and estuaryname - ednameta")
+    errs = [*errs, checkData(**args)]
+    print("End eDNA Multicol Checks to check SiteID/EstuaryName pair.")
 
     return {'errors': errs, 'warnings': warnings}
