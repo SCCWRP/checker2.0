@@ -118,6 +118,41 @@ def macroalgae(all_dfs):
 
     print("End Macroalgae Multicol Checks for matching SiteID to EstuaryName...")
 
+    # Check: transectreplicate must be positive or -88 for tbl_macroalgae_sample_metadata
+    args.update({
+        "dataframe": algaemeta,
+        "tablename": "tbl_macroalgae_sample_metadata",
+        "badrows": algaemeta[(algaemeta['transectreplicate'] <= 0) & (algaemeta['transectreplicate'] != -88)].index.tolist(),
+        "badcolumn": "transectreplicate",
+        "error_type" : "Value Error",
+        "error_message" : "TransectReplicate must be greater than 0."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - positive transectreplicate - algaemeta")
+
+    # Check: transectreplicate must be positive or -88 for tbl_algaecover_data
+    args.update({
+        "dataframe": algaecover,
+        "tablename": "tbl_algaecover_data",
+        "badrows": algaecover[(algaecover['transectreplicate'] <= 0) & (algaecover['transectreplicate'] != -88)].index.tolist(),
+        "badcolumn": "transectreplicate",
+        "error_type" : "Value Error",
+        "error_message" : "TransectReplicate must be greater than 0."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - positive transectreplicate - algaecover")
+    # Check: plotreplicate must be positive or -88 for tbl_algaecover_data
+    args.update({
+        "dataframe": algaecover,
+        "tablename": "tbl_algaecover_data",
+        "badrows": algaecover[(algaecover['plotreplicate'] <= 0) & (algaecover['plotreplicate'] != -88)].index.tolist(),
+        "badcolumn": "plotreplicate",
+        "error_type" : "Value Error",
+        "error_message" : "PlotReplicate must be greater than 0."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - positive plotreplicate - algaecover")
+
     # transectlength_m must be postive (> 0)
     args.update({
         "dataframe": algaemeta,
