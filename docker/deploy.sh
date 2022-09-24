@@ -8,4 +8,4 @@ docker container run -it -d --name $1 \
     -w /var/www/checker \
     -e DB_CONNECTION_STRING=$2 \
     sccwrp/flask:checkertemplate \
-    uwsgi -s /tmp/$1.sock --uid www-data --gid www-data --manage-script-name --mount /checker=run:app --chmod-socket=666
+    uwsgi -s /tmp/$1.sock --uid www-data --gid www-data --manage-script-name --buffer-size 65535 --mount /checker=run:app --chmod-socket=666
