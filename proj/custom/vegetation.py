@@ -109,7 +109,7 @@ def vegetation(all_dfs):
         "dataframe": vegdata,
         "tablename": "tbl_vegetativecover_data",
         "badrows":vegdata[(vegdata['tallestplantheight_cm']<0) | (vegdata['tallestplantheight_cm'] > 300)].index.tolist(),
-        "badcolumn": "tallestplantheight_cm",
+        "badcolumn": "talllestplantheight_cm",
         "error_type" : "Value is out of range.",
         "error_message" : "Height should be between 0 to 3 metres"
     })
