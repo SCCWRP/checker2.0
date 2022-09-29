@@ -398,6 +398,29 @@ def bruv_lab(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran - logic - extranneous bruv_data records") #testing
 
+    # Logic Check 3: bruv_data should have corresponding records in bruv_metadata
+    
+    badrows = pd.merge(
+        bruvdata, 
+        pd.read_sql("SELECT * FROM tbl_bruv_metadata", g.eng),
+        how = 'left', 
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate','camerareplicate'], 
+        indicator='in_where'
+    )
+    badrows = badrows[badrows['in_where'] == 'left_only'].index.tolist()
+
+    args.update({
+        "dataframe": bruvdata,
+        "tablename": "tbl_bruv_data",
+        "badrows": badrows, 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate,camerareplicate",
+        "error_type": "Logic Error",
+        "error_message": "Records in bruv_data should have corresponding records in bruv_metadata. Please submit the metadata for these records first."
+    })
+    errs = [*errs, checkData(**args)]
+    print("check ran - logic - in data not in meta") #testing
+
+
     #tbl_bruv_data will have the species column check, yet to be tested
     def multicol_lookup_check(df_to_check,lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"

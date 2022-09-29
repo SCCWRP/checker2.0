@@ -102,7 +102,13 @@ def main():
     
     for tblname in all_dfs.keys():
         all_dfs[tblname].columns = [x.lower() for x in all_dfs[tblname].columns]
-
+        all_dfs[tblname] = all_dfs[tblname].drop(
+            columns= [
+                x 
+                for x in all_dfs[tblname].columns 
+                if x in current_app.system_fields
+            ]
+        )
     print("DONE - building 'all_dfs' dictionary")
     
 
