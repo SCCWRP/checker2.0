@@ -110,8 +110,8 @@ def discretewq(all_dfs):
     args.update({
         "dataframe": waterdata,
         "tablename": 'tbl_waterquality_data',
-        "badrows": waterdata[((waterdata['conductivity_mscm'] < 0) | (waterdata['conductivity_mscm'] > 100)) & (waterdata['conductivity_mscm'] != -88)].index.tolist(), 
-        "badcolumn": "conductivity_mscm",
+        "badrows": waterdata[((waterdata['conductivity_uscm'] < 0) | (waterdata['conductivity_uscm'] > 100)) & (waterdata['conductivity_uscm'] != -88)].index.tolist(), 
+        "badcolumn": "conductivity_uscm",
         "error_type": "Value out of range",
         "error_message" : "Your conductivity value is out of range. Conductivtiy must be between 0 and 100."
     })
