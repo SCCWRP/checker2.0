@@ -150,7 +150,12 @@ def vegetation(all_dfs):
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
 
         lookup_df = lookup_df.assign(match="yes")
-        df_to_check['status'] = df_to_check['status'].astype(str)
+        
+        for c in check_cols:
+            df_to_check[c] = df_to_check[c].apply(lambda x: str(x).lower().strip())
+        for c in lookup_cols:
+            lookup_df[c] = lookup_df[c].apply(lambda x: str(x).lower().strip())
+
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)

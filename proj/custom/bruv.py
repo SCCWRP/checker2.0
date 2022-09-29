@@ -398,10 +398,9 @@ def bruv_lab(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran - logic - extranneous bruv_data records") #testing
 
-    # Logic Check 3: bruv_data should have corresponding records in bruv_metadata
-    
+    # Logic Check 3: bruvvideo should have corresponding records in bruv_metadata
     badrows = pd.merge(
-        bruvdata, 
+        bruvvideo, 
         pd.read_sql("SELECT * FROM tbl_bruv_metadata", g.eng),
         how = 'left', 
         on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate','camerareplicate'], 
@@ -410,12 +409,12 @@ def bruv_lab(all_dfs):
     badrows = badrows[badrows['in_where'] == 'left_only'].index.tolist()
 
     args.update({
-        "dataframe": bruvdata,
-        "tablename": "tbl_bruv_data",
+        "dataframe": bruvvideo,
+        "tablename": "tbl_bruv_videolog",
         "badrows": badrows, 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate,camerareplicate",
         "error_type": "Logic Error",
-        "error_message": "Records in bruv_data should have corresponding records in bruv_metadata. Please submit the metadata for these records first."
+        "error_message": "Records in bruv_videolog should have corresponding records in bruv_metadata. Please submit the metadata for these records first."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logic - in data not in meta") #testing
@@ -427,10 +426,16 @@ def bruv_lab(all_dfs):
         assert isinstance(lookup_cols, list), "lookup columns is not a list"
 
         lookup_df = lookup_df.assign(match="yes")
-        df_to_check['status'] =df_to_check['status'].astype(str)
+
+        for c in check_cols:
+            df_to_check[c] = df_to_check[c].apply(lambda x: str(x).lower().strip())
+        for c in lookup_cols:
+            lookup_df[c] = lookup_df[c].apply(lambda x: str(x).lower().strip())
+        
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)
+
     print("read in fish lookup")
     lookup_sql = f"SELECT * from lu_fishmacrospecies;"
     lu_species = pd.read_sql(lookup_sql, g.eng)
@@ -445,7 +450,7 @@ def bruv_lab(all_dfs):
         "dataframe":  bruvdata,
         "tablename": "tbl_bruv_data",
         "badrows": badrows,
-        "badcolumn": "scientificname",
+        "badcolumn": "scientificname,commonname,status",
         "error_type" : "Multicolumn Lookup Error",
         "error_message" : f'The scientificname/commonname/status entry did not match the lookup list.'
                          '<a '

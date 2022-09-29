@@ -186,6 +186,12 @@ def crabtrap(all_dfs):
 
         lookup_df = lookup_df.assign(match="yes")
         df_tocheck['status'] = df_tocheck['status'].astype(str)
+        
+        for c in check_cols:
+            df_tocheck[c] = df_tocheck[c].apply(lambda x: str(x).lower().strip())
+        for c in lookup_cols:
+            lookup_df[c] = lookup_df[c].apply(lambda x: str(x).lower().strip())
+
         merged = pd.merge(df_tocheck, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
         return(badrows)

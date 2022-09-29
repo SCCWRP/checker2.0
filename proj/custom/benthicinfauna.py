@@ -218,9 +218,9 @@ def benthicinfauna_lab(all_dfs):
         lookup_df = lookup_df.assign(match="yes")
         
         for c in check_cols:
-            df_to_check[c] = df_to_check[c].apply(lambda x: str(x).strip())
+            df_to_check[c] = df_to_check[c].apply(lambda x: str(x).lower().strip())
         for c in lookup_cols:
-            lookup_df[c] = lookup_df[c].apply(lambda x: str(x).strip())
+            lookup_df[c] = lookup_df[c].apply(lambda x: str(x).lower().strip())
 
         merged = pd.merge(df_to_check, lookup_df, how="left", left_on=check_cols, right_on=lookup_cols)
         badrows = merged[pd.isnull(merged.match)].index.tolist()
