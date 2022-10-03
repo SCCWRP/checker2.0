@@ -1,5 +1,6 @@
 # This file is for various utilities to preprocess data before core checks
 
+import tabnanny
 from flask import current_app, g
 import pandas as pd
 import re
@@ -240,29 +241,39 @@ def fill_speciesnames(all_dfs):
     #         ,
     #         axis = 1
     #     )
-    
-    lu_plantspecies = pd.read_sql('SELECT scientificname, commonname, status FROM lu_plantspecies', g.eng)
-    names = {
-        (x,y): z  for x,y,z in list(
-            zip(
-                lu_plantspecies.scientificname, 
-                lu_plantspecies.commonname,
-                lu_plantspecies.status
-            )
-        )
+    print("begin fill species name")
+    print(all_dfs.keys())
+    lu_list_to_fill = {
+        'tbl_bruv_data': 'lu_fishmacrospecies',
+        'tbl_fish_length_data': 'lu_fishmacrospecies',
+        'tbl_fish_abundance_data': 'lu_fishmacrospecies',
+        'tbl_vegetativecover_data': 'lu_plantspecies',
+        'tbl_crabbiomass_length': 'lu_fishmacrospecies',
+        'tbl_crabfishinvert_abundance': 'lu_fishmacrospecies'
     }
     for tab in all_dfs.keys():
-        if tab in ['tbl_vegetativecover_data']:
-            print(all_dfs[tab]['status'])
-            all_dfs[tab]['status'] = all_dfs[tab].apply(
-                lambda row: names[(row['scientificname'], row['commonname'])]
-                if ((row['scientificname'], row['commonname']) in names.keys()) and (pd.isnull(row['status']) or row['status'] == '') 
-                else row['status'] ,
-                axis=1
-            )
-            print("all_dfs[tab]['status']")
-            print(all_dfs[tab]['status'])
-
+        if tab in lu_list_to_fill.keys():
+            print(tab)
+            lu_list = pd.read_sql(f'SELECT scientificname, commonname, status FROM {lu_list_to_fill.get(tab)}', g.eng)
+            print(lu_list)
+            names = {
+                (x,y): z  for x,y,z in list(
+                    zip(
+                        lu_list.scientificname, 
+                        lu_list.commonname,
+                        lu_list.status
+                    )
+                )
+            }
+            print(names)
+            if not all_dfs[tab].empty:
+                all_dfs[tab]['status'] = all_dfs[tab].apply(
+                    lambda row: names[(row['scientificname'], row['commonname'])]
+                    if ((row['scientificname'], row['commonname']) in names.keys()) and (pd.isnull(row['status']) or row['status'] == '') 
+                    else row['status'] ,
+                    axis=1
+                )
+    print("end fill species name")
     return all_dfs
 
 
