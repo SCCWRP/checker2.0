@@ -180,6 +180,66 @@ def fishseines(all_dfs):
     del badrows_starttime
     del badrows_endtime
     '''
+    # New checks written by Duy 10-04-22
+    merged= pd.merge(
+    fishabud,
+    fishmeta, 
+    how='left',
+    suffixes=('_abundance', '_meta'),
+    on = ['siteid','estuaryname','stationno','samplecollectiondate','surveytype','netreplicate']
+    )
+
+    # Check 1: if method = count, catch = yes in meta, then abundance is non zero integer in fish abundance tab
+    badrows = merged[(merged['abundance'] <= 0) & (merged['method'].apply(lambda x: str(x).lower().strip()) == 'count') & (merged['catch'].apply(lambda x: str(x).lower().strip()) == 'yes' )].index.tolist()
+    args.update({
+        "dataframe": fishabud,
+        "tablename": "tbl_fish_abundance_data",
+        "badrows": badrows,
+        "badcolumn": "abundance",
+        "error_message": "If method = count, catch = yes in fish_meta, then abundance should be non zero integer in fish_abundance"
+    })
+    errs = [*errs, checkData(**args)]
+    
+    # Check 2: if method = pa, catch = yes in meta, then abundance is -88 in fish abundance tab
+    badrows = merged[(merged['abundance'] != -88) & (merged['method'].apply(lambda x: str(x).lower().strip()) == 'pa') & (merged['catch'].apply(lambda x: str(x).lower().strip()) == 'yes' )].index.tolist()
+    args.update({
+        "dataframe": fishabud,
+        "tablename": "tbl_fish_abundance_data",
+        "badrows": badrows,
+        "badcolumn": "abundance",
+        "error_message": "If method = pa, catch = yes in fish_meta, then abundance should be -88 in fish_abundance"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # Check 3: if catch = no in meta, then abundance is 0 in fish abundance
+    badrows = merged[(merged['abundance'] != 0) & (merged['catch'].apply(lambda x: str(x).lower().strip()) == 'no' )].index.tolist()
+    args.update({
+        "dataframe": fishabud,
+        "tablename": "tbl_fish_abundance_data",
+        "badrows": badrows,
+        "badcolumn": "abundance",
+        "error_message": "If catch = no in fish_meta, then abundance should be 0 in fish_abundance"
+    })
+    errs = [*errs, checkData(**args)]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     def multicol_lookup_check(df_to_check, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_to_check.columns)), "columns do not exists in the dataframe"
         assert isinstance(lookup_cols, list), "lookup columns is not a list"

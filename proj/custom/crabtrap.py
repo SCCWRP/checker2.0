@@ -179,6 +179,68 @@ def crabtrap(all_dfs):
     errs = [*errs, checkData(**args)]
     print("check ran - tbl_crabfishinvert_abundance - abundance check") 
 
+    # New checks written by Duy - 2022-10-04
+    
+    # Check 1: if trapsuccess = yes in meta, then needs to be value for catch either yes or no
+    badrows = crabmeta[
+        (crabmeta['trapsuccess'].apply(lambda x: str(x).strip()) == 'yes') & (crabmeta['catch'].apply(lambda x: str(x).strip()) not in ['yes','no'])
+    ].index.tolist()  
+    args.update({
+        "dataframe": crabmeta,
+        "tablename": 'tbl_crabtrap_metadata',
+        "badrows": badrows,
+        "badcolumn": "catch",
+        "error_type": "Undefined Error",
+        "error_message": "If trapsuccess = yes, then needs to be value for catch (either yes or no)"
+    })
+    errs = [*errs, checkData(**args)]
+    
+    # Check 2: if trapsuccess = no in meta, catch = Null
+    badrows = crabmeta[
+        (crabmeta['trapsuccess'].apply(lambda x: str(x).strip()) == 'no') & (not pd.isnull(crabmeta['catch']))
+    ].index.tolist()  
+    args.update({
+        "dataframe": crabmeta,
+        "tablename": 'tbl_crabtrap_metadata',
+        "badrows": badrows,
+        "badcolumn": "catch",
+        "error_type": "Undefined Error",
+        "error_message": "If trapsuccess = no, catch needs to be empty"
+    })
+    errs = [*errs, checkData(**args)]
+    
+    # Check 3: If catch = No in meta, then abundance = 0 in abundance tab
+    merged= pd.merge(
+        crabinvert,
+        crabmeta, 
+        how='left',
+        suffixes=('_abundance', '_meta'),
+        on = ['siteid','estuaryname','traptype','traplocation','stationno','replicate']
+    )
+
+    badrows = merged[(merged['catch'] == 'no') & (merged['abundance'] > 0)].index.tolist()
+    args.update({
+        "dataframe": crabinvert,
+        "tablename": 'tbl_crabfishinvert_abundance',
+        "badrows": badrows,
+        "badcolumn": "abundance",
+        "error_type": "Undefined Error",
+        "error_message": "If catch = No in crab_meta, then abundance shoud be 0 in invert_abundance tab"
+    })
+    errs = [*errs, checkData(**args)]
+    
+    # Check 4: If catch = Yes in meta, then abundance is non-zero integer in abundance tab
+    badrows = merged[(merged['catch'] == 'yes') & (merged['abundance'] <= 0)].index.tolist()
+    args.update({
+        "dataframe": crabinvert,
+        "tablename": 'tbl_crabfishinvert_abundance',
+        "badrows": badrows,
+        "badcolumn": "abundance",
+        "error_type": "Undefined Error",
+        "error_message": "If catch = Yes in crab_meta, then abundance should be a non-zero integer in abundance tab."
+    })
+    errs = [*errs, checkData(**args)]
+
     print("before multicol check")
     def multicol_lookup_check(df_tocheck, lookup_df, check_cols, lookup_cols):
         assert set(check_cols).issubset(set(df_tocheck.columns)), "columns do not exist in the dataframe"
