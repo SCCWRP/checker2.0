@@ -321,6 +321,29 @@ def template():
             for lu_name in list(set(list_lu_needed))
         }
     }
+
+    # Reorder columns of tbls
+    print("Re-ordering columns")
+    column_order = pd.read_sql("SELECT * from column_order", eng)
+    column_order = dict(zip(column_order['table_name'],column_order['column_order']))
+    for key in xls.keys():
+        tab_name = f"tbl_{key}"
+        if tab_name in tbls:
+            df = xls[key]
+            print("Before reordering:", df.columns, sep="\n")
+            print(tab_name)
+            correct_field_order = column_order.get(tab_name, None).split(",")
+            print("correct_field_order",correct_field_order,sep="\n")
+            if correct_field_order is not None:
+                df = df[[x for x in correct_field_order if x in df.columns] + [x for x in df.columns if x not in correct_field_order]]
+                xls[key] = df
+                print("After reordering:", df.columns, sep="\n")
+
+    print("Done reordering columns")
+    ############################################################################################################################
+    ### Legacy code. I wrote them when I first started SCCWRP and worked on this project. They are not optimized, but still work.
+    ### I will improve the code when I have time - Duy 10/11/22
+     ############################################################################################################################
     print("Finished building templates and adding all Lu list")
     lookup_list = pd.read_sql(
         "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE 'lu%%'", 
@@ -328,14 +351,10 @@ def template():
     )
     lookup_list = lookup_list['table_name'].tolist()
 
-    # PRIMARY KEY
     primarykey = dict()
-    # x : lookuplist variable for findprimary()
-
 
     def findprimary(x):
         for i in lookup_list:
-            # meta is an initialized variable for MetaData()
             s = Table(i, meta, autoload=True, autoload_with=eng)
             lpkeys = list()
             for pk in s.primary_key:
@@ -477,7 +496,8 @@ def template():
 
     wb.save(excel_file)
     wb.close()
-
+    ############################################################################################################################
+    ############################################################################################################################
     return send_file(f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx", as_attachment=True, attachment_filename=f'{file_prefix}-TEMPLATE.xlsx')
     
 
