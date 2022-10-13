@@ -340,7 +340,7 @@ def logger(all_dfs):
         "badrows":loggerm[(loggerm['qvalue'] > 1.1) | ((loggerm['qvalue']!=-88) & (loggerm['qvalue'] < 0))].index.tolist(),
         "badcolumn": "qvalue",
         "error_type" : "Value out of range",
-        "error_message" : "Your qvalue is out of range. Must be less than 1.1."
+        "error_message" : "Your qvalue is out of range. Must be within 0-1.1."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logger_mdot_data - qvalue")
