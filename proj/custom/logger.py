@@ -328,7 +328,7 @@ def logger(all_dfs):
         "badrows":loggerm[(loggerm['do_mgl'] > 60) | ((loggerm['do_mgl']!=-88) & (loggerm['do_mgl'] < 0))].index.tolist(),
         "badcolumn": "do_mgl",
         "error_type" : "Value out of range",
-        "error_message" : "Your do_mgl value is out of range. Value should not exceed 60."
+        "error_message" : "Your do_mgl value is out of range. Value should be within 0-60 mg/L."
     })
     errs = [*errs, checkData(**args)]
     print("check ran - logger_mdot_data - do_mgl")
