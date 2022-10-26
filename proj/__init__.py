@@ -101,7 +101,10 @@ connection = psycopg2.connect(
 connection.set_session(autocommit=True)
 
 for datasetname, dataset in app.datasets.items():
-    fields = [f"login_{f.get('fieldname')}" for f in dataset.get('login_fields')]
+    if CONFIG.get("GLOBAL_LOGIN_FORM"):
+        fields = [f"login_{f.get('fieldname')}" for f in CONFIG.get("GLOBAL_LOGIN_FORM")]
+    else:
+        fields = [f"login_{f.get('fieldname')}" for f in dataset.get('login_fields')]
     with connection.cursor() as cursor:
         for fieldname in fields:
             print("Attempting to add field to submission tracking table")

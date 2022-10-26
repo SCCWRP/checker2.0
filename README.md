@@ -9,6 +9,7 @@ This repository is more or less a template to set up checker applications for di
 
 ## How it works
 ### Database
+
 When a data checking application is created, it is associated with a PostgreSQL geodatabase. Specifically they are ESRI's enterprise geodatabases. Those databases are created with SCCWRP's own jupyter notebooks on our own Arc GIS portal server (gis.sccwrp.org). These notebooks are not publicly accessible, nor can we publish them, but they are created with the ArcPy library which is a non-open source ESRI product. 
 
 This solution of using the checker application with an ESRI enterprise geodatabase is not necessarily the only option, as there are likely other ways we may have implemented this applciation completely with only open source projects, such as QGIS. We have not explored this route nor have we had a need to, but it would be possible to fork this repository and adapt the code to work with that kind of a database. Depending on the type of data being collected, it may not even be of any advantage to use a geodatabase at all.  

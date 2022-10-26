@@ -85,8 +85,8 @@ def main():
         sheet: pd.read_excel(
             excel_path, 
             sheet_name = sheet,
-            skiprows = current_app.excel_offset
-            #na_values = ['']
+            skiprows = current_app.excel_offset,
+            na_values = ['']
         )
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
