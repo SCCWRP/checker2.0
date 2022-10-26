@@ -39,7 +39,7 @@ The application is deployed using docker, and the Dockerfile is included in the 
 
 This application runs on the Flask microframework, which is a web application framework for python. We use the pandas library to read in the user's data and check the dataframes, and to load the data to the tables. The database connection in the application is a SQLAlchemy Engine object, which gets used by pandas.
 
-Contributors:
+Contributors: 
 - Paul Smith (pauls@sccwrp.org)
 - Robert Butler (robertb@sccwrp.org)
 - Duy Nguyen (duyn@sccwrp.org)
