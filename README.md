@@ -14,7 +14,7 @@ When a data checking application is created, it is associated with a PostgreSQL 
 
 This solution of using the checker application with an ESRI enterprise geodatabase is not necessarily the only option, as there are likely other ways we may have implemented this applciation completely with only open source projects, such as QGIS. We have not explored this route nor have we had a need to, but it would be possible to fork this repository and adapt the code to work with that kind of a database. Depending on the type of data being collected, it may not even be of any advantage to use a geodatabase at all.  
 
-Many of our databases are hosted with Amazon RDS, or locally behind our own firewall
+Many of our databases are hosted with Amazon RDS, or locally behind our own firewall.
 
 ### Checking System
 Data submissions are divided into categories which we call data types or data sets. These are named groupings of tables in the database. A typical example would be that chemistry data (lab results) and the associated meta data need to be submitted together, so the two tables would be grouped and called "chemistry"   
