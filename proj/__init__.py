@@ -32,10 +32,14 @@ app.debug = True # remove for production
 # does your application require uploaded filenames to be modified to timestamps or left as is
 app.config['CORS_HEADERS'] = 'Content-Type'
 
-app.config['MAIL_SERVER'] = os.environ.get('FLASK_APP_MAIL_SERVER')
+app.config['MAIL_SERVER'] = CONFIG.get('MAIL_SERVER')
 
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200MB limit
 app.secret_key = os.environ.get("FLASK_APP_SECRET_KEY")
+
+# add all the items from the config file into the app configuration
+# we should probably access all custom config items in this way
+app.config.update(CONFIG)
 
 # set the database connection string, database, and type of database we are going to point our application at
 #app.eng = create_engine(os.environ.get("DB_CONNECTION_STRING"))
@@ -52,10 +56,10 @@ def teardown_request(exception):
         g.eng.dispose()
 
 # Project name
-app.project_name = os.environ.get("PROJNAME")
+app.project_name = CONFIG.get("PROJECTNAME")
 
 # script root (for any links we put, mainly lookup lists)
-app.script_root = os.environ.get('FLASK_APP_SCRIPT_ROOT')
+app.script_root = CONFIG.get('APP_SCRIPT_ROOT')
 
 
 # Maintainers
@@ -75,7 +79,7 @@ app.excel_offset = CONFIG.get('EXCEL_OFFSET')
 
 
 # Mail From
-app.mail_from = os.environ.get('FLASK_APP_MAIL_FROM')
+app.mail_from =  CONFIG.get('MAIL_FROM')
 
 
 app.datasets = CONFIG.get('DATASETS')
