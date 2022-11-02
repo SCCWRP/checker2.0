@@ -322,26 +322,17 @@ def template():
         }
     }
 
-    # Reorder columns of tbls
     print("Re-ordering columns")
     column_order = pd.read_sql("SELECT * from column_order", eng)
     column_order = dict(zip(column_order['table_name'],column_order['column_order']))
-    for key in xls.keys():
-        if key in column_order.keys():
-            tab_name = f"tbl_{key}"
-            if tab_name in tbls:
-                df = xls[key]
-                print("Before reordering:", df.columns, sep="\n")
-                print(tab_name)
-                correct_field_order = column_order.get(tab_name, None).split(",")
-                print("correct_field_order",correct_field_order,sep="\n")
-                if correct_field_order is not None:
-                    df = df[[x for x in correct_field_order if x in df.columns] + [x for x in df.columns if x not in correct_field_order]]
-                    xls[key] = df
-                    print("After reordering:", df.columns, sep="\n")
-        else:
-            continue
+    for table in [f"tbl_{x}" for x in xls.keys() if f"tbl_{x}" in column_order.keys()]:
 
+        correct_field_order = column_order[table].split(",")
+        xls[table.replace("tbl_","")].columns = [
+            *[x for x in correct_field_order if x in xls[table.replace("tbl_","")].columns],
+            *[x for x in xls[table.replace("tbl_","")].columns if x not in correct_field_order]
+        ]
+        
     print("Done reordering columns")
     ############################################################################################################################
     ### Legacy code. I wrote them when I first started SCCWRP and worked on this project. They are not optimized, but still work.
