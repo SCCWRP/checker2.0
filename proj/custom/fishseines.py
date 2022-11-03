@@ -64,7 +64,7 @@ def fishseines(all_dfs):
     args.update({
         "dataframe": fishmeta,
         "tablename": "tbl_fish_sample_metadata",
-        "badrows": checkLogic(fishmeta, fishabud, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate'], df1_name = "sample_metadata", df2_name = "abundance_data"), 
+        "badrows": checkLogic(fishmeta, fishabud, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate', 'projectid'], df1_name = "sample_metadata", df2_name = "abundance_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate",
         "error_type": "Logic Error",
         "error_message": "Records in sample_metadata must have corresponding records in abundance_data."
@@ -75,7 +75,7 @@ def fishseines(all_dfs):
     args.update({
         "dataframe": fishabud,
         "tablename": "tbl_fish_abundance_data",
-        "badrows": checkLogic(fishabud, fishmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate'], df1_name = "abundance_data", df2_name = "sample_metadata"),
+        "badrows": checkLogic(fishabud, fishmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate','projectid'], df1_name = "abundance_data", df2_name = "sample_metadata"),
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate",
         "error_type": "Logic Error",
         "error_message": "Records in abundance_data must have corresponding records in sample_metadata."
@@ -88,7 +88,7 @@ def fishseines(all_dfs):
     args.update({
         "dataframe": fishabud,
         "tablename": "tbl_fish_abundance_data",
-        "badrows": checkLogic(fishabud, fishdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate', 'scientificname'], df1_name = "abundance_data", df2_name = "length_data"), 
+        "badrows": checkLogic(fishabud, fishdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate', 'scientificname','commonname','status','projectid'], df1_name = "abundance_data", df2_name = "length_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate, scientificname",
         "error_type": "Logic Error",
         "error_message": "Records in abundance_data must have corresponding records in length_data."
@@ -99,7 +99,7 @@ def fishseines(all_dfs):
     args.update({
         "dataframe": fishdata,
         "tablename": "tbl_fish_length_data",
-        "badrows": checkLogic(fishdata, fishabud, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate', 'scientificname'], df1_name = "length_data", df2_name = "abundance_data"),
+        "badrows": checkLogic(fishdata, fishabud, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'surveytype', 'netreplicate', 'scientificname','projectid'], df1_name = "length_data", df2_name = "abundance_data"),
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, surveytype, netreplicate, scientificname",
         "error_type": "Logic Error",
         "error_message": "Records in length_data must have corresponding records in abundance_data."

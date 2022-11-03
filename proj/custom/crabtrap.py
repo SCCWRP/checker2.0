@@ -1,5 +1,3 @@
-# Dont touch this file! This is intended to be a template for implementing new custom checks
-
 from inspect import currentframe
 from flask import current_app, g
 import pandas as pd
@@ -61,7 +59,7 @@ def crabtrap(all_dfs):
     args.update({
         "dataframe": crabmeta,
         "tablename": "tbl_crabtrap_metadata",
-        "badrows": checkLogic(crabmeta, crabinvert, cols = ['siteid', 'estuaryname', 'traptype', 'traplocation', 'stationno', 'replicate'], df1_name = "Crabtrap_metadata", df2_name = "Crab_fish_invert_abundance_data"), 
+        "badrows": checkLogic(crabmeta, crabinvert, cols = ['siteid', 'estuaryname', 'samplecollectiondate', 'traptype', 'traplocation', 'stationno', 'replicate', 'projectid'], df1_name = "Crabtrap_metadata", df2_name = "Crab_fish_invert_abundance_data"), 
         "badcolumn": "siteid, estuaryname, traptype, traplocation, stationno, replicate",
         "error_type": "Logic Error",
         "error_message": "Records in Crabtrap_metadata must have corresponding records in Crab_fish_invert_abundance."
@@ -72,7 +70,7 @@ def crabtrap(all_dfs):
     args.update({
         "dataframe": crabinvert,
         "tablename": "tbl_crabfishinvert_abundance",
-        "badrows": checkLogic(crabinvert, crabmeta, cols = ['siteid', 'estuaryname', 'traptype', 'traplocation', 'stationno', 'replicate'], df1_name = "Crab_fish_invert_abundance_data", df2_name = "Crabtrap_metadata"), 
+        "badrows": checkLogic(crabinvert, crabmeta, cols = ['siteid', 'estuaryname', 'samplecollectiondate', 'traptype', 'traplocation', 'stationno', 'replicate', 'projectid'], df1_name = "Crab_fish_invert_abundance_data", df2_name = "Crabtrap_metadata"), 
         "badcolumn": "siteid, estuaryname, traptype, traplocation, stationno, replicate",
         "error_type": "Logic Error",
         "error_message": "Records in Crab_fish_invert_abundance must have corresponding records in Crabtrap_metadata."
@@ -86,7 +84,7 @@ def crabtrap(all_dfs):
     args.update({
         "dataframe": crabinvert,
         "tablename": "tbl_crabfishinvert_abundance",
-        "badrows": checkLogic(crabinvert, crabmass, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'traptype', 'traplocation', 'replicate', 'scientificname'], df1_name = "Crab_fish_invert_abundance_data", df2_name = "Crab_biomass_length_data"), 
+        "badrows": checkLogic(crabinvert, crabmass, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'traptype', 'traplocation', 'replicate', 'scientificname', 'commonname', 'status', 'projectid'], df1_name = "Crab_fish_invert_abundance_data", df2_name = "Crab_biomass_length_data"), 
         "badcolumn": "siteid, estuaryname, samplecollectiondate, traptype, scientificname, traplocation, stationno, replicate",
         "error_type": "Logic Error",
         "error_message": "Records in Crab_fish_invert_abundance must have corresponding records in Crab_biomass_length."
@@ -98,7 +96,7 @@ def crabtrap(all_dfs):
     args.update({
         "dataframe": crabmass,
         "tablename": "tbl_crabbiomass_length",
-        "badrows": checkLogic(crabmass, crabinvert, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'traptype', 'traplocation', 'replicate', 'scientificname'], df1_name = "Crab_biomass_length_data", df2_name = "Crab_fish_invert_abundance_data"), 
+        "badrows": checkLogic(crabmass, crabinvert, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'traptype', 'traplocation', 'replicate', 'scientificname', 'commonname', 'status', 'projectid'], df1_name = "Crab_biomass_length_data", df2_name = "Crab_fish_invert_abundance_data"), 
         "badcolumn": "siteid, estuaryname, samplecollectiondate, traptype, scientificname, traplocation, stationno, replicate",
         "error_type": "Logic Error",
         "error_message": "Records in Crab_biomass_length must have corresponding records in Crab_fish_invert_abundance."
@@ -183,7 +181,7 @@ def crabtrap(all_dfs):
     
     # Check 1: if trapsuccess = yes in meta, then needs to be value for catch either yes or no
     badrows = crabmeta[
-        (crabmeta['trapsuccess'].apply(lambda x: str(x).strip()) == 'yes') & (crabmeta['catch'].apply(lambda x: str(x).strip()) not in ['yes','no'])
+        (crabmeta['trapsuccess'].apply(lambda x: str(x).strip().lower()) == 'yes') & (crabmeta['catch'].apply(lambda x: str(x).strip().lower()) not in ['yes','no'])
     ].index.tolist()  
     args.update({
         "dataframe": crabmeta,
@@ -197,7 +195,7 @@ def crabtrap(all_dfs):
     
     # Check 2: if trapsuccess = no in meta, catch = Null
     badrows = crabmeta[
-        (crabmeta['trapsuccess'].apply(lambda x: str(x).strip()) == 'no') & (not pd.isnull(crabmeta['catch']))
+        (crabmeta['trapsuccess'].apply(lambda x: str(x).strip().lower()) == 'no') & (not pd.isnull(crabmeta['catch']))
     ].index.tolist()  
     args.update({
         "dataframe": crabmeta,
@@ -210,15 +208,25 @@ def crabtrap(all_dfs):
     errs = [*errs, checkData(**args)]
     
     # Check 3: If catch = No in meta, then abundance = 0 in abundance tab
-    merged= pd.merge(
-        crabinvert,
+    # Robert 2022-11-02
+    # We cant use index to get the bad rows since we merged dataframes and the index gets reset
+    # We must preserve the original index values of the dataframe that we are checking 
+    #  so that we can correctly tell the user which rows are bad
+    # So we will assign a temp column in this merged dataframe and use that for the "badrows"
+    merged = pd.merge(
+        crabinvert.assign(invert_tmp_row = crabinvert.index),
         crabmeta, 
         how='left',
         suffixes=('_abundance', '_meta'),
-        on = ['siteid','estuaryname','traptype','traplocation','stationno','replicate']
+        on = ['siteid','estuaryname','traptype','samplecollectiondate', 'traplocation','stationno','replicate', 'projectid']
     )
-
-    badrows = merged[(merged['catch'] == 'no') & (merged['abundance'] > 0)].index.tolist()
+    
+    # Robert 2022-11-02 - added .lower() to the merged['catch'] for the following reason
+    # We cannot simply assume that the 'catch' column will be a lowercase 'no'
+    # ESPECIALLY since that column is tied to the lookup list lu_yesno
+    # It is actually impossible for the catch column to have a value of 'no' all lowercase, since lu_yesno has a capitalized 'Yes' and 'No'
+    # That would have got flagged at core checks
+    badrows = merged[(merged['catch'].str.lower() == 'no') & (merged['abundance'] > 0)].invert_tmp_row.tolist()
     args.update({
         "dataframe": crabinvert,
         "tablename": 'tbl_crabfishinvert_abundance',
@@ -230,7 +238,7 @@ def crabtrap(all_dfs):
     errs = [*errs, checkData(**args)]
     
     # Check 4: If catch = Yes in meta, then abundance is non-zero integer in abundance tab
-    badrows = merged[(merged['catch'] == 'yes') & (merged['abundance'] <= 0)].index.tolist()
+    badrows = merged[(merged['catch'].str.lower() == 'yes') & (merged['abundance'] <= 0)].invert_tmp_row.tolist()
     args.update({
         "dataframe": crabinvert,
         "tablename": 'tbl_crabfishinvert_abundance',

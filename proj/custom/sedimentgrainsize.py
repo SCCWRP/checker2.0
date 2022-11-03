@@ -1,5 +1,3 @@
-# Dont touch this file! This is intended to be a template for implementing new custom checks
-
 from inspect import currentframe
 from flask import current_app, g
 from pandas import DataFrame
@@ -64,7 +62,7 @@ def sedimentgrainsize_lab(all_dfs):
     args = {
         "dataframe": sedbatch,
         "tablename": 'tbl_sedgrainsize_labbatch_data',
-        "badrows": checkLogic(sedbatch, sedmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'samplelocation'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedimentGrainSize_metadata"),
+        "badrows": checkLogic(sedbatch, sedmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'samplelocation','projectid'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedimentGrainSize_metadata"),
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, samplelocation",
         "error_type": "Logic Error",
         "error_message": "Field submission for sediment grain size labbatch data is missing. Please verify that the sediment grain size field data has been previously submitted."
@@ -77,7 +75,7 @@ def sedimentgrainsize_lab(all_dfs):
     args.update({
         "dataframe": sedbatch,
         "tablename": "tbl_sedgrainsize_labbatch_data",
-        "badrows": checkLogic(sedbatch, sed, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'labreplicate'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedGrainSize_data"), 
+        "badrows": checkLogic(sedbatch, sed, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'labreplicate', 'matrix', 'projectid'], df1_name = "SedimentGrainSize_labbatch_data", df2_name = "SedGrainSize_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid, labreplicate",
         "error_type": "Logic Error",
         "error_message": "Records in sedimentgrainsize_labbatch_data must have corresponding records in sedgrainsize_data. Missing records in sedgrainsize_data."
@@ -88,7 +86,7 @@ def sedimentgrainsize_lab(all_dfs):
     # Logic Check 2b: sedgrainsize_labbatch_data missing records provided by sedgrainsize_data
     tmp = sed.merge(
         sedbatch.assign(present = 'yes'), 
-        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'matrix', 'labreplicate'],
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplelocation', 'preparationbatchid', 'matrix', 'labreplicate', 'projectid'],
         how = 'left'
     )
     badrows = tmp[pd.isnull(tmp.present)].index.tolist()
@@ -96,7 +94,7 @@ def sedimentgrainsize_lab(all_dfs):
         "dataframe": sed,
         "tablename": "tbl_sedgrainsize_data",
         "badrows": badrows,
-        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid, matrix, labreplicate",
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplelocation, preparationbatchid, matrix, labreplicate, 'projectid",
         "error_type": "Logic Error",
         "error_message": "Records in sedgrainsize_data must have corresponding records in sedgrainsize_labbatch_data. Missing records in sedgrainsize_labbatch_data."
     })
@@ -194,6 +192,6 @@ def sedimentgrainsize_field(all_dfs):
     })
     print("check ran - multicol lookup, siteid and estuaryname - sedgrainsize_metadata")
     errs = [*errs, checkData(**args)]
-    print("End eDNA Multicol Checks to check SiteID/EstuaryName pair.")
+    print("End Multicol Checks to check SiteID/EstuaryName pair.")
     
     return {'errors': errs, 'warnings': warnings}

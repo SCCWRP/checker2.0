@@ -59,8 +59,8 @@ def sav(all_dfs):
     args.update({
         "dataframe": savmeta,
         "tablename": "tbl_sav_metadata",
-        "badrows": checkLogic(savmeta, savper, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate'], df1_name = "SAV_metadata", df2_name = "SAVpercentcover_data"), 
-        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate",
+        "badrows": checkLogic(savmeta, savper, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate', 'projectid'], df1_name = "SAV_metadata", df2_name = "SAVpercentcover_data"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate,projectid",
         "error_type": "Logic Error",
         "error_message": "Records in SAV_metadata must have corresponding records in SAVpercentcover_data."
     })
@@ -70,8 +70,8 @@ def sav(all_dfs):
     args.update({
         "dataframe": savper,
         "tablename": "tbl_savpercentcover_data",
-        "badrows": checkLogic(savper, savmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate'], df1_name = "SAVpercentcover_data", df2_name = "SAV_metadata"), 
-        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate",
+        "badrows": checkLogic(savper, savmeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'savbedreplicate', 'transectreplicate', 'projectid'], df1_name = "SAVpercentcover_data", df2_name = "SAV_metadata"), 
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, savbedreplicate, transectreplicate,projectid",
         "error_type": "Logic Error",
         "error_message": "Records in SAVpercentcover_data must have corresponding records in SAV_metadata."
     })

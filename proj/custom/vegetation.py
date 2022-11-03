@@ -52,7 +52,7 @@ def vegetation(all_dfs):
     args.update({
         "dataframe": vegmeta,
         "tablename": "tbl_vegetation_sample_metadata",
-        "badrows": checkLogic(vegmeta, vegdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'], df1_name = "sample_metadata", df2_name = "vegetationcover_data"), 
+        "badrows": checkLogic(vegmeta, vegdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate', 'habitat', 'projectid'], df1_name = "sample_metadata", df2_name = "vegetationcover_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, transectreplicate",
         "error_type": "Logic Error",
         "error_message": "Records in sample_metadata must have corresponding records in vegetationcover_data."
@@ -61,11 +61,9 @@ def vegetation(all_dfs):
     print("check ran - logic - sample_metadata records not found in vegetationcover_data") 
     # Logic Check 1b: vegmeta records missing for records provided by vegdata
     # Note: checkLogic() did not output badrows properly for Logic Check 1b. 
-    # Bug (checkLogic fcn): if at least one station (=1) has a transreplicate value (ex: 3), then all vegetativecover_data is considered clean but metadata is actually missing the record for some stationno (=2), transectreplicate (=3) BIG BAD
-    # Bug fix: merge dfs instead of imported checkLogic function from SMC.
     tmp = vegdata.merge(
         vegmeta.assign(present = 'yes'), 
-        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'],
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate', 'habitat', 'projectid'],
         how = 'left'
     )
     badrows = tmp[pd.isnull(tmp.present)].index.tolist()
@@ -74,7 +72,7 @@ def vegetation(all_dfs):
         "dataframe": vegdata,
         "tablename": "tbl_vegetativecover_data",
         "badrows": badrows, 
-        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, transectreplicate",
+        "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, transectreplicate, habitat, projectid",
         "error_type": "Logic Error",
         "error_message": "Records in vegetationcover_data must have corresponding records in sample_metadata."
     })
@@ -86,7 +84,7 @@ def vegetation(all_dfs):
     # checkLogic does not work properly for this df comparison - revised to use same approach as Logic Check 1b
     tmp = epidata.merge(
         vegmeta.assign(present = 'yes'), 
-        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate'],
+        on = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'transectreplicate','projectid'],
         how = 'left'
     )
     badrows = tmp[pd.isnull(tmp.present)].index.tolist()
@@ -95,7 +93,7 @@ def vegetation(all_dfs):
         "dataframe": epidata,
         "tablename": "tbl_epifauna_data",
         "badrows": badrows,
-        "badcolumn": "siteid, estuaryname, samplecollectiondate, stationno, transectreplicate",
+        "badcolumn": "siteid, estuaryname, samplecollectiondate, stationno, transectreplicate, projectid",
         "error_type": "Logic Error",
         "error_message": "Records in epifauna_data must have corresponding records in sample_metadata."
     })

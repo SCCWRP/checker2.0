@@ -60,7 +60,7 @@ def discretewq(all_dfs):
     args.update({
         "dataframe": watermeta,
         "tablename": "tbl_waterquality_metadata",
-        "badrows": checkLogic(watermeta, waterdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplecollectiontime', 'profile', 'depth_m'], df1_name = "WQ_metadata", df2_name = "WQ_data"), 
+        "badrows": checkLogic(watermeta, waterdata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplecollectiontime', 'profile', 'depth_m', 'projectid'], df1_name = "WQ_metadata", df2_name = "WQ_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplecollectiontime, profile, depth_m",
         "error_type": "Logic Error",
         "error_message": "Each record in WQ_metadata must have a corresponding record in WQ_data."
@@ -72,7 +72,7 @@ def discretewq(all_dfs):
     args.update({
         "dataframe": waterdata,
         "tablename": "tbl_waterquality_data",
-        "badrows": checkLogic(waterdata, watermeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplecollectiontime', 'profile', 'depth_m'], df1_name = "WQ_data", df2_name = "WQ_metadata"), 
+        "badrows": checkLogic(waterdata, watermeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplecollectiontime', 'profile', 'depth_m', 'projectid'], df1_name = "WQ_data", df2_name = "WQ_metadata"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, samplecollectiontime, profile, depth_m",
         "error_type": "Logic Error",
         "error_message": "Records in WQ_data must have a corresponding record in WQ_metadata."

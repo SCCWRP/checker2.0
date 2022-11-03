@@ -56,7 +56,7 @@ def nutrients_lab(all_dfs):
     args.update({
         "dataframe": nutrilab,
         "tablename": "tbl_nutrients_labbatch_data",
-        "badrows": checkLogic(nutrilab, nutrimeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'nutrientreplicate', 'sampleid'], df1_name = "Nuts_labbatch_data", df2_name = "Nuts_metadata"), 
+        "badrows": checkLogic(nutrilab, nutrimeta, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'samplecollectiontime', 'matrix', 'nutrientreplicate', 'sampleid'], df1_name = "Nuts_labbatch_data", df2_name = "Nuts_metadata"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, nutrientreplicate, sampleid",
         "error_type": "Logic Error",
         "error_message": "Field submission for nutrients labdata is missing. Please verify that the nutrients field data has been previously submitted."
@@ -69,7 +69,7 @@ def nutrients_lab(all_dfs):
     args.update({
         "dataframe": nutrilab,
         "tablename": "tbl_nutrients_labbatch_data",
-        "badrows": checkLogic(nutrilab, nutridata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'nutrientreplicate', 'sampleid', 'preparationbatchid'], df1_name = "Nuts_labbatch_data", df2_name = "Nuts_data"), 
+        "badrows": checkLogic(nutrilab, nutridata, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate','samplecollectiontime', 'matrix', 'nutrientreplicate', 'sampleid', 'preparationbatchid'], df1_name = "Nuts_labbatch_data", df2_name = "Nuts_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, nutrientreplicate, sampleid, preparationbatchid",
         "error_type": "Logic Error",
         "error_message": "Records in nutrients_labbatch_data must have corresponding records in nutrients_data. Missing records in nutrients_data."
@@ -80,7 +80,7 @@ def nutrients_lab(all_dfs):
     args.update({
         "dataframe": nutridata,
         "tablename": "tbl_nutrients_data",
-        "badrows": checkLogic(nutridata, nutrilab, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'matrix', 'nutrientreplicate', 'sampleid', 'preparationbatchid'], df1_name = "Nuts_data", df2_name = "Nuts_labbatch_data"), 
+        "badrows": checkLogic(nutridata, nutrilab, cols = ['siteid', 'estuaryname', 'stationno', 'samplecollectiondate','samplecollectiontime', 'matrix', 'nutrientreplicate', 'sampleid', 'preparationbatchid'], df1_name = "Nuts_data", df2_name = "Nuts_labbatch_data"), 
         "badcolumn": "siteid, estuaryname, stationno, samplecollectiondate, matrix, nutrientreplicate, sampleid, preparationbatchid",
         "error_type": "Logic Error",
         "error_message": "Records in nutrients_data must have corresponding records in nutrients_labbatch_data. Missing records in nutrients_labbatch_data."
