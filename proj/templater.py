@@ -110,8 +110,8 @@ def template():
     elif datatype == 'sedimentgrainsize_lab':
         tbls = [
             'tbl_protocol_metadata',
-            'tbl_sedgrainsize_data',
-            'tbl_sedgrainsize_labbatch_data'
+            'tbl_sedgrainsize_labbatch_data',
+            'tbl_sedgrainsize_data'
         ]
         file_prefix = 'SOP_5_SEDIMENTGRAINSIZE_LAB'
     # SOP 6 Benthic Infauna
