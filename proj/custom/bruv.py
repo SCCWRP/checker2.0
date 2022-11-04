@@ -400,7 +400,7 @@ def bruv_lab(all_dfs):
 
     # Logic Check 3: Each data (bruv_data) should have a corresponding record in videolog
     badrows = pd.merge(
-        bruvdata.assign(tmp_row=bruvvideo.index),
+        bruvdata.assign(tmp_row=bruvdata.index),
         bruvvideo, 
         on=['siteid', 'estuaryname', 'stationno', 'samplecollectiondate', 'camerareplicate', 'filename', 'videoorder', 'projectid'],
         how='left',
@@ -416,7 +416,7 @@ def bruv_lab(all_dfs):
         "error_message": "Each data (bruv_data) should have a corresponding record in videolog."
     })
     errs = [*errs, checkData(**args)]
-    print("check ran -  If fish is 'no' in videolog then data should not have corresponding records")        
+    print("check ran -  Each data (bruv_data) should have a corresponding record in videolog")        
 
     ##################################### FINISH LOGIC CHECKS ######################################################
     
