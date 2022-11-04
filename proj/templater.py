@@ -326,12 +326,15 @@ def template():
     column_order = pd.read_sql("SELECT * from column_order", eng)
     column_order = dict(zip(column_order['table_name'],column_order['column_order']))
     for table in [f"tbl_{x}" for x in xls.keys() if f"tbl_{x}" in column_order.keys()]:
-
-        correct_field_order = column_order[table].split(",")
-        xls[table.replace("tbl_","")].columns = [
-            *[x for x in correct_field_order if x in xls[table.replace("tbl_","")].columns],
-            *[x for x in xls[table.replace("tbl_","")].columns if x not in correct_field_order]
-        ]
+        try:
+            print(table)
+            correct_field_order = column_order[table].split(",")
+            xls[table.replace("tbl_","")].columns = [
+                *[x for x in correct_field_order if x in xls[table.replace("tbl_","")].columns],
+                *[x for x in xls[table.replace("tbl_","")].columns if x not in correct_field_order]
+            ]
+        except Exception as e:
+            print(e)
         
     print("Done reordering columns")
     ############################################################################################################################
