@@ -218,33 +218,18 @@ def get_primary_key(tablename, eng):
     # Copy paste to Navicat, pgadmin, or do a pd.read_sql to see what it gives
     pkey_query = f"""
         SELECT 
-            conrelid::regclass AS table_from, 
-            conname, 
-            pg_get_constraintdef(oid) 
-        FROM pg_constraint 
-        WHERE 
-            contype IN ('f', 'p') 
-            AND connamespace = 'sde'::regnamespace 
-            AND conname LIKE '{tablename}%%' 
-        ORDER BY 
-            conrelid::regclass::text, contype DESC;
+            c.column_name, 
+            c.data_type
+        FROM information_schema.table_constraints tc 
+        JOIN information_schema.constraint_column_usage AS ccu USING (constraint_schema, constraint_name) 
+        JOIN information_schema.columns AS c ON c.table_schema = tc.constraint_schema
+            AND tc.table_name = c.table_name AND ccu.column_name = c.column_name
+        WHERE constraint_type = 'PRIMARY KEY' and tc.table_name = '{tablename}';
     """
     pkey_df = pd.read_sql(pkey_query, eng)
     
-    pkey = []
-    # sometimes there is no primary key
-    if not pkey_df.empty:
-        # pg_get_constraintdef = postgres get constraint definition
-        # Get the primary key constraint's definition
-        pkey = pkey_df.pg_get_constraintdef.tolist()[0]
-
-        # Remove excess junk to just get the primary key field names
-        # split at the commas to get a nice neat python list
-        pkey = re.sub(r"(PRIMARY\sKEY\s\()|(\))","",pkey).split(',')
-
-        # remove whitespace from the edges
-        pkey = [colname.strip() for colname in pkey]
-        
+    pkey = pkey_df.column_name.tolist() if not pkey_df.empty else []
+    
     return pkey
 
 

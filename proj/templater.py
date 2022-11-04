@@ -15,6 +15,7 @@ import numpy as np
 import openpyxl
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.utils.dataframe import dataframe_to_rows
+from .core.functions import get_primary_key
 
 # dynamic lookup lists to template
 
@@ -348,29 +349,32 @@ def template():
     )
     lookup_list = lookup_list['table_name'].tolist()
 
-    primarykey = dict()
+    # gets lookup lists and their primary key columns so we can highlight
+    # in actuality this query checks the foreign key constraint to grab which column to highlight
+    def getlookupcols(tbls):
+        qry = f"""
+            SELECT DISTINCT
+                ccu.TABLE_NAME AS table,
+                ccu.COLUMN_NAME AS primarycolumn_0 
+            FROM
+                information_schema.table_constraints AS tc
+                JOIN information_schema.key_column_usage AS kcu ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME 
+                AND tc.table_schema = kcu.table_schema
+                JOIN information_schema.constraint_column_usage AS ccu ON ccu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME 
+                AND ccu.table_schema = tc.table_schema 
+            WHERE
+                tc.constraint_type = 'FOREIGN KEY' 
+                AND tc.TABLE_NAME IN ('{"','".join(tbls)}')
+                AND ccu.TABLE_NAME LIKE'lu_%%';
+        """                
+        return pd.read_sql(qry,eng)
 
-    def findprimary(x):
-        for i in lookup_list:
-            s = Table(i, meta, autoload=True, autoload_with=eng)
-            lpkeys = list()
-            for pk in s.primary_key:
-                pri = pk.name
-                lpkeys.append(pri)
-                primarykey[i] = lpkeys
-        pkeytable = pd.DataFrame.from_dict(primarykey, orient='index')
-        pkeytable.reset_index(level=0, inplace=True)
-        for i in pkeytable.columns:
-            if i == 'index':
-                pkeytable.rename(columns={i: "table"}, inplace=True)
-            else:
-                pkeytable.rename(
-                    columns={i: "primarycolumn_" + str(i)}, inplace=True)
-        pkeytable = pkeytable.sort_values('table')
-        return pkeytable
-
-
-    pkeytable = findprimary(lookup_list)
+        
+    # pkeytable is based on the old way we used to query for the foreign key columns.
+    # by looking at the primary key column of the lu table
+    print("find primary function")
+    pkeytable = getlookupcols(list_lu_needed)
+    print("end find primary function")
     print("-----------------------------")
     print(" Printing pkey table below...")
     print("-----------------------------")
@@ -401,7 +405,9 @@ def template():
         # sql_df = sql_df[[x for x in sql_df.columns if x not in app.system_fields]] # no app.system_fields here
         sql_df = sql_df[[x for x in sql_df.columns if x not in system_fields]]
         templater = dict({lu_list: sql_df})
+        print("BEGIN HIGHLIGHT PRIMARY KEY COLUMN FUNCTION")
         columns_to_highlight = highlight_primary_key_column(templater)
+        print("END HIGHLIGHT PRIMARY KEY COLUMN FUNCTION")
         # columnlist is the primary keys for the lu lists
         columnlist.extend(columns_to_highlight)
         for value in columns_to_highlight:
