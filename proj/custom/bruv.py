@@ -253,7 +253,10 @@ def bruv_lab(all_dfs):
     args = {
         "dataframe": bruvdata,
         "tablename": 'tbl_bruv_data',
-        "badrows": bruvdata[(bruvdata['in_out'] == 'out') & ((~bruvdata['maxn'].isna()) | (~bruvdata['maxns'].isna()))].index.tolist(),
+        "badrows": bruvdata[
+            (~bruvdata['scientificname'].isin(['unknown fish','unknown juvenile fish','unknown crab'])) &
+            (bruvdata['in_out'] == 'out') & 
+            ((~bruvdata['maxn'].isna()) | (~bruvdata['maxns'].isna()))].index.tolist(),
         "badcolumn": "in_out, maxn, maxns",
         "error_type": "Value Error",
         "error_message": "Invalid entry for MaxN/MaxNs column. Since in_out column is 'out', then both MaxN/MaxNs must be empty."
@@ -265,7 +268,11 @@ def bruv_lab(all_dfs):
     args = {
         "dataframe": bruvdata,
         "tablename": 'tbl_bruv_data',
-        "badrows": bruvdata[(bruvdata['in_out'] == 'in') & ((bruvdata['maxn'].isna()) | (bruvdata['maxns'].isna()))].index.tolist(),
+        "badrows": bruvdata[
+            (~bruvdata['scientificname'].isin(['unknown fish','unknown juvenile fish','unknown crab'])) &
+            (bruvdata['in_out'] == 'in') & 
+            ((bruvdata['maxn'].isna()) | (bruvdata['maxns'].isna()))
+            ].index.tolist(),
         "badcolumn": "in_out, maxn, maxns",
         "error_type": "Value Error",
         "error_message": "Invalid entry for MaxN/MaxNs column. Since in_out column is 'in', then both MaxN/MaxNs must have an integer value and cannot be left empty."
