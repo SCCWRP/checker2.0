@@ -1,7 +1,7 @@
 from flask import render_template, request, jsonify, current_app, Blueprint, session, g
 from werkzeug.utils import secure_filename
 from gc import collect
-import os, time, json
+import os
 import pandas as pd
 
 # custom imports, from local files
@@ -11,12 +11,8 @@ from .core.core import core
 from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
-from .utils.mail import send_mail
 from .utils.exceptions import default_exception_handler
-from .custom.fish_visual_map import fish_visual_map
-from .custom.bruv_visual_map import bruv_visual_map
-from .custom.veg_visual_map import veg_visual_map
-from .custom.sav_visual_map import sav_visual_map
+from .custom import *
 
 
 upload = Blueprint('upload', __name__)
@@ -89,8 +85,8 @@ def main():
         sheet: pd.read_excel(
             excel_path, 
             sheet_name = sheet,
-            skiprows = current_app.excel_offset
-            #na_values = ['']
+            skiprows = current_app.excel_offset,
+            na_values = ['']
         )
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
@@ -170,6 +166,7 @@ def main():
     )
 
 
+
     # ----------------------------------------- #
     # Pre processing data before Core checks
     #  We want to limit the manual cleaning of the data that the user has to do
@@ -187,9 +184,14 @@ def main():
     #   With the way the code is structured, that should always be the case, but the assert statement will let us know if we messed up or need to fix something 
     #   Technically we could write it back with the original tab names, and use the tab_to_table_map in load.py,
     #   But for now, the tab_table_map is mainly used by the javascript in the front end, to display error messages to the user
-    writer = pd.ExcelWriter(excel_path)
+    writer = pd.ExcelWriter(excel_path, engine = 'xlsxwriter', options = {"strings_to_formulas":False})
     for tblname in all_dfs.keys():
-        all_dfs[tblname].to_excel(writer, sheet_name = tblname, startrow = current_app.excel_offset, index=False)
+        all_dfs[tblname].to_excel(
+            writer, 
+            sheet_name = tblname, 
+            startrow = current_app.excel_offset, 
+            index=False
+        )
     writer.save()
     
     # Yes this is weird but if we write the all_dfs back to the excel file, and read it back in,
@@ -204,8 +206,6 @@ def main():
         for sheet in pd.ExcelFile(excel_path).sheet_names
         if ((sheet not in current_app.tabs_to_ignore) and (not sheet.startswith('lu_')))
     }
-    print("all_dfs after read back in")
-    #print(all_dfs)
 
     
     # ----------------------------------------- #
@@ -223,9 +223,6 @@ def main():
         tblname: fetch_meta(tblname, g.eng)
         for tblname in set([y for x in current_app.datasets.values() for y in x.get('tables')])
     }
-
-    print("dbmetadata")
-    #print(dbmetadata)
 
    
     # tack on core errors to errors list
@@ -274,9 +271,18 @@ def main():
 
         # custom output should be a dictionary where errors and warnings are the keys and the values are a list of "errors" 
         # (structured the same way as errors are as seen in core checks section)
-
+        
         # The custom checks function is stored in __init__.py in the datasets dictionary and accessed and called accordingly
-        custom_output = current_app.datasets.get(match_dataset).get('function')(all_dfs)
+        # match_dataset is a string, which should also be the same as one of the function names imported from custom, so we can "eval" it
+        try:
+            custom_output = eval(match_dataset)(all_dfs)
+        except NameError as err:
+            print("Error with custom checks")
+            print(err)
+            raise Exception(f"""Error calling custom checks function "{match_dataset}" - may not be defined, or was not imported correctly.""")
+        except Exception as e:
+            raise Exception(e)
+        
         print("custom_output: ")
         print(custom_output)
         #example

@@ -7,7 +7,7 @@ body {
 }
 body::after {
     content: "";
-    background: url(estuary.png) no-repeat center center fixed;
+    background: url(lake.png) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;
@@ -160,4 +160,22 @@ span.table-not-matched {
 
 #dataprovider-button {
     font-size: 0.8rem;
+}
+
+.login-info-container {
+    align-content: flex-start;
+    text-align: left;
+}
+
+.login-info-title {
+    align-content: center;
+    text-align: center;
+}
+
+.error-alert {
+    background-color: #ffaaa3;
+}
+
+.warning-alert {
+    background-color: #d8f96a;
 }

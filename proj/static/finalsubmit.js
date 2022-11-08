@@ -3,6 +3,7 @@ const addFinalSubmitListener = () => {
 
     const finalSubmit = document.getElementById("final-submit");
     finalSubmit.addEventListener("submit", async function(e) {
+        e.stopImmediatePropagation(); // form was submitting twice when the button was clicked
         e.preventDefault();
         
         document.getElementById("final-submit-button-container").style.display = 'none';

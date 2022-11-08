@@ -1,7 +1,19 @@
-files
-docker/deploy.sh
-export
+files/*
+export/*
 logs
 .vscode
 testing/
-proj/custom/stations.xml
+
+# ignore custom folder and datasets.json config files
+proj/custom/
+proj/config/datasets.json
+proj/config/config.json
+
+# ignore pycache directories
+__pycache__/
+proj/__pycache__/
+proj/custom/__pycache__/
+proj/core/__pycache__/
+proj/utils/__pycache__/
+
+docker/truedeploy.sh

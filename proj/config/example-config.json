@@ -1,0 +1,90 @@
+{
+    "PROJECTNAME": "Bight 2023", 
+    "MAIL_FROM": "admin@apex.sccwrp.co",
+    "MAIL_SERVER": "172.30.1.40",
+    "APP_SCRIPT_ROOT": "bight23checker",
+    "SYSTEM_FIELDS": [
+        "objectid",
+        "globalid",
+        "created_date",
+        "created_user",
+        "last_edited_date",
+        "last_edited_user",
+        "submissionid",
+        "warnings",
+        "login_email",
+        "gdb_geomattr_data",
+        "shape"
+    ],
+    "EXCEL_OFFSET": 0,
+    "EXCEL_TABS_TO_IGNORE": [
+        "Instructions",
+        "glossary",
+        "Lookup Lists",
+        "Results_Example"
+    ],
+    "MAINTAINERS": [
+        "b23-im@sccwrp.org"
+    ],
+    "comment": "This GLOBAL_LOGIN_FORM does not need to be in the config. it lets the app know though, to make one login form for all datatypes",
+    "GLOBAL_LOGIN_FORM" : [
+        {
+            "fieldname": "agency",
+            "label": "Your Agency",
+            "fieldtype": "select",
+            "independent": "True",
+            "options_from_table": "lu_agencies",
+            "options_display_field": "agency",
+            "options_values_field": "agency"
+        },
+        {
+            "fieldname": "email",
+            "fieldtype": "input",
+            "label": "Email Address"
+        }
+    ],
+    "DATASETS": {
+        "chemistry": {
+            "tables": ["tbl_chemistryresults"], 
+            "login_fields": [
+                {
+                    "fieldname": "agency",
+                    "fieldtype": "select",
+                    "independent": "True",
+                    "options_from_table": "lu_agency",
+                    "options_display_field": "agencyname",
+                    "options_values_field": "agencycode"
+                }, 
+                {
+                    "fieldname": "analyteclass",
+                    "fieldtype": "select",
+                    "independent": "False",
+                    "sequencenum": 1,
+                    "options_from_table": "lu_analyte",
+                    "options_display_field": "analyteclass",
+                    "options_values_field": "analyteclass"
+                }, 
+                {
+                    "fieldname": "analytename",
+                    "fieldtype": "select",
+                    "independent": "False",
+                    "sequencenum": 2,
+                    "options_from_table": "lu_analyte",
+                    "options_display_field": "analytename",
+                    "options_values_field": "analytename"
+                }, 
+                {
+                    "fieldname": "year", 
+                    "fieldtype": "select", 
+                    "independent": "True", 
+                    "static_options": [2001,2002,2003,2004,2005]
+                }, 
+                {
+                    "fieldname": "email",
+                    "fieldtype": "input"
+                }
+            ]
+            
+        }
+    }    
+}

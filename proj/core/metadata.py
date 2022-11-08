@@ -18,9 +18,14 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                 meta.columns.get_loc("dtype")
             ] \
             .values[0]
-            if col == 'samplecollectiondate':
-                print(col)
-                print(dataframe[col])
+
+            human_dtype = meta.iloc[
+                    meta[
+                        meta.column_name == col
+                    ].index, 
+                    meta.columns.get_loc("data_type")
+                ] \
+                .values[0]
 
             ret.append(
                 checkData(
@@ -37,7 +42,7 @@ def checkDataTypes(dataframe, tablename, eng, meta, *args, output = None, **kwar
                     badcolumn = col,
                     error_type = "Invalid Datatype",
                     is_core_error = True,
-                    error_message = f"The value here is not valid for the datatype {dtype}"
+                    error_message = f'''The value here is not valid for the datatype "{human_dtype}"'''
                 )
             )
             #print("ret:")

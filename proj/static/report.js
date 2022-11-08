@@ -36,17 +36,31 @@ const buildReport = (res) => {
         }
     ).join("");
 
+    // stop if no dataset was matched
+    if(!res.match_dataset) return;
+
     // Let them download their marked excel file
+    document.getElementById("excel-markup-download").classList.remove('hidden')
     document.getElementById("excel-markup-download").setAttribute("href",`/${script_root}/download/${res.submissionid}/${res.marked_filename}`) ;
     
-    
+    // Error report summary table for the front page
+    if (res.errs) {
+        const totalErrorsCount = res.errs.length;
+        const coreErrorsCount = res.errs.filter(err => {return err.is_core_error}).length;
+        const customErrorsCount = res.errs.filter(err => {return !err.is_core_error}).length;
+        const warningsCount = res.warnings ? res.warnings.length : 0;
+        document.getElementById('total-errors-count').innerText = totalErrorsCount;
+        document.getElementById('core-errors-count').innerText = coreErrorsCount;
+        document.getElementById('custom-errors-count').innerText = customErrorsCount;
+        document.getElementById('total-warnings-count').innerText = warningsCount;
+    }
 
     // errors
     const errs_tables_headers = [...new Set(res.errs.map(e => res.table_to_tab_map[e.table]))]
     const errs_tables = [...new Set(res.errs.map(e => e.table))]
     
     // Create the tab headers, as many as there are unique tables in the error report
-    document.getElementById("errors-report-tab-headers").innerHTML = document.getElementById("errors-report-tab-headers").innerHTML.repeat(errs_tables.length);
+    document.getElementById("errors-report-tab-headers").innerHTML = `<div class="errors-tab-header tab-header col-sm"></div>`.repeat(errs_tables.length);
     
     // put the appropriate ID's and inner text on each div ("table") containing the error tab headers
     let errorsHeaders = document.querySelectorAll("#errors-report-tab-headers .errors-tab-header");
@@ -56,9 +70,27 @@ const buildReport = (res) => {
     }
     
     // repeat the error tab bodies as much as there are tables with errors
-    document.getElementById("errors-report-body-inner-tab-container").innerHTML = document.getElementById("errors-report-body-inner-tab-container")
-        .innerHTML
-        .repeat(errs_tables.length);
+    // document.getElementById("errors-report-body-inner-tab-container").innerHTML = document.getElementById("errors-report-body-inner-tab-container")
+    //     .innerHTML
+    //     .repeat(errs_tables.length > 0 ? errs_tables.length : 1) ;
+    document.getElementById("errors-report-body-inner-tab-container").innerHTML = `
+        <!--This div needs to be repeated, one per table-->
+        <div class="errors-tab-body">
+        <!--id would be tablename-errors-tab-body-->
+
+            <div class="row errors-report-header">
+                <div class="col-sm errors-report-cell">Column(s)</div>
+                <!--<div class="col-sm errors-report-cell">Error Type</div>-->
+                <div class="col-sm errors-report-cell">Error Message</div>
+                <div class="col-sm errors-report-cell">Row(s)</div>
+            </div>
+
+            <div class="errors-tab-rows">
+            </div>
+
+        </div>`
+        .repeat(errs_tables.length) ;
+
 
 
     // put the appropriate ID's on each div ("table")containing the error messages
@@ -124,7 +156,8 @@ const buildReport = (res) => {
     const warnings_tables = [...new Set(res.warnings.map(e => e.table))]
 
     // Create the tab headers, as many as there are unique tables in the error report
-    document.getElementById("warnings-report-tab-headers").innerHTML = document.getElementById("warnings-report-tab-headers").innerHTML.repeat(warnings_tables.length);
+    //document.getElementById("warnings-report-tab-headers").innerHTML = document.getElementById("warnings-report-tab-headers").innerHTML.repeat(warnings_tables.length);
+    document.getElementById("warnings-report-tab-headers").innerHTML = `<div class="warnings-tab-header tab-header col-sm"></div>`.repeat(warnings_tables.length);
 
     // put the appropriate ID's and inner text on each div ("table") containing the error tab headers
     let warningsHeaders = document.querySelectorAll("#warnings-report-tab-headers .warnings-tab-header");
@@ -134,8 +167,22 @@ const buildReport = (res) => {
     }
 
     // repeat the error tab bodies as much as there are tables with warnings
-    document.getElementById("warnings-report-body-inner-tab-container").innerHTML = document.getElementById("warnings-report-body-inner-tab-container")
-        .innerHTML
+    document.getElementById("warnings-report-body-inner-tab-container").innerHTML = `
+        <!--This div needs to be repeated, one per table-->
+        <div class="warnings-tab-body">
+            <!--id would be tablename-warnings-tab-body-->
+
+            <div class="row warnings-report-header">
+                <div class="col-sm warnings-report-cell">Column(s)</div>
+                <!--<div class="col-sm warnings-report-cell">Error Type</div>-->
+                <div class="col-sm warnings-report-cell">Error Message</div>
+                <div class="col-sm warnings-report-cell">Row(s)</div>
+            </div>
+
+            <div class="warnings-tab-rows">
+            </div>
+
+        </div>`
         .repeat(warnings_tables.length);
 
 
@@ -147,6 +194,7 @@ const buildReport = (res) => {
 
     // Now append the rows with the error information
     warnings_tables.map(tblname => {
+        console.log(tblname);
         let tbl = document.querySelector(`#${tblname}-warnings-tab-body div.warnings-tab-rows`);
         tbl.innerHTML = res.warnings.map(e => {
             if (e.table === tblname) {

@@ -57,7 +57,7 @@ def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, or
     email_body += "\n\n"
     email_body += "\n".join(
         [
-            f"{pd.read_sql(f'SELECT COUNT(*) AS n_records FROM {tbl} WHERE submissionid = {submissionid};', eng).n_records.values[0]} records loaded to {tbl}" 
+            f"""{pd.read_sql(f'SELECT COUNT(*) AS n_records FROM "{tbl}" WHERE submissionid = {submissionid};', eng).n_records.values[0]} records loaded to {tbl}"""
             for tbl in tables 
         ]
     )

@@ -20,6 +20,7 @@ def match(all_dfs):
         FROM information_schema.columns 
         WHERE table_name LIKE 'tbl_%%'
         AND column_name NOT IN ('{"','".join(system_fields)}')
+        AND column_name NOT LIKE 'login_%%'
         ;"""
 
     cols_df = pd.read_sql(match_tbls_sql, eng) \

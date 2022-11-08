@@ -1,17 +1,28 @@
 import time, os
-import datetime
-from dateutil.relativedelta import relativedelta
 import pandas as pd
 from flask import session, Blueprint, current_app, request, render_template, jsonify, g
 from .utils.exceptions import default_exception_handler
+from .utils.login import get_login_field
 
 homepage = Blueprint('homepage', __name__)
-@homepage.route('/', methods = ['GET','POST'])
+#projName = os.environ["PROJNAME"]
+@homepage.route('/', methods = ['GET', 'POST', 'DELETE'])
 def index():
     eng = g.eng
 
     # upon new request clear session, reset submission ID, reset submission directory
-    session.clear()
+    # Hold off for now, trying new login system - 8/8/2022
+    if request.method == 'DELETE':
+        session.clear()
+        return jsonify(msg="Session info cleared")
+
+    if session.get('login_info') :
+        login_info = dict()
+        for k in session.get('login_info').keys():
+            # Here we are essentially renaming keys of dictionary
+            login_info[str(k).replace('login_','').capitalize()] = session.get('login_info').get(k)
+
+        return render_template('index.html', login_info = login_info)
 
     session['submissionid'] = int(time.time())
     session['submission_dir'] = os.path.join(os.getcwd(), "files", str(session['submissionid']))
@@ -45,32 +56,33 @@ def index():
         """
     )
     
+    return render_template('index.html', projectname = current_app.project_name, dtypes = current_app.datasets, global_login_form = current_app.global_login_form, login_info = False )
 
-    agencies = pd.read_sql("SELECT agencyname, agencycode FROM lu_agency", eng)
-    agencies = {a[0]:a[1] for a in agencies.values}
-    print(agencies)
 
-    estuaries = pd.read_sql("SELECT DISTINCT estuary_name FROM mobile_estuary_info", eng).estuary_name.to_list()
-    notinmsf_estuaries = pd.read_sql(
-        """
-        SELECT DISTINCT estuary_name FROM mobile_estuary_info
-        WHERE estuary_name NOT IN 
-        (SELECT DISTINCT(estuary_name) FROM msf_site_metadata)
-        """, eng).estuary_name.to_list()
-    #estuaries = [x for x in estuaries if x not in fake_estuaries]
-    dates = pd.read_sql("SELECT DISTINCT estuary_date FROM mobile_estuary_info", eng).estuary_date.to_list()
-    dates = [x.strftime('%m-%d-%Y') for x in dates]
+@homepage.route('/login_values')
+def login_values():
+    eng = g.eng
+    print("request.args")
+    print(request.args)
+
+    # request.args is an immutable dictionary, we turn it into a regular dictionary to use the "pop" method
+    args = dict(request.args)
+
+    assert 'table' in args.keys(), 'in login_values: table not specified in query string args'
+    assert 'displayfield' in args.keys(), 'in login_values: displayfield not specified in query string args'
+    assert 'valuefield' in args.keys(), 'in login_values: valuefield not specified in query string args'
     
-    return render_template(
-        'index.html', 
-        projectname = current_app.project_name,
-        agencies = agencies,
-        estuaries = estuaries,
-        notinmsf_estuaries = notinmsf_estuaries,
-        dates = dates
+    table = args.pop('table')
+    displayfield = args.pop('displayfield')
+    valuefield = args.pop('valuefield')
+
+    data = get_login_field(
+        table,
+        displayfield,
+        valuefield,
+        **args
     )
-
-
+    return jsonify(data = data)
 
 
 @homepage.route('/login', methods = ['GET','POST'])
@@ -86,8 +98,8 @@ def login():
 
     # Something that may or may not be specific for this project, but
     # based on the dataset, there are different login fields that are relevant
-    assert login_info.get('login_datatype') in current_app.datasets.keys(), f"login_datatype form field value {login_info.get('login_datatype')} not found in current_app.datasets.keys()"
-    session['login_info'] = {k: v for k,v in login_info.items() if k in current_app.datasets.get(login_info.get('login_datatype')).get('login_fields')}
+    # assert login_info.get('login_datatype') in current_app.datasets.keys(), f"login_datatype form field value {login_info.get('login_datatype')} not found in current_app.datasets.keys()"
+    session['login_info'] = login_info
     
     print(session.get('login_info'))
     
@@ -120,33 +132,6 @@ def login():
 
     return jsonify(msg="login successful")
 
-
-@homepage.route('/startdates', methods = ['GET','POST'])
-def startdates():
-    
-    #eng = current_app.eng
-
-    estuary_name = request.form.get('login_estuary')
-
-    print("estuary_name")
-    print(estuary_name)
-    
-    startdates = pd.read_sql(
-        f"""
-            SELECT DISTINCT estuary_date 
-            FROM mobile_estuary_info
-            WHERE estuary_name IN ('{estuary_name}')
-        """,
-        g.eng
-    ).estuary_date.to_list()
-
-    startdates = [x.strftime("%Y-%m-%d") for x in startdates]
-    
-    enddates = [x.strftime('%Y-%m-%d') for x in [datetime.datetime.strptime(x, '%Y-%m-%d')  + relativedelta(months=1) for x in startdates]]
-    daterange = [x + "_" + y for x,y in zip(startdates,enddates)]
-    print("daterange")
-    print(daterange)
-    return jsonify(startdates = daterange)
 
     
 # When an exception happens when the browser is sending requests to the homepage blueprint, this routine runs
