@@ -123,7 +123,6 @@ def fix_case(all_dfs: dict):
 def hardcoded_fixes(all_dfs):
     
     return all_dfs
-<<<<<<< HEAD
 '''
 def fill_speciesnames(all_dfs):
 
@@ -184,9 +183,7 @@ def fill_speciesnames(all_dfs):
                 )
     print("end fill species name")
     return all_dfs
-
-=======
->>>>>>> dev
+'''
 
 
 def clean_data(all_dfs):
@@ -200,7 +197,6 @@ def clean_data(all_dfs):
     
     #disabled to test checks -- jk enabled to test submit data
     
-<<<<<<< HEAD
     print("Before fix case")
     #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
@@ -218,14 +214,12 @@ def clean_data(all_dfs):
     print('\n')
     
     #all_dfs = clean_speciesnames(all_dfs)
-    all_dfs = fill_speciesnames(all_dfs)
-=======
+    #all_dfs = fill_speciesnames(all_dfs)
     print("fix case")
     # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
     all_dfs = fix_case(all_dfs)                
     
 
->>>>>>> dev
     all_dfs = hardcoded_fixes(all_dfs)
 
     print('done')

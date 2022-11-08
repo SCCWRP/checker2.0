@@ -33,7 +33,7 @@
             "label": "Your Agency",
             "fieldtype": "select",
             "independent": "True",
-            "options_from_table": "lu_agencies",
+            "options_from_table": "lu_agency",
             "options_display_field": "agency",
             "options_values_field": "agency"
         },
