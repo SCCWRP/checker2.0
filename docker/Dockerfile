@@ -39,11 +39,7 @@ RUN pip3 install shapely
 RUN mkdir -p /var/www/checker/
 #WORKDIR /var/www/checker/
 
-<<<<<<< HEAD
-CMD ["uwsgi","-s","/tmp/empachecker.sock","--uid","www-data","--gid","www-data","--manage-script-name","--buffer-size","65535","--mount","/checker=run:app","--chmod-socket=666"]
-=======
 #CMD ["uwsgi","-s","/tmp/empachecker.sock","--uid","www-data","--gid","www-data","--manage-script-name","--mount","/checker=run:app","--chmod-socket=666"]
->>>>>>> dev
 
 
 # docker container run -it -d --name $1 \

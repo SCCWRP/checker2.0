@@ -314,15 +314,15 @@ def main():
     # Begin Visual Map Checks:
 
     # Run only if they passed Core Checks
-    if errs == []:
-        # There are visual map checks for SAV, BRUV, Fish and Vegetation:
+    # if errs == []:
+    #     # There are visual map checks for SAV, BRUV, Fish and Vegetation:
 
-        map_func = current_app.datasets.get(match_dataset).get('map_func')
-        if map_func is not None:
-            map_output = map_func(all_dfs, current_app.datasets.get(match_dataset).get('spatialtable'))
-            f = open(os.path.join(session.get('submission_dir'),f'{match_dataset}_map.html'),'w')
-            f.write(map_output._repr_html_())
-            f.close()
+    #     map_func = current_app.datasets.get(match_dataset).get('map_func')
+    #     if map_func is not None:
+    #         map_output = map_func(all_dfs, current_app.datasets.get(match_dataset).get('spatialtable'))
+    #         f = open(os.path.join(session.get('submission_dir'),f'{match_dataset}_map.html'),'w')
+    #         f.write(map_output._repr_html_())
+    #         f.close()
 
     # ---------------------------------------------------------------- #
 
