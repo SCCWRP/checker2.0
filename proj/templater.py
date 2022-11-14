@@ -61,7 +61,8 @@ def template():
             'tbl_logger_ctd_data',
             'tbl_logger_mdot_data',
             'tbl_logger_troll_data',
-            'tbl_logger_tidbit_data'
+            'tbl_logger_tidbit_data',
+            'tbl_wqlogger'
         ]
         file_prefix = 'SOP_1_WQ_LOGGER'
     # SOP 2 Discrete WQ
