@@ -197,7 +197,7 @@ def load():
 def finalsubmit_error_handler(error):
     response = default_exception_handler(
         mail_from = current_app.mail_from,
-        errmsg = str(error),
+        errmsg = str(error)[:10000],
         maintainers = current_app.maintainers,
         project_name = current_app.project_name,
         attachment = session.get('excel_path'),
