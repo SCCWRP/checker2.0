@@ -17,7 +17,7 @@ class GeoDBDataFrame(DataFrame):
     def _constructor(self):
         return(GeoDBDataFrame)
 
-    def to_geodb(self, tablename, eng):
+    def to_geodb(self, tablename, eng, return_sql = False):
         tbl_cols = read_sql(f"SELECT * FROM information_schema.columns WHERE table_name = '{tablename}';", eng) \
             .column_name \
             .tolist()
@@ -70,7 +70,10 @@ class GeoDBDataFrame(DataFrame):
                 ) \
                 .replace("%","%%")
 
-            eng.execute(finalsql)
+            if return_sql == True:
+                return finalsql
+            else:
+                eng.execute(finalsql)
         else:
             print("Nothing to load.")
 
