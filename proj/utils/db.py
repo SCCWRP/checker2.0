@@ -69,11 +69,15 @@ class GeoDBDataFrame(DataFrame):
                     tablename
                 ) \
                 .replace("%","%%")
+                
+            assert return_sql in (True, False), \
+                f"""invalid option for return_sql keyword arg. It should be a bool, but {return_sql} was entered"""
 
             if return_sql == True:
                 return finalsql
             else:
                 eng.execute(finalsql)
+
         else:
             print("Nothing to load.")
 

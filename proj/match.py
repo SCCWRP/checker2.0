@@ -131,7 +131,8 @@ def match(all_dfs):
     # the values of the datasets dictionary are themselves dictionaries
     # would look like {'tables': ['tbl1','tbl2'], 'function': some_function}
     #match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(all_dfs.keys())]
-    match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(matched_tables)]
+    # match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(matched_tables)]
+    match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set([x.get('tablename') for x in match_report])]
 
     assert len(match_dataset) < 2, "matched 2 or more different datasets, which should never happen"
 

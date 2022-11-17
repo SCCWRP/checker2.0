@@ -54,17 +54,24 @@ def template():
 
 
     # This was hard-coded before. I didn't want to change it since it is already here, and it works. - Duy
-    if datatype == 'logger':
+    if datatype == 'logger_formatted':
         tbls = [
             'tbl_protocol_metadata',
             'tbl_wq_logger_metadata',
-            'tbl_logger_ctd_data',
-            'tbl_logger_mdot_data',
-            'tbl_logger_troll_data',
-            'tbl_logger_tidbit_data',
+            # 'tbl_logger_ctd_data',
+            # 'tbl_logger_mdot_data',
+            # 'tbl_logger_troll_data',
+            # 'tbl_logger_tidbit_data',
             'tbl_wqlogger'
         ]
         file_prefix = 'SOP_1_WQ_LOGGER'
+    # SOP 2 Discrete WQ
+    elif datatype == 'logger_meta':
+        tbls = [
+            'tbl_protocol_metadata',
+            'tbl_wq_logger_metadata'
+        ]
+        file_prefix = 'SOP_1_WQ_LOGGER_METADATA'
     # SOP 2 Discrete WQ
     elif datatype == 'discretewq':
         tbls = [

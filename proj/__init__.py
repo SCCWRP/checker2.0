@@ -45,7 +45,15 @@ app.config.update(CONFIG)
 # set the database connection string, database, and type of database we are going to point our application at
 #app.eng = create_engine(os.environ.get("DB_CONNECTION_STRING"))
 def connect_db():
-    return create_engine(os.environ.get("DB_CONNECTION_STRING"))
+    kwargs = {
+        # "fast_executemany":True,
+        "pool_pre_ping": True,
+        # "keepalives": 1,
+        # "keepalives_idle": 30,
+        # "keepalives_interval": 5,
+        # "keepalives_count": 5
+    }
+    return create_engine(os.environ.get("DB_CONNECTION_STRING"), **kwargs)
 
 @app.before_request
 def before_request():

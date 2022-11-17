@@ -12,6 +12,7 @@ from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
 from .utils.exceptions import default_exception_handler
+from .utils.reformat import reformat
 from .custom import *
 
 
@@ -30,6 +31,10 @@ def main():
         
         if sum(['xls' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
             return jsonify(user_error_msg='You have submitted more than one excel file')
+        if sum(['csv' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
+            return jsonify(user_error_msg='You have submitted more than one csv file')
+        if sum(['txt' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
+            return jsonify(user_error_msg='You have submitted more than one csv file')
         
         for f in files:
             # i'd like to figure a way we can do it without writing the thing to an excel file
@@ -57,10 +62,10 @@ def main():
     else:
         return jsonify(user_error_msg="No file given")
 
-    # We are assuming filename is an excel file
-    if '.xls' not in filename:
-        errmsg = f"filename: {filename} appears to not be what we would expect of an excel file.\n"
-        errmsg += "As of right now, the application can accept one excel file at a time.\n"
+    # We are assuming filename is an excel file or csv
+    if ('.xls' not in filename) and ('.csv' not in filename):
+        errmsg = f"filename: {filename} appears to not be what we would expect of an excel file or a CSV.\n"
+        errmsg += "As of right now, the application can accept one file at a time.\n"
         errmsg += "If you are submitting data for multiple tables, they should be separate tabs in the excel file."
         return jsonify(user_error_msg=errmsg)
 
@@ -70,6 +75,13 @@ def main():
     
     # Read in the excel file to make a dictionary of dataframes (all_dfs)
 
+    # probably need to check what datatype is being submitted here too - probably different if submitting just raw data files vs raw data + metadata
+    if filename.rsplit('.',1)[-1] == 'csv':
+        print("Reformat")
+        excel_path, filename = reformat(session.get('submission_dir'), filename, session.get('login_info'))
+        print("Done reformatting")
+        session['excel_path'] = excel_path
+    
     assert isinstance(current_app.excel_offset, int), \
         "Number of rows to offset in excel file must be an integer. Check__init__.py"
 
@@ -175,7 +187,7 @@ def main():
     print("preprocessing and cleaning data")
     # We are not sure if we want to do this
     # some projects like bight prohibit this
-    all_dfs = clean_data(all_dfs)
+    #all_dfs = clean_data(all_dfs)
     print("DONE preprocessing and cleaning data")
     
     # write all_dfs again to the same excel path
@@ -230,8 +242,8 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
     print("Right after core runs")
 
     errs.extend(core_output['core_errors'])

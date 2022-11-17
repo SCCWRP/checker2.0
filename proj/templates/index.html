@@ -85,7 +85,7 @@
                 <label for="html">Select Submission Type:</label><br>
                 <select id="datatype-select" class = "form-control" name="dtype_select">
                   {% for dtype in dtypes.keys() %}
-                    <option value = {{dtype}}>{% if dtypes[dtype].label %}{{dtypes[dtype].label}}{% else %}{{dtype}}{% endif %}</option>
+                    <option value = {{dtype}}>{% if dtypes[dtype].label %}{{dtypes[dtype].label|safe}}{% else %}{{dtype|safe}}{% endif %}</option>
                   {% endfor %}
                 </select>
               </form>
