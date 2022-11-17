@@ -123,6 +123,10 @@ def check_precision(x, precision):
 
 @lru_cache(maxsize=128, typed=True)
 def check_scale(x, scale):
+    if pd.isnull(scale):
+        return True
+    if pd.isnull(x):
+        return True
     try:
         int(x)
     except Exception as e:
@@ -131,9 +135,8 @@ def check_scale(x, scale):
         # thus we return true.
         # if its the wrong datatype it should get picked up by that check
         return True
-    if pd.isnull(scale):
-        return True
     x = abs(x)
+
     if 'e-' in str(x):
         # The idea is if the number comes in in scientific notation
         # it will look like 7e11 or something like that
@@ -146,8 +149,9 @@ def check_scale(x, scale):
         
         if rightdigits: # if its not a NoneType, it found a match
             rightdigits = rightdigits.groups()[0]
-        
-        right = powerof10 + len(rightdigits)
+            right = powerof10 + len(rightdigits)
+        else:
+            right = 0
     else:
         # frac part is zero if there is no decimal place, or if it came in with scientific notation
         # because this else block represents the case where the power was positive
