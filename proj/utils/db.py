@@ -1,4 +1,5 @@
-import re
+import re, os
+import subprocess as sp
 from pandas import read_sql, Timestamp, isnull, DataFrame
 
 
@@ -75,8 +76,45 @@ class GeoDBDataFrame(DataFrame):
 
             if return_sql == True:
                 return finalsql
-            else:
+            elif len(self) < 10000:
                 eng.execute(finalsql)
+            else:
+                # sqlpath = f"/tmp/tmp_{tablename}.sql"
+                # with open(sqlpath, 'w') as sqlfile:
+                #     sqlfile.write(finalsql)
+                # cmdlist = [
+                #     'psql',
+                #     '-h', os.environ.get('DB_HOST'),
+                #     '-d', os.environ.get('DB_NAME'),
+                #     '-U', os.environ.get('DB_USER'),
+                #     '-p', os.environ.get('DB_PORT'),
+                #     '-a', '-q', '-f', sqlpath
+                # ]
+
+                tmpcsvpath = f"/tmp/tmp_{tablename}.csv"
+                cols = [c for c in self.columns if c not in ('objectid','globalid')]
+                self[cols].to_csv(tmpcsvpath, index = False, header = False)
+                cmdlist = [
+                    'psql',
+                    '-h', os.environ.get('DB_HOST'),
+                    '-d', os.environ.get('DB_NAME'),
+                    '-U', os.environ.get('DB_USER'),
+                    '-p', os.environ.get('DB_PORT'),
+                    '-c', f"\copy {tablename} ({','.join(cols)}) FROM \'{tmpcsvpath}\' csv"
+                ]
+                
+                print("cmdlist")
+                print(cmdlist)
+                proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+
+                print("proc.stdout")
+                print(proc.stdout)
+                print("proc.stderr")
+                print(proc.stderr)
+
+                if proc.stderr:
+                    raise Exception
+
 
         else:
             print("Nothing to load.")

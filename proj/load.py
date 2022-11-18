@@ -124,6 +124,7 @@ def load():
             ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS warnings VARCHAR(5000);
             """
         )
+        
         all_dfs[tbl].to_geodb(tbl, g.eng)
  
 

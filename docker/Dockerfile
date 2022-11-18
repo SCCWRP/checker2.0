@@ -1,9 +1,10 @@
-#FROM debian:latest
-FROM debian:sid
+FROM debian:latest
+# FROM debian:sid
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update 
 RUN apt-get install -y apt-utils
 RUN apt-get install -y python3-pip python3-dev build-essential libssl-dev libffi-dev
+RUN apt-get install -y postgresql postgresql-contrib
 RUN apt-get install -y libpcre3 libpcre3-dev
 RUN apt-get install -y vim
 RUN apt-get install -y libpq-dev && pip3 install psycopg2
@@ -31,9 +32,10 @@ ENV PROJ_INCDIR=/usr/lib
 RUN pip3 install geopandas 
 RUN pip3 install folium 
 RUN pip3 install matplotlib 
-RUN pip3 install arcgis 
+#RUN pip3 install arcgis 
 RUN pip3 install scipy 
 RUN pip3 install shapely 
+RUN pip3 install requests 
 #RUN pip3 install opencv-python
 
 RUN mkdir -p /var/www/checker/
