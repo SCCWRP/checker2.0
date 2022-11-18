@@ -509,7 +509,7 @@ def template():
     wb.close()
     ############################################################################################################################
     ############################################################################################################################
-    return send_file(f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx", as_attachment=True, attachment_filename=f'{file_prefix}-TEMPLATE.xlsx')
+    return send_file(f"{os.getcwd()}/export/routine/{file_prefix}-TEMPLATE.xlsx", as_attachment=True, download_name=f'{file_prefix}-TEMPLATE.xlsx')
     
 
 
