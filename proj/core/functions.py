@@ -147,8 +147,9 @@ def check_scale(x, scale):
         
         if rightdigits: # if its not a NoneType, it found a match
             rightdigits = rightdigits.groups()[0]
-        
-        right = powerof10 + len(rightdigits)
+            right = powerof10 + len(rightdigits)
+        else:
+            right = 0
     else:
         # frac part is zero if there is no decimal place, or if it came in with scientific notation
         # because this else block represents the case where the power was positive
