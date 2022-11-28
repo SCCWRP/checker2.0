@@ -37,7 +37,7 @@ def template_file():
     tablename = request.args.get('tablename')
 
     if filename is not None:
-        return send_file( os.path.join(os.getcwd(), "export", filename), as_attachment = True, attachment_filename = filename ) \
+        return send_file( os.path.join(os.getcwd(), "export", filename), as_attachment = True, download_name = filename ) \
             if os.path.exists(os.path.join(os.getcwd(), "export", filename)) \
             else jsonify(message = "file not found")
     
@@ -55,7 +55,7 @@ def template_file():
 
         data.to_csv(datapath, index = False)
 
-        return send_file( datapath, as_attachment = True, attachment_filename = f'{tablename}.csv' )
+        return send_file( datapath, as_attachment = True, download_name = f'{tablename}.csv' )
 
     else:
         return jsonify(message = "neither a filename nor a database tablename were provided")
