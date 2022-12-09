@@ -32,7 +32,7 @@ def main():
             return jsonify(user_error_msg='You have submitted more than one excel file')
         
         for f in files:
-            # i'd like to figure a way we can do it without writing the thing to an excel file
+            
             f = files[0]
             filename = secure_filename(f.filename)
 
@@ -62,6 +62,11 @@ def main():
         errmsg = f"filename: {filename} appears to not be what we would expect of an excel file.\n"
         errmsg += "As of right now, the application can accept one excel file at a time.\n"
         errmsg += "If you are submitting data for multiple tables, they should be separate tabs in the excel file."
+        return jsonify(user_error_msg=errmsg)
+    
+    if filename[-4:] == '.xls':
+        errmsg = 'We are sorry, but we no longer support the .xls file format. '
+        errmsg += 'Please download the submission template from the designated location, or save the file as an Excel Workbook (.xlsx)'
         return jsonify(user_error_msg=errmsg)
 
     print("DONE uploading files")
