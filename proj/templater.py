@@ -338,10 +338,15 @@ def template():
         try:
             print(table)
             correct_field_order = column_order[table].split(",")
+            
+            cols_in_correct_field_order = [x for x in correct_field_order if x in xls[table.replace("tbl_","")].columns]
+            remaining_cols = [x for x in xls[table.replace("tbl_","")].columns if x not in cols_in_correct_field_order]
+            
             xls[table.replace("tbl_","")].columns = [
-                *[x for x in correct_field_order if x in xls[table.replace("tbl_","")].columns],
-                *[x for x in xls[table.replace("tbl_","")].columns if x not in correct_field_order]
+                *cols_in_correct_field_order,
+                *remaining_cols
             ]
+
         except Exception as e:
             print(e)
         
