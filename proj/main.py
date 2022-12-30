@@ -98,7 +98,8 @@ def main():
             excel_path, 
             sheet_name = sheet,
             skiprows = current_app.excel_offset,
-            na_values = ['']
+            na_values = [''],
+            converters = {"preparationtime":str}
         )
         
         for sheet in pd.ExcelFile(excel_path).sheet_names
@@ -187,7 +188,7 @@ def main():
     print("preprocessing and cleaning data")
     # We are not sure if we want to do this
     # some projects like bight prohibit this
-    #all_dfs = clean_data(all_dfs)
+    all_dfs = clean_data(all_dfs)
     print("DONE preprocessing and cleaning data")
     
     # write all_dfs again to the same excel path

@@ -200,7 +200,7 @@ def clean_data(all_dfs):
     print("Before fix case")
     #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
-    all_dfs = fix_case(all_dfs)                # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
+    all_dfs = fix_case(all_dfs)  # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
     print("After fix case")
     #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
@@ -208,7 +208,12 @@ def clean_data(all_dfs):
     print("before filling empty values")
     #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
-    #all_dfs = fill_empty_cells(all_dfs) # commenting out for now
+    # all_dfs = fill_empty_cells(all_dfs) # commenting out for now
+
+    # On 12/27/2022, I came here to comment out the function fill_empty_cells per Jan's request.
+    # However, I saw this function had been commented out before this by someone.
+    # As a result, the checker should not fill out primary key values with placeholders from now on - Duy
+
     print("after filling empty values")
     #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
     print('\n')
