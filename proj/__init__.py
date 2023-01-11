@@ -1,6 +1,6 @@
 import os, json, re
 from flask import Flask,current_app, g
-from flask_cors import CORS
+#from flask_cors import CORS - disabled paul 9jan23
 from sqlalchemy import create_engine
 import psycopg2
 from psycopg2 import sql
@@ -13,9 +13,7 @@ from .download import download
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
 
-
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
-
 
 CONFIG_FILEPATH = os.path.join(CUSTOM_CONFIG_PATH, 'config.json')
 assert os.path.exists(CONFIG_FILEPATH), "config.json not found"
@@ -30,8 +28,8 @@ app = Flask(__name__, static_url_path='/static')
 app.debug = True # remove for production
 
 
-CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+#CORS(app) - disabled paul 9jan23
+#app.config['CORS_HEADERS'] = 'Content-Type' - disabled paul 9jan23
 
 app.config['MAIL_SERVER'] = CONFIG.get('MAIL_SERVER')
 
