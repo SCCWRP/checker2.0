@@ -1,6 +1,6 @@
 import os, json
 from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template
-from flask_cors import CORS, cross_origin
+#from flask_cors import CORS, cross_origin - disabled paul 9jan23
 from pandas import read_sql, DataFrame
 from sqlalchemy import text
 from zipfile import ZipFile
@@ -23,7 +23,7 @@ def support_jsonp(f):
 download = Blueprint('download', __name__)
 
 #CORS(download)
-cors = CORS(download, resources={r"/exportdata/*": {"origins": "*"}})
+#cors = CORS(download, resources={r"/exportdata": {"origins": "*"}})
 
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])
 def submission_file(submissionid, filename):
@@ -63,8 +63,9 @@ def template_file():
 
 @download.route('/exportdata', methods=['GET'])
 @support_jsonp
-@cross_origin()
+#@cross_origin() - disabled paul 9jan23
 def exportdata():
+        eng = g.eng
         # function to build query from url string and return result as an excel file or zip file if requesting all data
         print("start exportdata")
         # sql injection check one
@@ -107,7 +108,7 @@ def exportdata():
         export_link = 'https://empachecker.sccwrp.org/checker/logs?filename=%s-export.csv' % TIMESTAMP
 
         # sql injection check three
-        valid_tables = {'algaecover': 'tbl_algaecover_data','benthicmetadata': 'tbl_benthicinfauna_metadata','bruvmetadata': 'tbl_bruv_metadata','crabbiomass': 'tbl_crabbiomass_length','crababundance': 'tbl_crabfishinvert_abundance','fishabundance': 'tbl_fish_abundance_data', 'fishlength':'tbl_fish_length_data'}
+        valid_tables = {'algaecover': 'tbl_algaecover_data','benthicmetadata': 'tbl_benthicinfauna_metadata','bruvmetadata': 'tbl_bruv_metadata','crabbiomass': 'tbl_crabbiomass_length','crababundance': 'tbl_crabfishinvert_abundance','crabtrapmetadata':'tbl_crabtrap_metadata','fishabundance': 'tbl_fish_abundance_data', 'fishlength':'tbl_fish_length_data', 'sedgrainsizedata':'tbl_sedgrainsize_data', 'sedgrainsizelabbatch':'tbl_sedgrainsize_labbatch_data','sedgrainsizemetadata':'tbl_sedgrainsize_metadata','vegetationsamplemetadata':'tbl_vegetation_sample_metadata'}
         if request.args.get("callback"):
             test = request.args.get("callback", False)
             print(test)
@@ -136,7 +137,7 @@ def exportdata():
                     table = valid_tables[table_name]
                     print(table)
                     check = exists_table(g.eng, table)
-                    if table_name in valid_tables and check == 1:
+                    if (table_name in valid_tables) and check == 1:
                         sql = jsonstring[item]['sql']
                         # check sql string - clean it of any special characters
                         cleanstring(sql)
@@ -189,11 +190,10 @@ def exportdata():
                         df.to_csv(outputfile,header=True, index=False, encoding='utf-8')
                     else:
                         response = jsonify({'code': 200,'link': outlink})
+                        #response.headers['Access-Control-Allow-Origin'] = '*'
                         return response
 
         export_link = outlink
-        #admin_engine.dispose()
-        #query_engine.dispose()
         response = jsonify({'code': 200,'link': export_link})
         return response
 
@@ -205,7 +205,8 @@ def log_file():
 
     if filename is not None:
         print(os.getcwd(), "logs", filename)
-        return send_file( os.path.join(os.getcwd(), "logs", filename), as_attachment = True, attachment_filename = filename ) \
+        # code below has been changed from attachment_file to download_name - paul 9jan23
+        return send_file( os.path.join(os.getcwd(), "logs", filename), as_attachment = True, download_name = filename ) \
             if os.path.exists(os.path.join(os.getcwd(), "logs", filename)) \
             else jsonify(message = "file not found")
     else:
