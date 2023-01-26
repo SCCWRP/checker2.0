@@ -108,7 +108,45 @@ def exportdata():
         export_link = 'https://empachecker.sccwrp.org/checker/logs?filename=%s-export.csv' % TIMESTAMP
 
         # sql injection check three
-        valid_tables = {'algaecover': 'tbl_algaecover_data','benthicmetadata': 'tbl_benthicinfauna_metadata','bruvmetadata': 'tbl_bruv_metadata','crabbiomass': 'tbl_crabbiomass_length','crababundance': 'tbl_crabfishinvert_abundance','crabtrapmetadata':'tbl_crabtrap_metadata','fishabundance': 'tbl_fish_abundance_data', 'fishlength':'tbl_fish_length_data', 'sedgrainsizedata':'tbl_sedgrainsize_data', 'sedgrainsizelabbatch':'tbl_sedgrainsize_labbatch_data','sedgrainsizemetadata':'tbl_sedgrainsize_metadata','vegetationsamplemetadata':'tbl_vegetation_sample_metadata'}
+        valid_tables = {
+            'algaecover': 'tbl_algaecover_data',
+            'macroalgaesamplemetadata':'tbl_macroalgae_sample_metadata',
+            'algaecoverdata': 'tbl_algaecover_data',
+            'floatingdata': 'tbl_floating_data',
+            'benthicmetadata': 'tbl_benthicinfauna_metadata',
+            'benthiclabbatch':'tbl_benthic_infauna_labbatch_data',
+            'benthicabundance': 'tbl_benthic_infauna_abundance_data',
+            'benthicbiomass':'tbl_benthic_infauna_biomass_data',
+            'bruvmetadata': 'tbl_bruv_metadata',
+            'bruvdata':'tbl_bruv_data',
+            'crabbiomass': 'tbl_crabbiomass_length',
+            'crababundance': 'tbl_crabfishinvert_abundance',
+            'crabtrapmetadata':'tbl_crabtrap_metadata',
+            'discretewqmetadata':'tbl_waterquality_metadata',
+            'discretewqdata':'tbl_waterquality_data',
+            'ednametadata':'tbl_edna_metadata',
+            'ednawaterlabbatch':'tbl_edna_water_labbatch_data',
+            'ednasedlabbatch':'tbl_edna_sed_labbatch_data',
+            'ednadata':'tbl_edna_data',
+            'feldsparmetadata':'tbl_feldspar_metadata',
+            'feldspardata':'tbl_feldspar_data',
+            'fishsamplemetadata':'tbl_fish_sample_metadata',
+            'fishabundance': 'tbl_fish_abundance_data', 
+            'fishlength':'tbl_fish_length_data', 
+            'loggermetadata':'tbl_wq_logger_metadata',
+            'loggerdata':'tbl_wqlogger',
+            'nutrientsmetadata':'tbl_nutrients_metadata',
+            'nutrientslabbatch':'tbl_nutrients_labbatch_data',
+            'nutrientsdata':'tbl_nutrients_data',
+            'savmetadata': 'tbl_sav_metadata',
+            'savdata':'tbl_savpercentcover_data',
+            'sedgrainsizedata':'tbl_sedgrainsize_data', 
+            'sedgrainsizelabbatch':'tbl_sedgrainsize_labbatch_data',
+            'sedgrainsizemetadata':'tbl_sedgrainsize_metadata',
+            'vegetationsamplemetadata':'tbl_vegetation_sample_metadata',
+            'vegetationcoverdata':'tbl_vegetationcover_data',
+            'epifaunadata':'tbl_epifauna_data'
+        }
         if request.args.get("callback"):
             test = request.args.get("callback", False)
             print(test)
