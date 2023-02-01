@@ -144,8 +144,8 @@ def exportdata():
             'sedgrainsizelabbatch':'tbl_sedgrainsize_labbatch_data',
             'sedgrainsizemetadata':'tbl_sedgrainsize_metadata',
             'vegetationsamplemetadata':'tbl_vegetation_sample_metadata',
-            'vegetationcoverdata':'tbl_vegetationcover_data',
-            'epifaunadata':'tbl_epifauna_data'
+            'vegetationcoverdata':'tbl_vegetativecover_data',
+            'epifauna':'tbl_epifauna_data'
         }
         if request.args.get("callback"):
             test = request.args.get("callback", False)
