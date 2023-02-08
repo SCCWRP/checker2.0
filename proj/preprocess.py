@@ -185,6 +185,27 @@ def fill_speciesnames(all_dfs):
     return all_dfs
 '''
 
+def fix_projectid(all_dfs):
+    '''
+    The function "fix_projectid" takes a dictionary of dataframes, modifies the 'projectid' column in each dataframe 
+    by replacing its value with 'Baja-rails' if the corresponding value in the 'siteid' column is 'Baja-SQ' or 'Baja-PB'. 
+    The final dictionary of modified dataframes is returned.
+    '''
+    for table_name in all_dfs.keys():
+        table_df = all_dfs[table_name] 
+        if 'siteid' not in table_df.columns:
+            continue
+        table_df = table_df.assign(
+            projectid = table_df.apply(
+                lambda row: 'Baja-rails' if row['siteid'] in ['Baja-SQ','Baja-PB']
+                else row['projectid'],
+                axis=1
+            )
+        )
+        all_dfs[table_name] = table_df
+    return all_dfs
+
+
 
 def clean_data(all_dfs):
     print("preprocessing")
@@ -228,4 +249,10 @@ def clean_data(all_dfs):
     all_dfs = hardcoded_fixes(all_dfs)
 
     print('done')
+    
+    print("begin fixing projectid")
+    all_dfs =  fix_projectid(all_dfs)
+    print("end fixing projectid")
+
     return all_dfs
+
