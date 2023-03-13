@@ -53,8 +53,13 @@ def multitask(functions: list, *args):
     while output.qsize() > 0:
         finaloutput.append(output.get())
     print("output from the multitask/mutliprocessing function")
-    print("did this print the finaloutput")
-    print(finaloutput)
+
+    # printing final output caused an error because of ascii encoding
+    # We must be careful to not leave stuff like this uncommented, but rather only print during testing and debugging
+    # then remove after
+    
+    # print("did this print the finaloutput")
+    # print(finaloutput)
     return finaloutput
 
 
