@@ -204,6 +204,14 @@ def template():
             'tbl_feldspar_data'
         ]
         file_prefix = 'SOP_13_FELDSPAR'
+    # SOP 6  Benthic Infauna Large
+    elif datatype == 'benthiclarge':
+        tbls = [
+            'tbl_protocol_metadata',
+            'tbl_benthiclarge_metadata',
+            'tbl_benthiclarge_abundance'
+        ]
+        file_prefix = 'SOP_6_BENTHICINFAUNA_LARGE'
     else:
         tbls = []
 
