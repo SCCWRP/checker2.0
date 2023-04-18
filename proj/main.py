@@ -134,8 +134,9 @@ def main():
     match_dataset, match_report, all_dfs = match(all_dfs)
     
     print("match(all_dfs)")
-    #print(match(all_dfs))
+    #print(match(all_dfs)) #uncommented to view
 
+    #remember to comment out the block below after edits
     # print("match_dataset")
     # print(match_dataset)
     # print("match_report")
@@ -154,6 +155,9 @@ def main():
     print("DONE - Running match tables routine")
 
     session['datatype'] = match_dataset
+
+    print("session")
+    print(session)
 
     print("match_dataset")
     print(match_dataset)
@@ -243,8 +247,8 @@ def main():
     # debug = False will cause corechecks to run with multiprocessing, 
     # but the logs will not show as much useful information
     print("Right before core runs")
-    #core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
-    core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
+    core_output = core(all_dfs, g.eng, dbmetadata, debug = True)
+    #core_output = core(all_dfs, g.eng, dbmetadata, debug = False)
     print("Right after core runs")
 
     errs.extend(core_output['core_errors'])
