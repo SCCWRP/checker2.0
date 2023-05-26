@@ -6,6 +6,7 @@ from sqlalchemy import text
 from zipfile import ZipFile
 import time, datetime
 import functools
+from io import BytesIO
 #from functools import wrap
 
 def support_jsonp(f):
@@ -249,3 +250,94 @@ def log_file():
             else jsonify(message = "file not found")
     else:
         return jsonify(message = "no filename was provided")
+
+@download.route('/getloggerdata', methods = ['POST'])
+def get_logger_data():
+    import pandas as pd
+    import re
+    
+    eng = g.eng
+    payload = request.json
+    print(payload)
+    # Prevent SQL Injection
+    for k,v in payload.items():
+        if k != 'is_partitioned':
+            payload[k] = re.sub(r'[#;]', '', v)
+    
+    start_date = pd.Timestamp(payload.get('start_time'))
+    end_date = pd.Timestamp(payload.get('end_time'))
+
+    # Initialize an empty list to store the tuples
+    date_list = []
+
+    # Set the initial date to the start date
+    current_date = start_date
+
+    # Iterate through each month between start and end date
+    while current_date <= end_date:
+        # Extract year and month from the current date
+        year = current_date.year
+        month = current_date.month
+        
+        # Append the year and month tuple to the list
+        date_list.append((year, month))
+        
+        # Move to the next month
+        if current_date.month == 12:
+            current_date = current_date.replace(year=current_date.year + 1, month=1)
+        else:
+            current_date = current_date.replace(month=current_date.month + 1)
+
+    # Print the list of tuples
+    print(date_list)
+
+
+    if payload.get('is_partitioned'):
+
+        combined_table_str = "("
+        combined_table_str += " UNION ALL ".join(
+            [
+                """
+                    SELECT 
+                        *
+                    FROM 
+                        {}_{} 
+                    WHERE 
+                        {} >= '{}' 
+                        AND {} <= '{}'
+                """.format(
+                    payload.get('base_table'),
+                    "m".join([str(yr_qt_tup[0]),str(yr_qt_tup[1])]),
+                    payload.get('datetime_colname'),
+                    payload.get('start_time'),
+                    payload.get('datetime_colname'),
+                    payload.get('end_time')
+                )
+                
+                for yr_qt_tup in 
+                    date_list
+            ]
+        )
+        combined_table_str += ") AS t"
+        print(combined_table_str)
+        sql = f"SELECT json_agg(t) FROM {combined_table_str}"
+        records = pd.read_sql(sql, eng).iloc[0,0]
+        df = pd.DataFrame(records)
+        print(df)
+    
+    
+    path = "/tmp/loggerdata.csv"
+    df.to_csv(path)
+    blob = open(path, 'rb').read()
+    os.remove(path)
+
+    #return send_file(path, as_attachment = True, attachment_filename = filename)
+    return send_file(
+        BytesIO(blob), 
+        download_name = 'logger.csv', 
+        as_attachment = True, 
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
+
+    #return jsonify(records)
