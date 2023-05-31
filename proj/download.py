@@ -7,6 +7,7 @@ from zipfile import ZipFile
 import time, datetime
 import functools
 from io import BytesIO
+import subprocess as sp
 #from functools import wrap
 
 def support_jsonp(f):
@@ -251,6 +252,10 @@ def log_file():
     else:
         return jsonify(message = "no filename was provided")
 
+@download.route('/loggerdownload', methods = ['GET'])
+def logger_download():
+    return render_template("logger_download.html")
+
 @download.route('/getloggerdata', methods = ['POST'])
 def get_logger_data():
     import pandas as pd
@@ -258,7 +263,7 @@ def get_logger_data():
     
     eng = g.eng
     payload = request.json
-    print(payload)
+
     # Prevent SQL Injection
     for k,v in payload.items():
         if k != 'is_partitioned':
@@ -266,6 +271,15 @@ def get_logger_data():
     
     start_date = pd.Timestamp(payload.get('start_time'))
     end_date = pd.Timestamp(payload.get('end_time'))
+    colnames = [
+        x 
+        for x in  
+        pd.read_sql(
+            f"SELECT column_name FROM INFORMATION_SCHEMA.columns WHERE table_name = '{payload.get('base_table')}'", g.eng
+        ).column_name.tolist()
+        if x not in current_app.system_fields
+    ]
+ 
 
     # Initialize an empty list to store the tuples
     date_list = []
@@ -287,11 +301,7 @@ def get_logger_data():
             current_date = current_date.replace(year=current_date.year + 1, month=1)
         else:
             current_date = current_date.replace(month=current_date.month + 1)
-
-    # Print the list of tuples
-    print(date_list)
-
-
+    
     if payload.get('is_partitioned'):
 
         combined_table_str = "("
@@ -299,13 +309,14 @@ def get_logger_data():
             [
                 """
                     SELECT 
-                        *
+                        {}
                     FROM 
                         {}_{} 
                     WHERE 
                         {} >= '{}' 
                         AND {} <= '{}'
                 """.format(
+                    ",".join(colnames),
                     payload.get('base_table'),
                     "m".join([str(yr_qt_tup[0]),str(yr_qt_tup[1])]),
                     payload.get('datetime_colname'),
@@ -319,17 +330,34 @@ def get_logger_data():
             ]
         )
         combined_table_str += ") AS t"
-        print(combined_table_str)
-        sql = f"SELECT json_agg(t) FROM {combined_table_str}"
-        records = pd.read_sql(sql, eng).iloc[0,0]
-        df = pd.DataFrame(records)
-        print(df)
     
+        sql = f"SELECT * FROM {combined_table_str}"
+        
+        print("sql")
+        print(sql)
+
+        # records = pd.read_sql(sql, eng).iloc[0,0]
+        # df = pd.DataFrame(records)
+        csv_path = "/tmp/loggerdata.csv"
+        
+        cmdlist = [
+            'psql', 
+            os.environ.get('DB_CONNECTION_STRING'),
+            '-c', 
+            f"\COPY ({sql}) TO \'{csv_path}\' CSV HEADER"
+        ]
     
-    path = "/tmp/loggerdata.csv"
-    df.to_csv(path)
-    blob = open(path, 'rb').read()
-    os.remove(path)
+        # time the query
+        query_begin_time = time.time()
+        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+        if proc.returncode != 0:
+            print(f"Error: {proc.stderr}")
+        else:
+            print("success")
+        print(f"takes {time.time() - query_begin_time} seconds to run the query")
+    
+    blob = open(csv_path, 'rb').read()
+    os.remove(csv_path)
 
     #return send_file(path, as_attachment = True, attachment_filename = filename)
     return send_file(

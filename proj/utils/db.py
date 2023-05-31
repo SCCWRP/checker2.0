@@ -1,6 +1,7 @@
 import re, os
 import subprocess as sp
 from pandas import read_sql, Timestamp, isnull, DataFrame
+import inspect
 
 
 def check_dtype(t, x):
@@ -118,5 +119,26 @@ class GeoDBDataFrame(DataFrame):
 
         else:
             print("Nothing to load.")
+
+
+
+# Get the registration id from the geodatabase
+def registration_id(tablename, conn):
+    reg_ids = read_sql(f"SELECT registration_id, table_name FROM sde.sde_table_registry WHERE table_name = '{tablename}';", conn).registration_id.values
+    
+    assert len(reg_ids) > 0, f"Registration ID for table {tablename} not found - table may not be registered with the geodatabase!"
+    
+    return reg_ids[0]
+
+# Get what the next object ID would be for the table
+def next_objectid(tablename, conn):
+    reg_id = registration_id(tablename, conn)
+    if reg_id:
+        if not read_sql(f"SELECT * FROM information_schema.tables WHERE table_name = 'i{reg_id}'", conn).empty:
+            return read_sql(f"SELECT base_id FROM i{reg_id}", conn).base_id.values[0]
+        else:
+            raise Exception(f'Table i{reg_id} not found (the table is supposed to correspond to {tablename})')
+    else:
+        raise Exception(f'No registration ID found for table {tablename}')
 
 

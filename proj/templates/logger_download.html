@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="module" src="https://js.arcgis.com/calcite-components/1.2.0/calcite.esm.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.2.0/calcite.css" />
+    </head>
+<body>
+    <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+    <div class="container" id="main-outer-container">
+        <div class="card inner-container">
+            <div class="card-body">
+                
+                <div class="card-header">
+                    EMPA Logger Download Tool
+                  </div>
+                
+                <br>
+
+                <div style="display: inline-block;">
+                    <calcite-label id="logger-start-label">Pick a start date: </calcite-label>    
+                    <calcite-date-picker id='logger-start-date' scale='s' min='2015-05-29' max='2018-09-19' ></calcite-date-picker>
+                </div>
+                <div style="display: inline-block;">
+                    <calcite-label id="logger-end-label">Pick an end date: </calcite-label>
+                    <calcite-date-picker id='logger-end-date' scale='s' min='2015-05-29' max='2018-09-19'></calcite-date-picker>
+                </div>
+                
+                <br>
+                
+                <div>
+                    <calcite-button id="download-logger">
+                        Download Logger Data
+                    </calcite-button>
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</body>
+<script src="{{url_for('static', filename='loggerdownload.js')}}"></script>
+
+</html>
