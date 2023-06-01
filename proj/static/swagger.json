@@ -1,0 +1,89 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Logger Download API",
+        "description": "This is an API for EMPA Logger Download",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/checker/getloggerdata": {
+            "post": {
+                "summary": "Get logger data",
+                "tags": [
+                    "Get Logger Data"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "projectid": {
+                                        "type": "string",
+                                        "example": "EMPA"
+                                    },
+                                    "siteid": {
+                                        "type": "string",
+                                        "example": "SC-VEN"
+                                    },
+                                    "estuaryname": {
+                                        "type": "string",
+                                        "example": "Ventura River"
+                                    },
+                                    "sensortype": {
+                                        "type": "string",
+                                        "example": "CTD"
+                                    },
+                                    "start_time": {
+                                        "type": "string",
+                                        "example": "2022-01-01"
+                                    },
+                                    "end_time": {
+                                        "example": "2022-01-02",
+                                        "type": "string"
+                                    },
+                                    "base_table": {
+                                        "example": "tbl_wqlogger",
+                                        "type": "string"
+                                    },
+                                    "datetime_colname": {
+                                        "example": "samplecollectiontimestamp",
+                                        "type": "string"
+                                    },
+                                    "is_partitioned": {
+                                        "example": "True",
+                                        "type": "string"
+                                    }
+
+            
+                                },
+                                "required": [
+                                    "projectid",
+                                    "siteid",
+                                    "estuaryname",
+                                    "sensortype",
+                                    "start_time",
+                                    "end_time"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful response",
+                        "content": {
+                            "application/octet-stream": {
+                                "schema": {
+                                  "type": "string",
+                                  "format": "binary"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

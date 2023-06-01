@@ -1,5 +1,5 @@
 import os, json
-from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template
+from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template, url_for
 #from flask_cors import CORS, cross_origin - disabled paul 9jan23
 from pandas import read_sql, DataFrame
 from sqlalchemy import text
@@ -8,6 +8,7 @@ import time, datetime
 import functools
 from io import BytesIO
 import subprocess as sp
+import pandas as pd
 #from functools import wrap
 
 def support_jsonp(f):
@@ -254,7 +255,87 @@ def log_file():
 
 @download.route('/loggerdownload', methods = ['GET'])
 def logger_download():
-    return render_template("logger_download.html")
+
+    projectids = pd.read_sql("SELECT DISTINCT projectid FROM tmp_logger_meta;", g.eng).projectid.values
+    estuaries = pd.read_sql("SELECT DISTINCT estuaryname FROM tmp_logger_meta;", g.eng).estuaryname.values
+    sensortype = pd.read_sql("SELECT DISTINCT sensortype FROM tmp_logger_meta;", g.eng).sensortype.values
+
+    return render_template("logger_download.html", projectids = projectids, estuaries=estuaries, sensortype=sensortype)
+
+@download.route('/loggerdownload/apidocs', methods = ['GET'])
+def logger_download_template():
+    swagger_json_path = url_for('static', filename='swagger.json')
+    return render_template("swagger_ui.html",  swagger_json_path=swagger_json_path)
+
+@download.route('/loggerdownload/repopulate-dropdown', methods = ['POST'])
+def repopulate_dropdown():
+    
+    projectid = request.json.get('projectid')
+    estuaryname = request.json.get('estuaryname')
+    sensortype = request.json.get('sensortype')
+
+    if projectid is not None:
+        estuaryname = pd.read_sql(f"SELECT DISTINCT estuaryname FROM tmp_logger_meta WHERE projectid IN ({projectid});", g.eng).estuaryname.tolist()
+        sensortype = pd.read_sql(f"SELECT DISTINCT sensortype FROM tmp_logger_meta WHERE projectid IN ({projectid});", g.eng).sensortype.tolist()
+    elif estuaryname is not None:
+        projectid = pd.read_sql(f"SELECT DISTINCT projectid FROM tmp_logger_meta WHERE estuaryname IN ({estuaryname});", g.eng).projectid.tolist()
+        sensortype = pd.read_sql(f"SELECT DISTINCT sensortype FROM tmp_logger_meta WHERE estuaryname IN ({estuaryname});", g.eng).sensortype.tolist()
+    elif sensortype is not None:
+        projectid = pd.read_sql(f"SELECT DISTINCT projectid FROM tmp_logger_meta WHERE sensortype IN ({sensortype});", g.eng).projectid.tolist()
+        estuaryname = pd.read_sql(f"SELECT DISTINCT estuaryname FROM tmp_logger_meta WHERE sensortype IN ({sensortype});", g.eng).estuaryname.tolist()
+    
+    return jsonify(projectid=projectid, estuaryname=estuaryname, sensortype=sensortype)
+
+# @download.route('/loggerdownload/getestuary', methods = ['POST'])
+# def get_estuary():
+#     projectid = request.json.get('projectid')
+#     siteid = request.json.get('siteid')
+#     estuaryname = pd.read_sql(
+#         f"""
+#             SELECT DISTINCT estuaryname FROM tmp_logger_meta WHERE projectid = '{projectid}' AND siteid = '{siteid}';
+#         """, g.eng
+#     ).estuaryname.tolist()
+#     return jsonify(estuaryname=estuaryname)
+
+# @download.route('/loggerdownload/getsensortype', methods = ['POST'])
+# def get_sensortype():
+#     projectid = request.json.get('projectid')
+#     siteid = request.json.get('siteid')
+#     estuaryname = request.json.get('estuaryname')
+#     sensortype = pd.read_sql(
+#         f"""
+#             SELECT DISTINCT sensortype FROM tmp_logger_meta 
+#             WHERE projectid = '{projectid}' 
+#             AND siteid = '{siteid}' 
+#             AND estuaryname = '{estuaryname}';
+#         """, g.eng).sensortype.tolist()
+#     return jsonify(sensortype=sensortype)
+
+@download.route('/loggerdownload/getminmaxtimestamp', methods = ['POST'])
+def get_minmax_ts():
+    projectid = request.json.get('projectid')
+    siteid = request.json.get('siteid')
+    estuaryname = request.json.get('estuaryname')
+    sensortype = request.json.get('sensortype')
+    data = pd.read_sql(
+        f"""
+            SELECT MIN
+                ( samplecollectiontimestamp ) AS min_ts,
+                MAX ( samplecollectiontimestamp ) AS max_ts 
+            FROM
+                tbl_wqlogger 
+            WHERE
+                projectid IN ({projectid}) 
+                AND estuaryname IN ({estuaryname}) 
+                AND sensortype IN ({sensortype})
+        """,
+        g.eng
+    )
+    
+    min_ts = data.min_ts.iloc[0]
+    max_ts = data.max_ts.iloc[0]
+
+    return jsonify(min_ts=min_ts, max_ts=max_ts)
 
 @download.route('/getloggerdata', methods = ['POST'])
 def get_logger_data():
@@ -271,6 +352,11 @@ def get_logger_data():
     
     start_date = pd.Timestamp(payload.get('start_time'))
     end_date = pd.Timestamp(payload.get('end_time'))
+    projectid = payload.get('projectid')
+    siteid = payload.get('siteid')
+    estuaryname = payload.get('estuaryname')
+    sensortype = payload.get('sensortype')
+
     colnames = [
         x 
         for x in  
@@ -329,16 +415,26 @@ def get_logger_data():
                     date_list
             ]
         )
+
+        if projectid is not None:
+            combined_table_str += f" AND projectid = '{projectid}'"
+        if siteid is not None:
+            combined_table_str += f" AND siteid = '{siteid}'"
+        if estuaryname is not None:
+            combined_table_str += f" AND estuaryname = '{estuaryname}'"
+        if sensortype is not None:
+            combined_table_str += f" AND sensortype = '{sensortype}'"
+
         combined_table_str += ") AS t"
     
         sql = f"SELECT * FROM {combined_table_str}"
         
         print("sql")
         print(sql)
-
+        sessionid = int(time.time())
         # records = pd.read_sql(sql, eng).iloc[0,0]
         # df = pd.DataFrame(records)
-        csv_path = "/tmp/loggerdata.csv"
+        csv_path = f"/tmp/loggerdata_{sessionid}.csv"
         
         cmdlist = [
             'psql', 

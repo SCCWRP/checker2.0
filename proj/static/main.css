@@ -179,3 +179,8 @@ span.table-not-matched {
 .warning-alert {
     background-color: #d8f96a;
 }
+
+.custom-button {
+    width: 600px; /* Set the desired width */
+    background-color: #007ac2;
+  }
