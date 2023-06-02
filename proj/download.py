@@ -404,6 +404,10 @@ def get_logger_data():
     
     start_date = pd.Timestamp(payload.get('start_time'))
     end_date = pd.Timestamp(payload.get('end_time'))
+
+    if any([start_date is None, end_date is None]):
+        return jsonify(message="Start Date and End Date must be provided")
+
     projectid = payload.get('projectid')
     siteid = payload.get('siteid')
     estuaryname = payload.get('estuaryname')
@@ -470,19 +474,25 @@ def get_logger_data():
 
         combined_table_str += ") AS t"
     
-        sql = f"SELECT * FROM {combined_table_str}"
+        sql = f"SELECT * FROM {combined_table_str} WHERE "
         
-        if projectid is not None:
-            sql += f" WHERE t.projectid IN ({projectid})"
-        if siteid is not None:
-            sql += f" AND t.siteid IN ({siteid})"
-        if estuaryname is not None:
-            sql += f" AND t.estuaryname IN ({estuaryname})"
-        if sensortype is not None:
-            sql += f" AND t.sensortype IN ({sensortype})"
+        conditions = []
 
+        if projectid is not None:
+            conditions.append(f"t.projectid IN ({projectid})")
+        if estuaryname is not None:
+            conditions.append(f"t.estuaryname IN ({estuaryname})")
+        if sensortype is not None:
+            conditions.append(f"t.sensortype IN ({sensortype})")
+
+        if conditions:
+            sql += " AND ".join(conditions)
+        else:
+            sql = sql.rstrip(" WHERE ")
+        
         print("sql")
         print(sql)
+        
         sessionid = int(time.time())
         # records = pd.read_sql(sql, eng).iloc[0,0]
         # df = pd.DataFrame(records)
