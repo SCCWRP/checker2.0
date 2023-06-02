@@ -256,11 +256,47 @@ def log_file():
 @download.route('/loggerdownload', methods = ['GET'])
 def logger_download():
 
-    projectids = pd.read_sql("SELECT DISTINCT projectid FROM tmp_logger_meta;", g.eng).projectid.values
-    estuaries = pd.read_sql("SELECT DISTINCT estuaryname FROM tmp_logger_meta;", g.eng).estuaryname.values
-    sensortype = pd.read_sql("SELECT DISTINCT sensortype FROM tmp_logger_meta;", g.eng).sensortype.values
+    data = pd.read_sql(
+        """
+            SELECT 
+                MIN(samplecollectiontimestampstart::DATE) as start_ts, 
+                MAX(samplecollectiontimestampend::DATE) AS end_ts 
+            FROM 
+                tbl_wq_logger_metadata;
+        """,
+        g.eng
+    )
+    start_ts = data.start_ts.iloc[0]
+    end_ts = data.end_ts.iloc[0]
 
-    return render_template("logger_download.html", projectids = projectids, estuaries=estuaries, sensortype=sensortype)
+    return render_template("logger_download.html", start_ts=start_ts, end_ts=end_ts)
+
+@download.route('/loggerdownload/populate-dropdown', methods = ['POST'])
+def populate_dropdown():
+
+    start_ts = request.json.get('logger_start')
+    end_ts = request.json.get('logger_end')
+    
+    data = pd.read_sql(
+        f"""
+            SELECT 
+                projectid, estuaryname, sensortype
+            FROM 
+                tbl_wqlogger
+            WHERE samplecollectiontimestamp >= '{start_ts} 00:00:00'
+            AND samplecollectiontimestamp <= '{end_ts} 23:59:59'
+            GROUP BY projectid, estuaryname, sensortype
+            ORDER BY projectid, estuaryname, sensortype;
+            ;
+        """,
+        g.eng
+    )
+    projectid =  list(set(data.projectid))
+    estuaryname = list(set(data.estuaryname))
+    sensortype = list(set(data.sensortype))
+    
+    return jsonify(projectid=projectid, estuaryname=estuaryname, sensortype=sensortype)
+
 
 @download.route('/loggerdownload/apidocs', methods = ['GET'])
 def logger_download_template():
@@ -273,43 +309,36 @@ def repopulate_dropdown():
     projectid = request.json.get('projectid')
     estuaryname = request.json.get('estuaryname')
     sensortype = request.json.get('sensortype')
+    print(projectid, estuaryname, sensortype)
+
+    sql = f"""
+        SELECT 
+            DISTINCT projectid, estuaryname, sensortype 
+        FROM 
+            tmp_logger_meta WHERE 
+        """
+
+    conditions = []
 
     if projectid is not None:
-        estuaryname = pd.read_sql(f"SELECT DISTINCT estuaryname FROM tmp_logger_meta WHERE projectid IN ({projectid});", g.eng).estuaryname.tolist()
-        sensortype = pd.read_sql(f"SELECT DISTINCT sensortype FROM tmp_logger_meta WHERE projectid IN ({projectid});", g.eng).sensortype.tolist()
-    elif estuaryname is not None:
-        projectid = pd.read_sql(f"SELECT DISTINCT projectid FROM tmp_logger_meta WHERE estuaryname IN ({estuaryname});", g.eng).projectid.tolist()
-        sensortype = pd.read_sql(f"SELECT DISTINCT sensortype FROM tmp_logger_meta WHERE estuaryname IN ({estuaryname});", g.eng).sensortype.tolist()
-    elif sensortype is not None:
-        projectid = pd.read_sql(f"SELECT DISTINCT projectid FROM tmp_logger_meta WHERE sensortype IN ({sensortype});", g.eng).projectid.tolist()
-        estuaryname = pd.read_sql(f"SELECT DISTINCT estuaryname FROM tmp_logger_meta WHERE sensortype IN ({sensortype});", g.eng).estuaryname.tolist()
-    
+        conditions.append(f"projectid IN ({projectid})")
+    if estuaryname is not None:
+        conditions.append(f"estuaryname IN ({estuaryname})")
+    if sensortype is not None:
+        conditions.append(f"sensortype IN ({sensortype})")
+
+    if conditions:
+        sql += " AND ".join(conditions)
+    else:
+        sql = sql.rstrip(" WHERE ")
+    print(sql)
+    df = pd.read_sql(sql, g.eng)
+
+    projectid = list(set(df['projectid']))
+    estuaryname = list(set(df['estuaryname']))
+    sensortype = list(set(df['sensortype']))
+
     return jsonify(projectid=projectid, estuaryname=estuaryname, sensortype=sensortype)
-
-# @download.route('/loggerdownload/getestuary', methods = ['POST'])
-# def get_estuary():
-#     projectid = request.json.get('projectid')
-#     siteid = request.json.get('siteid')
-#     estuaryname = pd.read_sql(
-#         f"""
-#             SELECT DISTINCT estuaryname FROM tmp_logger_meta WHERE projectid = '{projectid}' AND siteid = '{siteid}';
-#         """, g.eng
-#     ).estuaryname.tolist()
-#     return jsonify(estuaryname=estuaryname)
-
-# @download.route('/loggerdownload/getsensortype', methods = ['POST'])
-# def get_sensortype():
-#     projectid = request.json.get('projectid')
-#     siteid = request.json.get('siteid')
-#     estuaryname = request.json.get('estuaryname')
-#     sensortype = pd.read_sql(
-#         f"""
-#             SELECT DISTINCT sensortype FROM tmp_logger_meta 
-#             WHERE projectid = '{projectid}' 
-#             AND siteid = '{siteid}' 
-#             AND estuaryname = '{estuaryname}';
-#         """, g.eng).sensortype.tolist()
-#     return jsonify(sensortype=sensortype)
 
 @download.route('/loggerdownload/getminmaxtimestamp', methods = ['POST'])
 def get_minmax_ts():
@@ -319,11 +348,11 @@ def get_minmax_ts():
     sensortype = request.json.get('sensortype')
     data = pd.read_sql(
         f"""
-            SELECT MIN
-                ( samplecollectiontimestamp ) AS min_ts,
-                MAX ( samplecollectiontimestamp ) AS max_ts 
+            SELECT 
+                MIN(samplecollectiontimestamp) as min_ts,
+                MAX(samplecollectiontimestamp) as max_ts
             FROM
-                tbl_wqlogger 
+                tbl_wqlogger
             WHERE
                 projectid IN ({projectid}) 
                 AND estuaryname IN ({estuaryname}) 
@@ -331,13 +360,36 @@ def get_minmax_ts():
         """,
         g.eng
     )
-    
     min_ts = data.min_ts.iloc[0]
     max_ts = data.max_ts.iloc[0]
 
     return jsonify(min_ts=min_ts, max_ts=max_ts)
 
-@download.route('/getloggerdata', methods = ['POST'])
+
+@download.route('/loggerdownload/checkavailability', methods = ['POST'])
+def check_availability():
+    logger_start = request.json.get('logger_start')
+    logger_end = request.json.get('logger_end')
+
+    data = pd.read_sql(
+        f"""
+            SELECT DISTINCT estuaryname, sensortype
+            FROM
+                tbl_wq_logger_metadata
+            WHERE
+                samplecollectiontimestampstart >= '{logger_start}'
+                AND samplecollectiontimestampend <= '{logger_end}'
+        """,
+        g.eng
+    )
+    
+    estuaryname = data['estuaryname'].tolist()
+    sensortype = data['sensortype'].tolist()
+
+    return jsonify(estuaryname=estuaryname, sensortype=sensortype)
+
+
+@download.route('/getloggerdata', strict_slashes=False, methods = ['POST'])
 def get_logger_data():
     import pandas as pd
     import re
@@ -416,19 +468,19 @@ def get_logger_data():
             ]
         )
 
-        if projectid is not None:
-            combined_table_str += f" AND projectid = '{projectid}'"
-        if siteid is not None:
-            combined_table_str += f" AND siteid = '{siteid}'"
-        if estuaryname is not None:
-            combined_table_str += f" AND estuaryname = '{estuaryname}'"
-        if sensortype is not None:
-            combined_table_str += f" AND sensortype = '{sensortype}'"
-
         combined_table_str += ") AS t"
     
         sql = f"SELECT * FROM {combined_table_str}"
         
+        if projectid is not None:
+            sql += f" WHERE t.projectid IN ({projectid})"
+        if siteid is not None:
+            sql += f" AND t.siteid IN ({siteid})"
+        if estuaryname is not None:
+            sql += f" AND t.estuaryname IN ({estuaryname})"
+        if sensortype is not None:
+            sql += f" AND t.sensortype IN ({sensortype})"
+
         print("sql")
         print(sql)
         sessionid = int(time.time())

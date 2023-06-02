@@ -1,83 +1,143 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <script type="module" src="https://js.arcgis.com/calcite-components/1.2.0/calcite.esm.js"></script>
-        <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.2.0/calcite.css" />
-    </head>
+
+<head>
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.2.0/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.2.0/calcite.css" />
+</head>
+
 <body>
     <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+
+
+    <calcite-alert icon="rangefinder" kind="info" label="A report alert" placement="top" id="alert">
+        <div slot="title">Sensor Type Dictionary </div>
+        <div slot="message">
+            <ul>
+                <li>
+                    <b>ADCP</b> records depth and water temperature (in oC)
+                </li>
+                <li>
+                    <b>CTD</b> records pressure(cmh2o), h2otemp(c), conductivity(mscm)
+                </li>
+                <li>
+                    <b>HL Series Sensors</b> records orp_mv
+                </li>
+                <li>
+                    <b>minidot</b> records h2otemp, do_mgl, do_percent, qvalue
+                </li>
+                <li>
+                    <b>SeaBird</b> records h2otemp
+                </li>
+                <li>
+                    <b>tidbit</b> records h2otemp
+                </li>
+                <li>
+                    <b>troll</b> records depth, pressure mbar
+                </li>
+            </ul>
+
+        </div>
+        
+    </calcite-alert>
+
+    
+
     <div class="container" id="main-outer-container">
         <div class="card inner-container">
             <div class="card-body">
-                
+
                 <div class="card-header">
                     EMPA Logger Download Tool
-                  </div>
-                
-                <br>
-                
-                <div>
-                    <calcite-link href="https://empachecker.sccwrp.org/checker/loggerdownload/apidocs">Logger Download Tool API Documentation</calcite-link>
                 </div>
+
                 <br>
                 <div>
-                    <calcite-label alignment="center" scale="l">Select a Project</calcite-label>
-                    <calcite-dropdown width="l" id="select-project" close-on-select-disabled>
-                        <calcite-button slot="trigger" class="custom-button"></calcite-button>
-                        <calcite-dropdown-group group-title="ProjectID" selection-mode="multiple">
-                            {% for projectid in projectids %}
-                            <calcite-dropdown-item>{{ projectid }}</calcite-dropdown-item>
-                            {% endfor %}
-                        </calcite-dropdown-group>
-                    </calcite-dropdown>
-                </div>
-                <br>
-                <div>
-                    <calcite-label alignment="center" scale="l">Select an Estuary:</calcite-label>
-                    <calcite-dropdown width="l" id="select-estuary" close-on-select-disabled>
-                        <calcite-button slot="trigger"  class="custom-button"></calcite-button>
-                        <calcite-dropdown-group group-title="Estuary Name" selection-mode="multiple">
-                            {% for estuary in estuaries %}
-                            <calcite-dropdown-item>{{ estuary }}</calcite-dropdown-item>
-                            {% endfor %}
-                        </calcite-dropdown-group>
-                    </calcite-dropdown>
-                </div>
-                <br>
-                <div>
-                    <calcite-label alignment="center" scale="l">Select a sensor type:</calcite-label>
-                    <calcite-dropdown width="l" id="select-sensortype" close-on-select-disabled>
-                        <calcite-button slot="trigger"  class="custom-button"></calcite-button>
-                        <calcite-dropdown-group group-title="Sensor Type" selection-mode="multiple">
-                            {% for sensor in sensortype %}
-                            <calcite-dropdown-item>{{ sensor }}</calcite-dropdown-item>
-                            {% endfor %}
-                        </calcite-dropdown-group>
-                    </calcite-dropdown>
+                    <calcite-notice open >
+                        <div slot="title">Instructions</div>
+                        <div slot="message">
+                            <ul>
+                                <li>
+                                    Step 1: Select a start date and an end date. 
+                                </li>
+                                <li>
+                                    Step 2: When ready, confirm your choices by clicking confirm button.
+                                </li>
+                                <li>
+                                    Step 3: Select projects, estuaries, and sensor types.
+                                </li>
+                                <li>
+                                    Step 4: Click download logger button to retrieve data. For more information about sensor type, click <calcite-link id="open-alert">here</calcite-link>
+                                </li>
+                            </ul>
+                        </div>
+                        <calcite-link slot="link" title="my action"
+                            href="https://empachecker.sccwrp.org/checker/loggerdownload/apidocs">
+                            For API's documentation, click this link.
+                        </calcite-link>
+                    </calcite-notice>
                 </div>
                 <br>
                 <div style="display: inline-block;">
-                    <calcite-label id="logger-start-label" scale="l">Choose a start date: </calcite-label>    
-                    <calcite-date-picker id='logger-start-date' scale='s' min='2015-05-29' max='2018-09-19' ></calcite-date-picker>
+                    <calcite-label id="logger-start-label" scale="l">Start Date: {{start_ts}} 00:00:00 </calcite-label>
+                    <calcite-date-picker class='logger-start-date' id='logger-start-date' scale='s' min='{{start_ts}}' max='{{end_ts}}' value='{{start_ts}}'></calcite-date-picker>
                 </div>
                 <div style="display: inline-block;">
-                    <calcite-label id="logger-end-label" scale="l">Choose an end date: </calcite-label>
-                    <calcite-date-picker id='logger-end-date' scale='s' min='2015-05-29' max='2018-09-19'></calcite-date-picker>
+                    <calcite-label id="logger-end-label" scale="l">End Date: {{end_ts}} 23:59:59</calcite-label>
+                    <calcite-date-picker class='logger-end-date' id='logger-end-date' scale='s' min='{{start_ts}}' max='{{end_ts}}' value='{{end_ts}}'></calcite-date-picker>
                 </div>
-                
-                <br>
-                
-                <div id="download-logger-container">
+
+                <div id="confirm" class="confirm">
+                    <calcite-button id="confirm">Confirm my choices</calcite-button>
+                </div>
+
+                <div class="download-logger-container hidden" id="download-logger-container">
+                    <div>
+                        <calcite-dropdown width="l" id="select-project" close-on-select-disabled>
+                            <calcite-button slot="trigger" class="custom-button">Select Projects</calcite-button>
+                            <!-- <calcite-button id="select-all">Select All</calcite-button>
+                            <calcite-button id="deselect-all">Deselect all</calcite-button> -->
+                            <calcite-dropdown-group group-title="ProjectID" selection-mode="multiple">
+                            </calcite-dropdown-group>
+                        </calcite-dropdown>
+                    </div>
+                    <br>
+                    <div>
+                        <calcite-dropdown width="l" id="select-estuary" close-on-select-disabled>
+                            <calcite-button slot="trigger" class="custom-button">Select Estuaries</calcite-button>
+                            <!-- <calcite-button id="select-all">Select All</calcite-button>
+                            <calcite-button id="deselect-all">Deselect all</calcite-button> -->
+                            <calcite-dropdown-group group-title="Estuary Name" selection-mode="multiple">
+                            </calcite-dropdown-group>
+                        </calcite-dropdown>
+                    </div>
+                    <br>
+                    <div>
+                        <calcite-dropdown width="l" id="select-sensortype" close-on-select-disabled>
+                            <calcite-button slot="trigger" class="custom-button">Select Sensor Types</calcite-button>
+                            <!-- <calcite-button id="select-all">Select All</calcite-button>
+                            <calcite-button id="deselect-all">Deselect all</calcite-button> -->
+                            <calcite-dropdown-group group-title="Sensor Type" selection-mode="multiple">
+                            </calcite-dropdown-group>
+                        </calcite-dropdown>
+                    </div>
+
+                    <br>
+
                     <calcite-button id="download-logger">
                         Download Logger Data
                     </calcite-button>
                     <calcite-button id="reset-all">
                         Reset All
                     </calcite-button>
-                    
+
                 </div>
-            
+
+                <div id="loader-container" class="loader-container hidden">
+                    <calcite-loader></calcite-loader>
+                </div>
+
             </div>
         </div>
     </div>

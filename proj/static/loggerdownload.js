@@ -1,91 +1,119 @@
 var projectId;
-var siteId;
+var validprojectId;
 var estuaryName;
+var validestuaryName;
 var sensorType;
+var validsensorType;
+
 var loggerStart;
 var loggerEnd;
 
-document.getElementById("select-project").addEventListener("calciteDropdownSelect", async function(){
-    
-    projectId = Array.from(document.getElementById("select-project").selectedItems).map(item => `'${item.innerHTML}'`).join(",");
-    document.querySelector('#select-project').getElementsByTagName("calcite-button")[0].innerText = projectId.split(",").map(item => item.replace(/'/g, "")).join(", ");
 
-    if (projectId != ''){
-        const resp = await fetch('/checker/loggerdownload/repopulate-dropdown', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 'projectid': projectId })
-        })
-        const res = await resp.json()
-        console.log(res)
+document.getElementById("open-alert").addEventListener("click", async function () {
+    document.getElementById("alert").setAttribute("open","")
+})
+
+document.getElementById("logger-start-date").addEventListener("calciteDatePickerChange", async function () {
+    document.getElementById("logger-start-label").innerText = `Start Date: ${document.getElementById("logger-start-date").value} 00:00:00`
+})
+
+document.getElementById("logger-end-date").addEventListener("calciteDatePickerChange", async function () {
+    document.getElementById("logger-end-label").innerText = `End Date: ${document.getElementById("logger-end-date").value} 23:59:59`
+})
+
+
+document.getElementById("confirm").addEventListener("click", async function (){
+    document.getElementById('logger-start-date').classList.add("hidden")
+    document.getElementById('logger-end-date').classList.add("hidden")
+    document.getElementById("confirm").classList.add("hidden")
+
+    loggerStart = document.getElementById("logger-start-date").value
+    loggerEnd = document.getElementById("logger-end-date").value
+
+    console.log(loggerStart)
+    console.log(loggerEnd)
+    document.getElementById("loader-container").classList.remove("hidden")
+    const resp = await fetch('/checker/loggerdownload/populate-dropdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 'logger_start': loggerStart, 'logger_end': loggerEnd })
+    })
+    const res = await resp.json()
         
-        var tmpString = res['estuaryname'].map(item => `<calcite-dropdown-item>${item}</calcite-dropdown-item>`);
-        document.querySelector('#select-estuary').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');
-        
-    } else {
-        document.querySelector('#select-project').getElementsByTagName("calcite-button")[0].innerText = "Select a Project";
-    }
+    validprojectId = res['projectid']
+    validestuaryName = res['estuaryname']
+    validsensorType = res['sensortype']
+
+
+    var tmpString = res['projectid'].map(item => { return `<calcite-dropdown-item selected>${item}</calcite-dropdown-item>` });
+    document.querySelector('#select-project').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');
+    document.querySelector('#select-project').getElementsByTagName("calcite-button")[0].innerText = res['projectid'].join(', ')
+
+    var tmpString = res['estuaryname'].map(item => { return `<calcite-dropdown-item selected>${item}</calcite-dropdown-item>` });
+    document.querySelector('#select-estuary').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');
+    document.querySelector('#select-estuary').getElementsByTagName("calcite-button")[0].innerText = res['estuaryname'].join(', ')
+
+    var tmpString = res['sensortype'].map(item => { return `<calcite-dropdown-item selected>${item}</calcite-dropdown-item>` });
+    document.querySelector('#select-sensortype').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');
+    document.querySelector('#select-sensortype').getElementsByTagName("calcite-button")[0].innerText = res['sensortype'].join(', ')
+
+    document.getElementById("loader-container").classList.add("hidden")
+    document.getElementById("download-logger-container").classList.remove("hidden")
 
 })
 
-document.getElementById("select-estuary").addEventListener("calciteDropdownSelect", async function(){
+document.getElementById("select-project").addEventListener("calciteDropdownSelect", async function () {
+
+    projectId = Array.from(document.getElementById("select-project").selectedItems).map(item => `'${item.innerHTML}'`).join(",");
+    document.querySelector('#select-project').getElementsByTagName("calcite-button")[0].innerText = projectId.split(",").map(item => item.replace(/'/g, "")).join(", ");
+
+    const resp = await fetch('/checker/loggerdownload/repopulate-dropdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 'projectid': projectId })
+    })
+    const res = await resp.json()
+
+    var tmpString = res.estuaryname.filter(estuary => validestuaryName.includes(estuary)).map(item => { return `<calcite-dropdown-item selected>${item}</calcite-dropdown-item>` });
+    document.querySelector('#select-estuary').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');
+    document.querySelector('#select-estuary').getElementsByTagName("calcite-button")[0].innerText = res.estuaryname.filter(estuary => validestuaryName.includes(estuary)).join(', ')
+
+    var tmpString = res.sensortype.filter(sensortype => validsensorType.includes(sensortype)).map(item => { return `<calcite-dropdown-item selected>${item}</calcite-dropdown-item>` });
+    document.querySelector('#select-sensortype').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');
+    document.querySelector('#select-sensortype').getElementsByTagName("calcite-button")[0].innerText = res.sensortype.filter(sensortype => validsensorType.includes(sensortype)).join(', ')
+
+})
+
+document.getElementById("select-estuary").addEventListener("calciteDropdownSelect", async function () {
 
     estuaryName = Array.from(document.getElementById("select-estuary").selectedItems).map(item => `'${item.innerHTML}'`).join(",");
     document.querySelector('#select-estuary').getElementsByTagName("calcite-button")[0].innerText = estuaryName.split(",").map(item => item.replace(/'/g, "")).join(", ");
 
-    if (estuaryName != ''){
-        const resp = await fetch('/checker/loggerdownload/repopulate-dropdown', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 'estuaryname': estuaryName })
-        })
-        const res = await resp.json()
-        console.log(res)
-        
-        tmpString = res['sensortype'].map(item => `<calcite-dropdown-item>${item}</calcite-dropdown-item>`);
-        document.querySelector('#select-sensortype').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');        
-    
-    } else {
-        document.querySelector('#select-estuary').getElementsByTagName("calcite-button")[0].innerText = "Select an Estuary";
-    }
+    const resp = await fetch('/checker/loggerdownload/repopulate-dropdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 'projectid': projectId, 'estuaryname': estuaryName })
+    })
+    const res = await resp.json()
+
+    var tmpString = res.sensortype.filter(sensortype => validsensorType.includes(sensortype)).map(item => { return `<calcite-dropdown-item selected>${item}</calcite-dropdown-item>` });
+    document.querySelector('#select-sensortype').getElementsByTagName("calcite-dropdown-group")[0].innerHTML = tmpString.join('');
+    document.querySelector('#select-sensortype').getElementsByTagName("calcite-button")[0].innerText = res.sensortype.filter(sensortype => validsensorType.includes(sensortype)).join(', ')
 
 })
 
-
-document.getElementById("select-sensortype").addEventListener("calciteDropdownSelect", async function(){
+document.getElementById("select-sensortype").addEventListener("calciteDropdownSelect", async function () {
 
     sensorType = Array.from(document.getElementById("select-sensortype").selectedItems).map(item => `'${item.innerHTML}'`).join(",");
     document.querySelector('#select-sensortype').getElementsByTagName("calcite-button")[0].innerText = sensorType.split(",").map(item => item.replace(/'/g, "")).join(", ");
 
-    if (sensorType != ''){
-        const resp = await fetch('/checker/loggerdownload/getminmaxtimestamp', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ 'projectid': projectId, 'estuaryname': estuaryName, 'sensortype': sensorType })
-        })
-        const res = await resp.json()
-        console.log(res)
-        
-    } else {
-        document.querySelector('#select-sensortype').getElementsByTagName("calcite-button")[0].innerText = "Select a sensor type";
-    }
-
 })
 
-
-document.getElementById("logger-start-date").addEventListener("calciteDatePickerChange", function(){
-    loggerStart = document.getElementById("logger-start-date").value
-    document.getElementById("logger-start-label").innerText = `Start Date: ${loggerStart} 00:00:00`
-})
-
-
-document.getElementById("logger-end-date").addEventListener("calciteDatePickerChange", function(){
-    loggerEnd = document.getElementById("logger-end-date").value
-    document.getElementById("logger-end-label").innerText = `End Date: ${loggerEnd} 23:59:59`
-})
-
-
-document.getElementById("download-logger").addEventListener("click", function(){
+document.getElementById("download-logger").addEventListener("click", function () {
+    
+    projectId = Array.from(document.getElementById("select-project").selectedItems).map(item => `'${item.innerHTML}'`).join(",");
+    estuaryName = Array.from(document.getElementById("select-estuary").selectedItems).map(item => `'${item.innerHTML}'`).join(",");
+    sensorType = Array.from(document.getElementById("select-sensortype").selectedItems).map(item => `'${item.innerHTML}'`).join(",");
 
     var valid = true;
 
@@ -94,25 +122,19 @@ document.getElementById("download-logger").addEventListener("click", function(){
         alert('Please provide a project ID');
         valid = false;
     }
-    
-    if (!siteId) {
-        // Value is falsy (empty, undefined, null, etc.)
-        alert('Please provide a site ID');
-        valid = false;
-    }
-    
+
     if (!estuaryName) {
         // Value is falsy (empty, undefined, null, etc.)
         alert('Please provide an estuary name');
         valid = false;
     }
-    
+
     if (!sensorType) {
         // Value is falsy (empty, undefined, null, etc.)
         alert('Please provide a sensor type');
         valid = false;
     }
-      
+
     if (loggerStart === undefined) {
         // Value is undefined
         alert('Please pick a start date');
@@ -122,14 +144,14 @@ document.getElementById("download-logger").addEventListener("click", function(){
         alert('Please pick an end date');
         valid = false;
     }
-    
+
     // Compare the datetime values
     if (Date.parse(loggerStart) > Date.parse(loggerEnd)) {
         alert('Start Date is greater than End Date');
         valid = false;
     }
-    
-    if (valid){
+
+    if (valid) {
         const parentDiv = document.getElementById('download-logger-container');
         const loaderElement = document.createElement('calcite-loader');
         parentDiv.appendChild(loaderElement)
@@ -141,7 +163,6 @@ document.getElementById("download-logger").addEventListener("click", function(){
             'start_time': `${loggerStart} 00:00:00`,
             'end_time': `${loggerEnd} 23:59:59`,
             'projectid': projectId,
-            'siteid': siteId,
             'estuaryname': estuaryName,
             'sensortype': sensorType,
             'is_partitioned': 'True'
@@ -151,29 +172,51 @@ document.getElementById("download-logger").addEventListener("click", function(){
         fetch('/checker/getloggerdata', {
             method: 'POST',
             headers: {
-            'Content-Type': 'application/json'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(jsonObject)
         })
-        .then(response => response.blob())
-        .then(blob => {
-            parentDiv.removeChild(loaderElement);
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `logger_${loggerStart}_${loggerEnd}.csv`
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        })
+            .then(response => response.blob())
+            .then(blob => {
+                parentDiv.removeChild(loaderElement);
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `logger_${loggerStart}_${loggerEnd}.csv`
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            })
 
-    } 
+    }
 })
+
 
 const refreshButton = document.getElementById('reset-all');
 
-refreshButton.addEventListener('click', function() {
+refreshButton.addEventListener('click', function () {
 
-  location.reload();
+    location.reload();
 
 });
+
+
+// document.querySelectorAll('calcite-button#select-all').forEach(function (selectAllButton) {
+//     selectAllButton.addEventListener('click', function () {
+//         var parentDiv = selectAllButton.parentNode;
+//         var dropdownItems = parentDiv.querySelectorAll('calcite-dropdown-item');
+//         dropdownItems.forEach(function (dropdownItem) {
+//             dropdownItem.selected = true;
+//         });
+//     });
+// });
+
+// document.querySelectorAll('calcite-button#deselect-all').forEach(function (selectAllButton) {
+//     selectAllButton.addEventListener('click', function () {
+//         var parentDiv = selectAllButton.parentNode;
+//         var dropdownItems = parentDiv.querySelectorAll('calcite-dropdown-item');
+//         dropdownItems.forEach(function (dropdownItem) {
+//             dropdownItem.selected = false;
+//         });
+//     });
+// });
