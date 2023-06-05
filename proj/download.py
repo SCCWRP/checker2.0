@@ -253,6 +253,7 @@ def log_file():
     else:
         return jsonify(message = "no filename was provided")
 
+############################################# LOGGER DOWNLOAD TOOL ###################################################
 @download.route('/loggerdownload', methods = ['GET'])
 def logger_download():
 
@@ -271,6 +272,7 @@ def logger_download():
 
     return render_template("logger_download.html", start_ts=start_ts, end_ts=end_ts)
 
+
 @download.route('/loggerdownload/populate-dropdown', methods = ['POST'])
 def populate_dropdown():
 
@@ -283,8 +285,8 @@ def populate_dropdown():
                 projectid, estuaryname, sensortype
             FROM 
                 tbl_wqlogger
-            WHERE samplecollectiontimestamp >= '{start_ts} 00:00:00'
-            AND samplecollectiontimestamp <= '{end_ts} 23:59:59'
+            WHERE samplecollectiontimestamp_utc >= '{start_ts} 00:00:00'
+            AND samplecollectiontimestamp_utc <= '{end_ts} 23:59:59'
             GROUP BY projectid, estuaryname, sensortype
             ORDER BY projectid, estuaryname, sensortype;
             ;
@@ -302,6 +304,7 @@ def populate_dropdown():
 def logger_download_template():
     swagger_json_path = url_for('static', filename='swagger.json')
     return render_template("swagger_ui.html",  swagger_json_path=swagger_json_path)
+
 
 @download.route('/loggerdownload/repopulate-dropdown', methods = ['POST'])
 def repopulate_dropdown():
@@ -340,54 +343,6 @@ def repopulate_dropdown():
 
     return jsonify(projectid=projectid, estuaryname=estuaryname, sensortype=sensortype)
 
-@download.route('/loggerdownload/getminmaxtimestamp', methods = ['POST'])
-def get_minmax_ts():
-    projectid = request.json.get('projectid')
-    siteid = request.json.get('siteid')
-    estuaryname = request.json.get('estuaryname')
-    sensortype = request.json.get('sensortype')
-    data = pd.read_sql(
-        f"""
-            SELECT 
-                MIN(samplecollectiontimestamp) as min_ts,
-                MAX(samplecollectiontimestamp) as max_ts
-            FROM
-                tbl_wqlogger
-            WHERE
-                projectid IN ({projectid}) 
-                AND estuaryname IN ({estuaryname}) 
-                AND sensortype IN ({sensortype})
-        """,
-        g.eng
-    )
-    min_ts = data.min_ts.iloc[0]
-    max_ts = data.max_ts.iloc[0]
-
-    return jsonify(min_ts=min_ts, max_ts=max_ts)
-
-
-@download.route('/loggerdownload/checkavailability', methods = ['POST'])
-def check_availability():
-    logger_start = request.json.get('logger_start')
-    logger_end = request.json.get('logger_end')
-
-    data = pd.read_sql(
-        f"""
-            SELECT DISTINCT estuaryname, sensortype
-            FROM
-                tbl_wq_logger_metadata
-            WHERE
-                samplecollectiontimestampstart >= '{logger_start}'
-                AND samplecollectiontimestampend <= '{logger_end}'
-        """,
-        g.eng
-    )
-    
-    estuaryname = data['estuaryname'].tolist()
-    sensortype = data['sensortype'].tolist()
-
-    return jsonify(estuaryname=estuaryname, sensortype=sensortype)
-
 
 @download.route('/getloggerdata', strict_slashes=False, methods = ['POST'])
 def get_logger_data():
@@ -402,22 +357,37 @@ def get_logger_data():
         if k != 'is_partitioned':
             payload[k] = re.sub(r'[#;]', '', v)
     
+    # Hardcoded for EMPA project
+    base_table = 'tbl_wqlogger'
+    datetime_colname = 'samplecollectiontimestamp_utc'
+    is_partitioned = True
+
+    # Required Parameters
     start_date = pd.Timestamp(payload.get('start_time'))
     end_date = pd.Timestamp(payload.get('end_time'))
-
     if any([start_date is None, end_date is None]):
         return jsonify(message="Start Date and End Date must be provided")
+    ## 
 
+    # Optional Parameters
     projectid = payload.get('projectid')
     siteid = payload.get('siteid')
     estuaryname = payload.get('estuaryname')
     sensortype = payload.get('sensortype')
+    ##
 
     colnames = [
         x 
         for x in  
         pd.read_sql(
-            f"SELECT column_name FROM INFORMATION_SCHEMA.columns WHERE table_name = '{payload.get('base_table')}'", g.eng
+            f"""
+                SELECT 
+                    column_name 
+                FROM 
+                    INFORMATION_SCHEMA.columns 
+                WHERE 
+                    table_name = '{base_table}'
+            """, g.eng
         ).column_name.tolist()
         if x not in current_app.system_fields
     ]
@@ -444,86 +414,80 @@ def get_logger_data():
         else:
             current_date = current_date.replace(month=current_date.month + 1)
     
-    if payload.get('is_partitioned'):
-
-        combined_table_str = "("
-        combined_table_str += " UNION ALL ".join(
-            [
-                """
-                    SELECT 
-                        {}
-                    FROM 
-                        {}_{} 
-                    WHERE 
-                        {} >= '{}' 
-                        AND {} <= '{}'
-                """.format(
-                    ",".join(colnames),
-                    payload.get('base_table'),
-                    "m".join([str(yr_qt_tup[0]),str(yr_qt_tup[1])]),
-                    payload.get('datetime_colname'),
-                    payload.get('start_time'),
-                    payload.get('datetime_colname'),
-                    payload.get('end_time')
-                )
-                
-                for yr_qt_tup in 
-                    date_list
-            ]
-        )
-
-        combined_table_str += ") AS t"
-    
-        sql = f"SELECT * FROM {combined_table_str} WHERE "
-        
-        conditions = []
-
-        if projectid is not None:
-            conditions.append(f"t.projectid IN ({projectid})")
-        if estuaryname is not None:
-            conditions.append(f"t.estuaryname IN ({estuaryname})")
-        if sensortype is not None:
-            conditions.append(f"t.sensortype IN ({sensortype})")
-
-        if conditions:
-            sql += " AND ".join(conditions)
-        else:
-            sql = sql.rstrip(" WHERE ")
-        
-        print("sql")
-        print(sql)
-        
-        sessionid = int(time.time())
-        # records = pd.read_sql(sql, eng).iloc[0,0]
-        # df = pd.DataFrame(records)
-        csv_path = f"/tmp/loggerdata_{sessionid}.csv"
-        
-        cmdlist = [
-            'psql', 
-            os.environ.get('DB_CONNECTION_STRING'),
-            '-c', 
-            f"\COPY ({sql}) TO \'{csv_path}\' CSV HEADER"
+    combined_table_str = "("
+    combined_table_str += " UNION ALL ".join(
+        [
+            """
+                SELECT 
+                    {}
+                FROM 
+                    {}_{} 
+                WHERE 
+                    {} >= '{}' 
+                    AND {} <= '{}'
+            """.format(
+                ",".join(colnames),
+                base_table,
+                "m".join([str(yr_qt_tup[0]),str(yr_qt_tup[1])]),
+                datetime_colname,
+                start_date,
+                datetime_colname,
+                end_date
+            )
+            
+            for yr_qt_tup in 
+                date_list
         ]
+    )
+
+    combined_table_str += ") AS t"
+
+    sql = f"SELECT * FROM {combined_table_str} WHERE "
     
-        # time the query
-        query_begin_time = time.time()
-        proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
-        if proc.returncode != 0:
-            print(f"Error: {proc.stderr}")
-        else:
-            print("success")
-        print(f"takes {time.time() - query_begin_time} seconds to run the query")
+    conditions = []
+
+    if projectid is not None:
+        conditions.append(f"t.projectid IN ({projectid})")
+    if estuaryname is not None:
+        conditions.append(f"t.estuaryname IN ({estuaryname})")
+    if sensortype is not None:
+        conditions.append(f"t.sensortype IN ({sensortype})")
+
+    if conditions:
+        sql += " AND ".join(conditions)
+    else:
+        sql = sql.rstrip(" WHERE ")
+    
+    print("sql")
+    print(sql)
+    
+    sessionid = int(time.time())
+    # records = pd.read_sql(sql, eng).iloc[0,0]
+    # df = pd.DataFrame(records)
+    csv_path = f"/tmp/loggerdata_{sessionid}.csv"
+    
+    cmdlist = [
+        'psql', 
+        os.environ.get('DB_CONNECTION_STRING'),
+        '-c', 
+        f"\COPY ({sql}) TO \'{csv_path}\' CSV HEADER"
+    ]
+
+    # time the query
+    query_begin_time = time.time()
+    proc = sp.run(cmdlist, stdout=sp.PIPE, stderr=sp.PIPE, universal_newlines = True)
+    if proc.returncode != 0:
+        print(f"Error: {proc.stderr}")
+    else:
+        print("success")
+    print(f"takes {time.time() - query_begin_time} seconds to run the query")
     
     blob = open(csv_path, 'rb').read()
     os.remove(csv_path)
 
-    #return send_file(path, as_attachment = True, attachment_filename = filename)
     return send_file(
         BytesIO(blob), 
         download_name = 'logger.csv', 
         as_attachment = True, 
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-
-
-    #return jsonify(records)

@@ -8,9 +8,9 @@
     "paths": {
         "/checker/getloggerdata": {
             "post": {
-                "summary": "Get logger data",
+                "summary": "Please click on Schema next to Example Value to see which format the API expects",
                 "tags": [
-                    "Get Logger Data"
+                    "Get EMPA Logger Data"
                 ],
                 "requestBody": {
                     "required": true,
@@ -19,50 +19,33 @@
                             "schema": {
                                 "type": "object",
                                 "properties": {
-                                    "projectid": {
-                                        "type": "string",
-                                        "example": "EMPA"
-                                    },
-                                    "siteid": {
-                                        "type": "string",
-                                        "example": "SC-VEN"
-                                    },
-                                    "estuaryname": {
-                                        "type": "string",
-                                        "example": "Ventura River"
-                                    },
-                                    "sensortype": {
-                                        "type": "string",
-                                        "example": "CTD"
-                                    },
                                     "start_time": {
                                         "type": "string",
-                                        "example": "2022-01-01"
+                                        "example": "2022-01-01",
+                                        "description": "Required. Need to be in format YYYY-MM-DD"
                                     },
                                     "end_time": {
                                         "example": "2022-01-02",
-                                        "type": "string"
+                                        "type": "string",
+                                        "description": "Required. Need to be in format YYYY-MM-DD"
                                     },
-                                    "base_table": {
-                                        "example": "tbl_wqlogger",
-                                        "type": "string"
+                                    "projectid": {
+                                        "type": "string",
+                                        "example": "'EMPA', 'Baja-rails'",
+                                        "description": "Optional. Separated by commas, each item needs to be wrapped in single quotes"
                                     },
-                                    "datetime_colname": {
-                                        "example": "samplecollectiontimestamp",
-                                        "type": "string"
+                                    "estuaryname": {
+                                        "type": "string",
+                                        "example": "'Ventura River','Laguna Creek'",
+                                        "description": "Optional. Separated by commas, each item needs to be wrapped in single quotes"
                                     },
-                                    "is_partitioned": {
-                                        "example": "True",
-                                        "type": "string"
+                                    "sensortype": {
+                                        "type": "string",
+                                        "example": "'CTD', 'troll'",
+                                        "description": "Optional. Separated by commas, each item needs to be wrapped in single quotes"
                                     }
-
-            
                                 },
                                 "required": [
-                                    "projectid",
-                                    "siteid",
-                                    "estuaryname",
-                                    "sensortype",
                                     "start_time",
                                     "end_time"
                                 ]
