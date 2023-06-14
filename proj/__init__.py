@@ -12,6 +12,8 @@ from .load import finalsubmit
 from .download import download
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
+from .admin import admin
+
 
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
 
@@ -158,4 +160,5 @@ app.register_blueprint(download)
 app.register_blueprint(scraper)
 #app.register_blueprint(templater_old)
 app.register_blueprint(templater)
+app.register_blueprint(admin)
 

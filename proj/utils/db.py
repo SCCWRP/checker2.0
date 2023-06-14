@@ -142,3 +142,72 @@ def next_objectid(tablename, conn):
         raise Exception(f'No registration ID found for table {tablename}')
 
 
+# In the part that gets the column comments we might need also :
+#   WHERE table_catalog = {os.environ.get('DB_NAME')}
+def metadata_summary(table, eng):
+    sql = f"""
+        WITH fkeys AS (
+	SELECT DISTINCT
+		kcu.COLUMN_NAME,
+		ccu.TABLE_NAME AS foreign_table_name 
+	FROM
+		information_schema.table_constraints AS tc
+		JOIN information_schema.key_column_usage AS kcu ON tc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME 
+		AND tc.table_schema = kcu.table_schema
+		JOIN information_schema.constraint_column_usage AS ccu ON ccu.CONSTRAINT_NAME = tc.CONSTRAINT_NAME 
+		AND ccu.table_schema = tc.table_schema 
+	WHERE
+		tc.constraint_type = 'FOREIGN KEY' 
+		AND tc.TABLE_NAME = '{table}' 
+		AND ccu.TABLE_NAME LIKE'lu_%%' 
+	),
+	pkey AS (
+	SELECT C
+		.COLUMN_NAME,
+		'YES' AS primary_key 
+	FROM
+		information_schema.table_constraints tc
+		JOIN information_schema.constraint_column_usage AS ccu USING ( CONSTRAINT_SCHEMA, CONSTRAINT_NAME )
+		JOIN information_schema.COLUMNS AS C ON C.table_schema = tc.CONSTRAINT_SCHEMA 
+		AND tc.TABLE_NAME = C.TABLE_NAME 
+		AND ccu.COLUMN_NAME = C.COLUMN_NAME 
+	WHERE
+		constraint_type = 'PRIMARY KEY' 
+		AND tc.table_name = '{table}' 
+	),
+	cmt AS (
+        SELECT
+            cols.table_name AS tablename,
+            cols.COLUMN_NAME AS COLUMN_NAME,
+            (
+            SELECT
+                pg_catalog.col_description ( C.oid, cols.ordinal_position :: INT ) 
+            FROM
+                pg_catalog.pg_class C 
+            WHERE
+                C.oid = ( SELECT ( '"' || cols.table_name || '"' ) :: regclass :: oid ) 
+                AND C.relname = cols.table_name 
+            ) AS description 
+        FROM
+            information_schema.COLUMNS cols 
+        WHERE 
+            cols.table_name = '{table}' 
+	) 
+    SELECT
+        isc.table_name AS tablename,
+        isc.COLUMN_NAME,
+        isc.udt_name AS datatype,
+        CASE WHEN isc.is_nullable = 'NO' THEN 'YES' ELSE' NO' END AS required,
+        isc.character_maximum_length,
+        pkey.primary_key,
+        fkeys.foreign_table_name AS lookuplist_table_name,
+        cmt.description 
+    FROM information_schema.COLUMNS isc
+        LEFT JOIN pkey ON isc.column_name = pkey.column_name 
+        LEFT JOIN fkeys ON fkeys.column_name = isc.column_name 
+        LEFT JOIN cmt ON isc.table_name = cmt.tablename AND isc.column_name = cmt.column_name 
+    WHERE
+        TABLE_NAME = '{table}';
+    """
+    return read_sql(sql, eng)
+

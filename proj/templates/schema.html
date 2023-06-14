@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Table Information</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .table td, .table th {
+            border: 1px solid #ddd; /* Light grey border */
+        }
+    </style>
+    
+    </style>
+</head>
+<body>
+    <div>
+        <p>Choose a datatype:</p>
+    {% if datatypes_list %}
+        {% for dtyp in datatypes_list %}
+        <ul>
+            <li>
+                <a href="{{request.script_root}}/schema?datatype={{dtyp}}">{{dtyp}}</a>
+            </li>
+        </ul>
+        {% endfor %}
+    {% else %}
+    </div>
+    <div class="container d-flex flex-column align-items-center justify-content-center">
+    <h1>Schema Information for {{datatype}}</h1>
+    <br>
+    <button id="return-main-app"> Return to main page </button>
+    <br>
+    <button id="download-schema"> Download as an Excel file </button>
+    <br>
+    {# metadata is essentially the schema information about all tables in the datatype #}
+    
+    {% for tablename, table in metadata.items() %}
+        <div class="table-info-container">
+            <div class="table-name-container">
+                <h3><strong>{{tablename}}</strong></h3>
+            </div>
+            <div class="table-content-container">
+                <table class="table table-striped table-hover">                    
+                    {% for row in table %}
+                        {# for the first loop, add the table header #}
+                        {% if loop.index0 == 0 %}
+                        <thead>
+                            {% for k, v in row.items() %}
+                            <th>{{ k | replace("_", " ") }}</th>
+                            {% endfor %}
+                        </thead>
+                        {% endif %}
+                        <tr {% if row.primary_key == 'YES' %} class="primary-key-row" {% endif %}>
+                            {% for k, v in row.items() %}
+                            <td>{{v | safe}}</td>
+                            {% endfor %}    
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <br><br>
+    {% endfor %}
+    </div>
+
+    {% endif %}
+</body>
+<script>
+
+    const downloadButton = document.getElementById("download-schema")
+
+    if ( downloadButton !== null ){
+        const dlFileName = {{ dl_filename | tojson }};
+        
+        downloadButton.addEventListener("click", function(){
+
+            var link = document.createElement("a");
+            link.href = `https://empachecker.sccwrp.org/checker/download_schema/${dlFileName}`;
+            link.target = "_blank"; // Open the URL in a new tab/window
+
+            // Trigger a click event on the link
+            var event = new MouseEvent("click", {
+                view: window,
+                bubbles: false,
+                cancelable: true
+            });
+
+            link.dispatchEvent(event);
+        })
+
+        const returnMain = document.getElementById("return-main-app")
+        returnMain.addEventListener("click", function(){
+
+        var link = document.createElement("a");
+        link.href = `https://empachecker.sccwrp.org/checker/schema`;
+
+        // Trigger a click event on the link
+        var event = new MouseEvent("click", {
+            view: window,
+            bubbles: false,
+            cancelable: true
+        });
+
+        link.dispatchEvent(event);
+        })
+
+    }
+</script>
+</html>
+

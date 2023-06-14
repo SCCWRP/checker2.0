@@ -34,6 +34,10 @@ def submission_file(submissionid, filename):
         if os.path.exists(os.path.join(os.getcwd(), "files", submissionid, filename)) \
         else jsonify(message = "file not found")
 
+@download.route('/download_schema/<dlfilename>', methods = ['GET','POST'], strict_slashes=False)
+def schema_file(dlfilename):
+    return send_file( os.path.join(os.getcwd(), "export", dlfilename ), as_attachment = True, download_name = "schema_download.xlsx" )
+
 @download.route('/export', methods = ['GET','POST'])
 def template_file():
     filename = request.args.get('filename')
