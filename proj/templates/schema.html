@@ -75,7 +75,7 @@
         downloadButton.addEventListener("click", function(){
 
             var link = document.createElement("a");
-            link.href = `https://empachecker.sccwrp.org/checker/download_schema/${dlFileName}`;
+            link.href = `{{request.script_root}}/download_schema/${dlFileName}`;
             link.target = "_blank"; // Open the URL in a new tab/window
 
             // Trigger a click event on the link
@@ -92,7 +92,7 @@
         returnMain.addEventListener("click", function(){
 
         var link = document.createElement("a");
-        link.href = `https://empachecker.sccwrp.org/checker/schema`;
+        link.href = `{{request.script_root}}/schema`;
 
         // Trigger a click event on the link
         var event = new MouseEvent("click", {
