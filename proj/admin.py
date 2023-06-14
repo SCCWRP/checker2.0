@@ -81,7 +81,7 @@ def schema():
                 df_to_download.to_excel(writer, sheet_name=key, index=False)
 
         print("return_object")
-        print(return_object)
+   
 
         return render_template('schema.html', metadata=return_object, datatype=datatype, authorized=authorized, dl_filename=dl_filename)
         
