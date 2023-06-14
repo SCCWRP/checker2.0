@@ -74,7 +74,9 @@ def schema():
             for key in return_object.keys():
                 df_to_download = pd.DataFrame.from_dict(return_object[key])
                 df_to_download['lookuplist_table_name'] = df_to_download['lookuplist_table_name'].apply(
-                    lambda x: "https://empachecker.sccwrp.org/checker/scraper?action=help&layer={}".format(
+                    lambda x: "https://{}/{}/scraper?action=help&layer={}".format(
+                        request.host,
+                        current_app.config.get('APP_SCRIPT_ROOT'),
                         BeautifulSoup(x, 'html.parser').text.strip()
                     ) if BeautifulSoup(x, 'html.parser').text.strip() != '' else ''
                 )
