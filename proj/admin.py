@@ -52,29 +52,43 @@ def schema():
         return_object = {}
         
         tables = current_app.datasets.get(datatype).get("tables")
+        print("tables")
+        print(tables)
         for tbl in tables:
+            print("tbl: ")
+            print(tbl)
             df = metadata_summary(tbl, eng)
             
             # Attempt to put the columns in the correct order - Duy
-            cols_order = pd.read_sql(f"SELECT column_order FROM column_order WHERE table_name = '{tbl}';",eng).iloc[0,0].split(",")
-            cols_order = {v:i for i,v in enumerate(cols_order)}
-            df = df.sort_values(by=['column_name'], key=lambda x: x.map(cols_order))
+            cols_order_df = pd.read_sql(f"SELECT column_order FROM column_order WHERE table_name = '{tbl}';",eng)
+            if len(cols_order_df) > 0:
+                cols_order = cols_order_df.iloc[0,0].split(",")
+                cols_order = {v:i for i,v in enumerate(cols_order)}
+                df = df.sort_values(by=['column_name'], key=lambda x: x.map(cols_order))
+            else:
+                print("tablename not found in column_order, can't re-arrange the order")
+            
             
             df['lookuplist_table_name'] = df['lookuplist_table_name'].apply(
                 lambda x: f"""<a target=_blank href=/{current_app.script_root}/scraper?action=help&layer={x}>{x}</a>""" if pd.notnull(x) else ''
             )
 
             # drop "table_name" column
+            print("# drop table_name column")
             df.drop('tablename', axis = 'columns', inplace = True)
 
             # drop system fields
+            print("# drop system fields")
             df.drop(df[df.column_name.isin(current_app.system_fields)].index, axis = 'rows', inplace = True)
 
+            print("df fill na")
             df.fillna('', inplace = True)
+            print("before return obj")
 
             return_object[tbl] = df.to_dict('records')
         
         
+        print(" before with ")
         with pd.ExcelWriter(os.path.join(os.getcwd(), "export", dl_filename)) as writer:
             for key in return_object.keys():
                 df_to_download = pd.DataFrame.from_dict(return_object[key])

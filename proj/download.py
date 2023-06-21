@@ -142,7 +142,7 @@ def exportdata():
             'fishlength':'tbl_fish_length_data', 
             'loggermetadata':'tbl_wq_logger_metadata',
             'loggerdata':'tbl_wqlogger',
-            'nutrientsmetadata':'tbl_nutrients_metadata',
+            'nutrientsmetadata':'tbl_sedchem_metadata',
             'nutrientslabbatch':'tbl_nutrients_labbatch_data',
             'nutrientsdata':'tbl_nutrients_data',
             'savmetadata': 'tbl_sav_metadata',
