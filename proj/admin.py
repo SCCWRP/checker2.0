@@ -55,6 +55,15 @@ def schema():
         for tbl in tables:
             df = metadata_summary(tbl, eng)
             
+            # Attempt to put the columns in the correct order - Duy
+            cols_order = pd.read_sql(f"SELECT column_order FROM column_order WHERE table_name = '{tbl}';",eng).iloc[0,0].split(",")
+            cols_order = {v:i for i,v in enumerate(cols_order)}
+            print(cols_order)
+            df = df.sort_values(by=['column_name'], key=lambda x: x.map(cols_order))
+            
+            print("df")
+            print(df.column_name)
+
             df['lookuplist_table_name'] = df['lookuplist_table_name'].apply(
                 lambda x: f"""<a target=_blank href=/{current_app.script_root}/scraper?action=help&layer={x}>{x}</a>""" if pd.notnull(x) else ''
             )
