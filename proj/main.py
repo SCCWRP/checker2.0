@@ -12,7 +12,7 @@ from .core.functions import fetch_meta
 from .utils.generic import save_errors, correct_row_offset
 from .utils.excel import mark_workbook
 from .utils.exceptions import default_exception_handler
-from .utils.reformat import reformat
+from .utils.reformat import parse_raw_logger_data
 from .custom import *
 
 
@@ -27,40 +27,37 @@ def main():
     # routine to grab the uploaded file
     print("uploading files")
     files = request.files.getlist('files[]')
-    if len(files) > 0:
-        
-        if sum(['xls' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
-            return jsonify(user_error_msg='You have submitted more than one excel file')
-        if sum(['csv' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
-            return jsonify(user_error_msg='You have submitted more than one csv file')
-        if sum(['txt' in secure_filename(x.filename).rsplit('.',1)[-1] for x in files]) > 1:
-            return jsonify(user_error_msg='You have submitted more than one csv file')
-        
-        for f in files:
-            # i'd like to figure a way we can do it without writing the thing to an excel file
-            f = files[0]
-            filename = secure_filename(f.filename)
-
-            # if file extension is xlsx/xls (hopefully xlsx)
-            excel_path = os.path.join( session['submission_dir'], str(filename) )
-
-            # the user's uploaded excel file can now be read into pandas
-            f.save(excel_path)
-
-            # To be accessed later by the upload routine that loads data to the tables
-            session['excel_path'] = excel_path
-
-            # Put their original filename in the submission tracking table
-            g.eng.execute(
-                f"""
-                UPDATE submission_tracking_table 
-                SET original_filename = '{filename}' 
-                WHERE submissionid = {session.get('submissionid')};
-                """
-            )
-
-    else:
+    if len(files) > 1:
+        return jsonify(user_error_msg='You have submitted more than one file')
+    elif len(files) == 0:
         return jsonify(user_error_msg="No file given")
+    else:
+        # i'd like to figure a way we can do it without writing the thing to an excel file
+        # ... maybe
+        # it would have to be written to a BytesIO object, which is completely possible, 
+        #   but i think we might want to save the file to be able to give to them later
+        f = files[0]
+        filename = secure_filename(f.filename)
+        file_extension = filename.rsplit('.',1)[-1]
+
+        # if file extension is xlsx/xls (hopefully xlsx)
+        excel_path = os.path.join( session['submission_dir'], str(filename) )
+
+        # the user's uploaded excel file can now be read into pandas
+        f.save(excel_path)
+
+        # To be accessed later by the upload routine that loads data to the tables
+        session['excel_path'] = excel_path
+
+        # Put their original filename in the submission tracking table
+        g.eng.execute(
+            f"""
+            UPDATE submission_tracking_table 
+            SET original_filename = '{filename}' 
+            WHERE submissionid = {session.get('submissionid')};
+            """
+        )
+
 
     # We are assuming filename is an excel file or csv
     if ('.xls' not in filename) and ('.csv' not in filename):

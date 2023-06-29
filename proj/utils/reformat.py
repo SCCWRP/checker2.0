@@ -1,228 +1,239 @@
-import re, os, glob, csv
+import os
+import csv
 import pandas as pd
-from flask import g, current_app
+import re
+from .loggervars import TIMEZONE_MAP, TEMPLATE_COLUMNS, SUPPORTED_SENSORTYPES
 
-def reformat(submission_dir, filename, login_info):
-    print("Reformat routine")
-    projectid = login_info.get('projectid')
-    siteid = login_info.get('siteid')
-    estuaryname = pd.read_sql(f'select distinct estuary from lu_siteid where siteid = {siteid} limit 1', g.eng)
-    #estuaryname = login_info.get('estuaryname') #####
-    stationno = login_info.get('stationno')
-    sensortype = login_info.get('sensortype')
-    wqnotes = login_info.get('notes')
-    oldcsvpath = os.path.join(submission_dir, filename)
-    new_excel_path = f'{oldcsvpath.rsplit(".", 1)[0]}-reformatted.xlsx'
+def read_tidbit(tidbit_path):
+    # this csv has a different encoding, which is weird
+    # just read first line to get serial number
+    with open(tidbit_path, encoding='utf-8-sig') as tidbit_file:
+        # split on ':' so easy to access serial number
+        # this file uses quotes to prevent splitting, so we ignore quotes while reading, and strip them out later
+        tidbit_reader = csv.reader(tidbit_file, delimiter = ':', quoting = csv.QUOTE_NONE) 
+        tidbit_serial_num = tidbit_reader.__next__()[1].strip(' "')
 
-    if sensortype.lower().strip() == 'tidbit':
-        headers = ['projectid', 'siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid', 'samplecollectiontimestamp', 'h2otemp_c', 'wqnotes']
-        # this csv has a different encoding, which is weird, may cause an issue?
-        # just read first line to get serial number
-        with open(oldcsvpath, encoding='utf-8-sig') as tidbit_file:
-            # split on ':' so easy to access serial number
-            # this file uses quotes to prevent splitting, so we ignore quotes while reading, and strip them out later
-            tidbit_reader = csv.reader(tidbit_file, delimiter = ':', quoting = csv.QUOTE_NONE) 
-            tidbit_serial_num = tidbit_reader.__next__()[1].strip(' "')
-        # use only 2nd and 3rd column since those are datetimes and temperature readings
-        tidbit_data = pd.read_csv(oldcsvpath, encoding='utf-8-sig', header = 1, usecols = [1,2], parse_dates = [0], infer_datetime_format = True)
-        # this one has extra columns that I don't think we care about, which introduces some NaNs between the regular intervals
-        tidbit_data = tidbit_data[tidbit_data.iloc[:,1].isna() == False]
-
-        tidbit_data['projectid'] = projectid
-        tidbit_data['siteid'] = siteid
-        tidbit_data['estuaryname'] = estuaryname
-        tidbit_data['stationno'] = stationno
-        tidbit_data['sensortype'] = sensortype
-        tidbit_data['sensorid'] = tidbit_serial_num
-        tidbit_data['samplecollectiontimestamp'] = tidbit_data.iloc[:,0].dt.tz_localize('US/Pacific').dt.tz_convert('UTC')
-        tidbit_data['h2otemp_c'] = tidbit_data.iloc[:,1]
-        tidbit_data['wqnotes'] = wqnotes
-        print(tidbit_data)
-        
-        with pd.ExcelWriter(new_excel_path) as writer:
-            tidbit_data[headers].to_excel(writer, index = False)
-        
+    # use only 2nd and 3rd column since those are datetimes and temperature readings
+    tidbit_data = pd.read_csv(tidbit_path, encoding='utf-8-sig', header = 1, usecols = [1, 2], parse_dates = [0], infer_datetime_format = True)
     
-    elif sensortype.lower().strip() == 'minidot':
-        headers = ['projectid', 'siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid', 'samplecollectiontimestamp', 'h2otemp_c', 'do_mgl', 'do_percent', 'qvalue', 'wqnotes']
-        # read csv header, get serial number/sensor ID from first two lines of header
-        with open(oldcsvpath) as minidot_file:
-            minidot_reader = csv.reader(minidot_file, delimiter = ':') # splitting on ':' puts sensor ID in standard position on second line
-            minidot_reader.__next__() # read first line, do nothing with it
-            minidot_serial_num = minidot_reader.__next__()[1].strip() # read second line, get second item in list, which is sensor ID, strip out any whitespace
-
-        # read in minidot data, starting at row 5
-        # tab separated, but can sometimes be more than one tab
-        # since regex, this uses python engine to parse through csv, which may be slow
-        # tested, 3 times slower than c engine, but files won't be large enough for this to matter, I think
-        minidot_data = pd.read_csv(oldcsvpath, header = 5, usecols = [2,3,4,5,6,7], sep = '\t+', engine = 'python')
-        minidot_data.drop(0, inplace = True) # drop first row, which is just units for each column
-        minidot_data.iloc[:,0] = pd.to_datetime(minidot_data.iloc[:,0])
-        minidot_data.iloc[:,1:] = minidot_data.iloc[:,1:].astype('float64')
-
-    elif sensortype.lower().strip() == 'ctd':
-        headers = ['projectid', 'siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid', 'samplecollectiontimestamp', 'pressure_mh2o', 'h2otemp_c', 'conductivity_sm', 'salinity_ppt', 'wqnotes']
-        # this data is already in a friendly format :D
-        ctd_data = pd.read_excel(oldcsvpath)
-
-    elif sensortype.lower().strip() == 'troll':
-        headers = ['projectid', 'siteid', 'estuaryname', 'stationno', 'sensortype', 'sensorid', 'samplecollectiontimestamp', 'pressure_mh2o', 'h2otemp_c', 'depth_m', 'wqnotes']
-        # read csv header, get values for reading in as dataframe later
-        with open(oldcsvpath) as troll_file:
-            troll_reader = csv.reader(troll_file)
-            num_blank_lines = 0 # number of blank lines for header_index calc below
-            for i, row in enumerate(troll_reader):
-                if len(row) == 0:
-                    num_blank_lines += 1 
-                elif len(row) > 0 and 'Serial Number' in row:
-                    serial_index = row.index('Serial Number')
-                    troll_serial_num = row[serial_index + 1] # text search for serial number
-                elif len(row) > 0 and 'Time Zone:' in row[0]: # 'Time Zone:' indicates data is about to start
-                    header_index = i + 3 - num_blank_lines # data begins 4 rows below 'Time Zone:' line, adjust for blank lines and 0 indexing
-                elif len(row) > 0 and 'Elapsed Time' in row: # if get to end of header, don't read rest of file
-                    break
-
-        troll_data = pd.read_csv(oldcsvpath, header = header_index, usecols = [0,2,3,4])
-        troll_data['projectid'] = projectid
-        troll_data['siteid'] = siteid
-        troll_data['estuaryname'] = estuaryname
-        troll_data['stationno'] = stationno
-        troll_data['sensortype'] = sensortype        
-        troll_data['sensorid'] = troll_serial_num
-        troll_data['samplecollectiontimestamp'] = pd.to_datetime(troll_data.iloc[:,0])
-        troll_data['pressure_mh2o'] = troll_data.iloc[:,1]
-        troll_data['h2otemp_c'] = troll_data.iloc[:,2]
-        troll_data['depth_m'] = troll_data.iloc[:,3]
-
-    else:
-        pass
+    tidbit_data = pd.concat([tidbit_data, pd.DataFrame(columns=TEMPLATE_COLUMNS)])
     
-    newfilename = f"{filename.rsplit('.', 1)[0]}-reformatted.xlsx"
+    # this one has extra columns that I don't think we care about, which introduces some NaNs between the regular intervals
+    tidbit_data = tidbit_data[tidbit_data.iloc[:, 1].isna() == False]
+    tidbit_data['samplecollectiontimestamp'] =  tidbit_data.iloc[:, 0]
+    tidbit_data['samplecollectiontimezone'] = TIMEZONE_MAP[tidbit_data.iloc[:, 0].name.split(", ")[1]]
 
-    return new_excel_path, newfilename
+    tidbit_data['raw_h2otemp'] = tidbit_data.iloc[:, 1]
+    # search in temperature column for degree symbol, use single character after that
+    tidbit_data['raw_h2otemp_unit'] = re.search(r"(?<=°).", tidbit_data.iloc[:, 1].name, flags=re.UNICODE)[0]
+    tidbit_data['sensorid'] = tidbit_serial_num
 
-# def reformat_csv(submission_dir, filename):
-#     oldcsvpath = os.path.join(submission_dir, filename)
-#     with open(oldcsvpath, "r") as logFile:
-#         print("Reformat routine")
-#         print("Reading content")
-#         content = logFile.readlines()
+    tidbit_data = tidbit_data[TEMPLATE_COLUMNS]
+    return tidbit_data
 
-#         print("Reading header")
-#         header = content[1] # expecting the header to be at row 2
-#         print("splitting header at commas")
-#         columns = header.split(",\"") 
+def read_minidot(minidot_path):
+    # read csv header, get serial number/sensor ID from first two lines of header
+    with open(minidot_path) as minidot_file:
+        minidot_reader = csv.reader(minidot_file, delimiter = ':') # splitting on ':' puts sensor ID in standard position on second line
+        minidot_reader.__next__() # read first line, do nothing with it
+        minidot_serial_num = minidot_reader.__next__()[1].strip() # read second line, get second item in list, which is sensor ID, strip out any whitespace
 
-#         print("finding pendant ID")
-#         print('content')
-#         print(re.findall(r'\d+', content[0]))
-#         pendantId = re.findall(r'\d+', content[0])[0]
+    # read in minidot data, starting at row 5
+    # tab separated, but can sometimes be more than one tab
+    # since regex, this uses python engine to parse through csv, which may be slow
+    # tested, 3 times slower than c engine, but files won't be large enough for this to matter, I think
+    minidot_data = pd.read_csv(minidot_path, header = 5, usecols = [1,3,4,5,6], sep = '\t+', engine = 'python')
+    minidot_data.columns = [column.strip() for column in minidot_data.columns]
+    minidot_data = pd.concat([minidot_data, pd.DataFrame(columns=TEMPLATE_COLUMNS)])
 
-#         #appendRow = ""
-#         tempUnit = "F"
-#         intensityUnit = "lum/ft²"
+    minidot_data['sensorid'] = minidot_serial_num
 
-#         print("Looping through columns")
-#         newcols = []
-#         for c in columns:
-#             try:
-#                 print(c)
-#             except Exception:
-#                 print(c.encode('utf-8'))
-#             if "#" in c:
-#                 newcols.append("rec_num")
-#                 #appendRow += "rec_num,"
-#             elif "Date Time" in c:
-#                 newcols.append("datetime")
-#                 #appendRow += "datetime,"
-#             elif "Temp" in c:
-#                 newcols.append("temperature")
-#                 #appendRow += "temperature,"
-#                 print("# Extract the temperature unit from the column name")
-#                 tempUnit = "Deg{}".format(re.findall(r'°(\w+)', c)[0]) # Extract the temperature unit from the column name
-#             elif "Intensity" in c:
-#                 newcols.append("intensity")
-#                 #appendRow += "intensity,"
-#                 print("# Extract the intensity from the column name")
-#                 intensityUnit = re.findall(r'(?<=,)(.*?)(?=\()', c)[0].strip()
-#             else:
-#                 # just need to check first if the column name matched the format we expected
-#                 tmp = re.findall(r'(.*)\(.*\)', c)
-#                 print('tmp')
-#                 print(tmp)
-#                 if len(tmp) > 0:
-#                     print('replace whitespace with underscores')
-#                     newcols.append(re.sub('\s+', '_', tmp[0].strip().lower().replace(',','')))
-#                     #appendRow += re.sub('\s+', '_', colname[0].strip().lower())
-#                     #appendRow += ','
-#                 else:
-#                     print("Column name seems to not be what we expected. Here it is:\n")
-#                     print(c)
-            
+    template_to_raw_map = {
+        'raw_h2otemp': 'Temperature',
+        'raw_do': 'Dissolved Oxygen',
+        'raw_do_pct': 'Dissolved Oxygen Saturation',
+        'raw_qvalue': 'Q'
+    }
 
-#         # Grab extra columns that are in the table, but weren't in the submitted csv
-#         # Rafi will want us to indicate whether a column was added by us, due to them not having the column, 
-#         #  versus them giving us the column but not putting any data in it
-#         othercols = list(
-#             set(pd.read_sql("SELECT column_name FROM information_schema.columns WHERE table_name = 'tbl_data_logger_raw';", g.eng).column_name.tolist()) 
-#             - 
-#             set(newcols)
-#             -
-#             set(current_app.system_fields)
-#         )
+    raw_columns = list(template_to_raw_map.keys())
+    minidot_data[raw_columns] = minidot_data[raw_columns].apply(
+        lambda x: minidot_data[template_to_raw_map[x.name]]
+    )
 
-#         newcols.extend(othercols)
-#         #newcols.extend(['temperature_units','intensity_units','pendantid'])
+    unit_columns = [
+        column for column in TEMPLATE_COLUMNS \
+        if "unit" in column and column[:-5] in template_to_raw_map
+    ]
 
-#         appendRow = ','.join(newcols)
-#         appendRow += '\n'
+    minidot_data[unit_columns] = minidot_data[unit_columns].apply(
+        # get all characters within parentheses in first row of each column, excluding parentheses
+        lambda x: re.search(r"(?<=\().+?(?=\))", minidot_data[x.name[:-5]][0])[0] 
+    )
 
-#         # add column description headers
-#         print("# add column description headers")
-#         content[1] = content[1].replace("\n", "") + ',' + ",".join(othercols) + "\n" #+ ",Temperature Units,Intensity Units,Pendant Id\n"
-        
-#         print("Append rows")
-#         content.insert(2, appendRow)
+    minidot_data['raw_h2otemp_unit'] = minidot_data['raw_h2otemp_unit'].str.replace("deg ", "")
 
-#         tempindex = newcols.index('temperature_units')
-#         intensityindex = newcols.index('intensity_units')
-#         pendantindex = newcols.index('pendantid')
-#         missing_col_indices = [newcols.index(x) for x in othercols if x not in ('temperature_units','intensity_units','pendantid')]
-#         for i in range(len(content[3:])):
-#             #content[i + 3] = content[i + 3].replace("\n", "") + "," + tempUnit + "," + intensityUnit + "," + pendantId + "\n"
-#             tmp = [x.strip() for x in content[i + 3].split(',')]
-#             tmp += [''] * len(othercols)
-#             tmp[tempindex] = tempUnit
-#             tmp[intensityindex] = intensityUnit
-#             tmp[pendantindex] = pendantId
-#             for j in missing_col_indices:
-#                 tmp[j] = 'column was not provided'
+    minidot_data.drop(0, inplace = True) # drop first row, which is just units for each column
 
-#             try:
-#                 print("content[i + 3] = f{','.join(tmp)")
-#                 content[i + 3] = f"{','.join(tmp)}\n"
-#             except Exception as e:
-#                 print(e)
-#                 print(content)
-#                 raise Exception
-            
-            
-#     newcsvpath = os.path.join(submission_dir, f"{filename.rsplit('.', 1)[0]}-reformatted.csv")
-#     with open(newcsvpath, "w") as f:
-#         contents = "".join(content)
-#         f.write(contents)
+    minidot_data['samplecollectiontimestamp'] = pd.to_datetime(minidot_data['UTC_Date_&_Time'])
+    minidot_data['samplecollectiontimezone'] = 'UTC'
+    minidot_data[raw_columns] = minidot_data[raw_columns].astype('float64')
 
-#     new_excel_path = f"{newcsvpath[:-4]}.xlsx"
-#     workbook = Workbook(f"{newcsvpath[:-4]}.xlsx")
-#     worksheet = workbook.add_worksheet()
-#     with open(newcsvpath, 'rt', encoding='utf8') as f:
-#         reader = csv.reader(f)
-#         for r, row in enumerate(reader):
-#             for c, col in enumerate(row):
-#                 worksheet.write(r, c, col)
-#     workbook.close()
+    minidot_data = minidot_data[TEMPLATE_COLUMNS]
 
-#     print('new file name')
-#     newfilename = f"{filename.rsplit('.', 1)[0]}-reformatted.xlsx"
-#     print(newfilename)
-#     return new_excel_path, newfilename
+    return minidot_data
+
+
+# this data is already in a friendly format :D
+# but no unit information at all, not even timezone D:
+
+def read_ctd(ctd_path):
+    ctd_data = pd.read_excel(ctd_path)
+    ctd_data = pd.concat([ctd_data, pd.DataFrame(columns=TEMPLATE_COLUMNS)])
+
+    ctd_data['samplecollectiontimestamp'] = pd.to_datetime(ctd_data['TimeStamp'])
+
+    template_to_raw_map = {
+        'raw_conductivity': 'Conductivity',
+        'raw_pressure': 'Pressure',
+        'raw_h2otemp': 'Temperature'
+    }
+
+    raw_columns = list(template_to_raw_map.keys())
+    ctd_data[raw_columns] = ctd_data[raw_columns].apply(
+        lambda x: ctd_data[template_to_raw_map[x.name]]
+    )
+
+    ctd_data = ctd_data[TEMPLATE_COLUMNS]
+
+    return ctd_data
+
+def read_troll(troll_path):
+    # read csv header, get values for reading in as dataframe later
+    with open(troll_path) as troll_file:
+        troll_reader = csv.reader(troll_file)
+        for i, row in enumerate(troll_reader):
+            if 'Serial Number' in row:
+                serial_index = row.index('Serial Number')
+                troll_serial_num = row[serial_index + 1] # text search for serial number
+            elif len(row) > 0 and 'Time Zone:' in row[0]: # 'Time Zone:' indicates data is about to start
+                timezone = row[0].split(": ")[1]
+                header_index = i + 4  # data begins 4 rows below 'Time Zone:' line, adjust for 0 indexing
+                break
+
+    troll_data = pd.read_csv(troll_path, header = header_index, usecols = [0,2,3,4], skip_blank_lines=False)
+    # if file has double empty line at end of file, pandas reads one as a row, so drop it
+    if pd.isnull(troll_data.iloc[-1]).all():
+        troll_data.drop(troll_data.tail(1).index, inplace=True)
+
+    troll_data = pd.concat([troll_data, pd.DataFrame(columns=TEMPLATE_COLUMNS)])
+
+    troll_data['sensorid'] = troll_serial_num
+    troll_data['samplecollectiontimestamp'] = pd.to_datetime(troll_data['Date and Time'])
+    troll_data['samplecollectiontimezone'] = TIMEZONE_MAP[timezone] \
+        if timezone in TIMEZONE_MAP else "UNKNOWN"    
+
+    template_to_raw_map = {
+        'raw_depth': 'Depth',
+        'raw_pressure': 'Pressure',
+        'raw_h2otemp': 'Temperature'
+    }
+
+    raw_columns = list(template_to_raw_map.keys())
+    troll_data[raw_columns] = troll_data[raw_columns].apply(
+        lambda x: troll_data[troll_data.columns[troll_data.columns.str.startswith(template_to_raw_map[x.name])][0]]
+    )
+
+    unit_columns = [
+        column for column in TEMPLATE_COLUMNS \
+        if "unit" in column and column[:-5] in template_to_raw_map
+    ]
+    
+    troll_data[unit_columns] = troll_data[raw_columns].apply(
+        lambda x: re.search(
+            r"(?<=\().+?(?=\))", # get all characters within parentheses, excluding parentheses
+            troll_data.columns[troll_data.columns.str.startswith(template_to_raw_map[x.name])][0]
+        )[0]
+    )
+
+    troll_data = troll_data[TEMPLATE_COLUMNS]
+
+    return troll_data
+
+def read_hydrolab(hydrolab_path):
+    header_index = 0
+
+    with open(hydrolab_path, encoding='utf-16') as hydrolab_file:
+        hydrolab_reader = csv.reader(hydrolab_file, delimiter="\t") # tab delimited
+        for i, row in enumerate(hydrolab_reader):
+            if "Time Zone (UTC)" in row and len(row) == 2:
+                hours_mins = row[1]
+            elif "Date & Time" in row:
+                header_index = i - 1
+                break
+    # weird csv encoding
+    hydrolab_data = pd.read_csv(hydrolab_path, header = header_index, sep='\t', encoding='utf-16')
+    hydrolab_data = pd.concat([hydrolab_data, pd.DataFrame(columns = TEMPLATE_COLUMNS)])
+
+    hydrolab_data['sensorid'] = hydrolab_data['Sonde HL7 Serial Number'].str.split(":", expand=True)[1]
+    hydrolab_data['samplecollectiontimestamp'] = pd.to_datetime(hydrolab_data['Date & Time'])
+    
+    hydrolab_data['samplecollectiontimezone'] = TIMEZONE_MAP[hours_mins] \
+        if hours_mins in TIMEZONE_MAP else "UNKNOWN"
+
+    template_to_raw_map = {
+        'raw_conductivity': 'Conductivity µS/cm (Conductivity)' \
+            if 'Conductivity µS/cm (Conductivity)' in hydrolab_data.columns \
+            else 'Specific Conductivity mS/cm (Conductivity)',
+        'raw_turbidity': 'Turbidity NTU (Turbidity/Brush)' \
+            if 'Turbidity NTU (Turbidity/Brush)' in hydrolab_data.columns \
+            else 'Turbidity mV (Turbidity/Brush)',
+        'raw_h2otemp': u'Temperature \N{DEGREE SIGN}C (Temperature)', # unicode characters?? 
+        'raw_ph': 'pH units (pH)',
+        'raw_do': 'DO mg/L (Hach LDO)',
+        'raw_do_pct': 'DO %SAT (Hach LDO)',
+        'raw_salinity': 'Salinity psu (Conductivity)',
+        'raw_chlorophyll': 'Chlorophyll a µg/L (Chlorophyll a)'
+    }
+
+    raw_columns = list(template_to_raw_map.keys())
+    hydrolab_data[raw_columns] = hydrolab_data[raw_columns].transform(
+        lambda x: hydrolab_data[template_to_raw_map[x.name]]
+    )
+
+    unit_columns = [
+        column for column in TEMPLATE_COLUMNS \
+        if "unit" in column and column[:-5] in template_to_raw_map
+    ]
+
+    hydrolab_data[unit_columns] = hydrolab_data[unit_columns].apply(
+        # want to transform the name of all the units columns
+        # -5 index becauseof definition of template/raw mapping above
+        lambda x: template_to_raw_map[x.name[:-5]]\
+            # units begin right before first open parenthesis in column name
+            # then the last word in the column name before the parenthesis
+            # is the unit word
+            .rsplit(" (")[0].rsplit(" ")[-1]\
+            # replace uncommon characters with common ones
+            .replace("µ", "u").replace(u"\N{DEGREE SIGN}", "")
+    )
+
+    hydrolab_data = hydrolab_data[TEMPLATE_COLUMNS]
+
+    return hydrolab_data
+
+
+# One function to rule them all
+def parse_raw_logger_data(loggertype: str, filepath: str):
+    
+    # These so far are the supported sensor raw file types
+    # Since i'm going to be using these values in eval, i put in the function definition so that nothing outside the function can cause unwanted code to be executed
+    # if we add another supported type, we can add here
+    SUPPORTED_SENSORTYPES = ['tidbit','troll','ctd','minidot','hydrolab']
+    
+    assert \
+        loggertype in SUPPORTED_SENSORTYPES, \
+        f"""Logger Type {loggertype} is not (yet) supported. Supported types are: {', '.join(SUPPORTED_SENSORTYPES)}"""
+    
+    return eval(f"read_{loggertype}")(filepath)
+
+
