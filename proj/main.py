@@ -3,6 +3,7 @@ from werkzeug.utils import secure_filename
 from gc import collect
 import os
 import pandas as pd
+from copy import deepcopy
 
 # custom imports, from local files
 from .preprocess import clean_data
@@ -101,6 +102,8 @@ def main():
     
     assert len(all_dfs) > 0, f"submissionid - {session.get('submissionid')} all_dfs is empty"
     
+    all_dfs = {tblname: df for tblname, df in all_dfs.items() if not df.empty}
+
     for tblname in all_dfs.keys():
         all_dfs[tblname].columns = [x.lower() for x in all_dfs[tblname].columns]
 

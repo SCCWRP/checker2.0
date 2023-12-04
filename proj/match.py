@@ -127,11 +127,18 @@ def match(all_dfs):
     collect()
 
     
-    
-    # the values of the datasets dictionary are themselves dictionaries
-    # would look like {'tables': ['tbl1','tbl2'], 'function': some_function}
-    #match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(all_dfs.keys())]
-    match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(matched_tables)]
+    # I am not quite sure why we now do it so that the tables list matches the matched_tables list rather than the keys of the dictionary
+    # But we will use this to get rid of the tox summary tab if they are submitting tox data with a summary
+    # match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(all_dfs.keys())]
+    # match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set(matched_tables)]
+
+    # Once again, we are changing the way match_dataset gets defined
+    # The logic that previously defined match_dataset doesnt cover the case where a subset of submitted tables matches a dataset
+    # if a subset of submitted tables matches a dataset, but there is one or more submitted tabs that do not match
+    #  then core checks etc. will run, but the app will crash, since there is a tab that does not match any table
+    # We now will require a dataset to match all the tablenames in the match report. Note that the tablename will be empty if no table was matched for a certain tab
+    # In this case, 
+    match_dataset = [k for k,v in datasets.items() if set(v.get('tables')) == set([x.get('tablename') for x in match_report])]
 
     assert len(match_dataset) < 2, "matched 2 or more different datasets, which should never happen"
 

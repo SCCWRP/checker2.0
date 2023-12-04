@@ -78,8 +78,9 @@ def convert_dtype(t, x):
 def check_precision(x, precision):
     try:
         int(x)
+        abs(x)
     except Exception as e:
-        # if you cant call int on it, its not numeric
+        # if you cant call int or abs on it, its not numeric
         # Meaning it is not valid to check precision
         # thus we return true.
         # if its the wrong datatype it should get picked up by that check
@@ -125,8 +126,9 @@ def check_precision(x, precision):
 def check_scale(x, scale):
     try:
         int(x)
+        abs(x)
     except Exception as e:
-        # if you cant call int on it, its not numeric
+        # if you cant call int or abs on it, its not numeric
         # Meaning it is not valid to check precision
         # thus we return true.
         # if its the wrong datatype it should get picked up by that check
