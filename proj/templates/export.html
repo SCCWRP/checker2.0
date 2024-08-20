@@ -1,0 +1,15 @@
+<html>
+<body>
+<h3>Export data tool for {{ agency }}:</h3>
+<a href="{{ url_for('download.data_query', export_name = export_name) }}" target="_blank">Click to download export</a>
+{#
+    scrapped below way to serve export file, used a new route in download.py instead
+#}
+{#<a href="{{request.script_root}}/{{export_link}}" target="_blank">Click to download export</a> #}
+{# 
+    request.script_root in this particular case would yield the value of "/bight23checker"
+    Doing it this way will allow this template to work if we change the url, or use with a different application
+#}
+<h3>Submit downloaded file to checker: <a href="{{request.script_root}}" target="_blank">Data checker</a></h3>
+</body>
+</html>

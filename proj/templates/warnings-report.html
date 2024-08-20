@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="/bight23checker/static/warnings-report.css">
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+<html lang="en">
+
+<head>
+   <meta charset="UTF-8">
+   <title>Bight23 Warnings Report</title>
+</head>
+
+<body>
+   <div class="container" id="main-outer-container">
+      <div id="spinner-container" style="display: none;">
+         {% include 'spinner.html' %}
+      </div>
+      <div class="my-card inner-container">
+         <div class="my-card-header">
+            <h6>Bight 2023 Warnings Report</h6>
+            <button class="btn btn-secondary" id="restart" onclick="window.location.href = 'warnings-report'">Start
+               Over</button>
+         </div>
+         <div class="my-card-body">
+
+            {% if table %}
+            
+            <table class="table table-bordered">
+               <thead>
+                  <tr>
+                     <th>Select</th>
+                     <th>Warning</td>
+                  </tr>
+               </thead>
+               <tbody>
+                  {% for warning in warnings %}
+                  <tr>
+                     <td style="text-align: center;" class="select-cb">
+                        <input style="cursor: pointer" type="checkbox" name="warnings-cbs" value="{{ warning }}"
+                           id="{{ warning }}" onchange="selectWarnings(this)">
+                     </td>
+                     <td>
+                        <label for="{{ warning }}">{{ warning }}</label>
+                     </td>
+                  </tr>
+               </tbody>
+               {% endfor %}
+            </table>
+            <button class="btn btn-secondary" onclick='handleExport({{ warnings|tojson|safe }}, "{{ table|safe }}")'>Download</button>
+            
+
+            {% else %}
+
+            <div class="row">
+               <h6>Select a datatype:</h4>
+                  <form action="/bight23checker/warnings-report">
+                     <label for="datatype">
+                        <select name=datatype id="datatype-select" method="GET" action="/">
+                           <option>Select a datatype</option>
+                           {% for data in dataset_options %}
+                           <option value="{{data}}"> {{data}}</option>
+                           {% endfor %}
+                        </select>
+                        <!-- <input type="submit" value="Generate tables"> -->
+                     </label>
+            </div>
+            <div class="row">
+               <h6>Select a table:</h4>
+                  <form action="/bight23checker/warnings-report">
+                     <label for="table">
+                        <select name=table id='table-select' method="GET" action="/">
+                           {% for data in table_options %}
+                           <option value="{{data}}"> {{data}}</option>
+                           {% endfor %}
+                        </select>
+                     </label>
+                     <input type="submit" value="Generate Report" id="submit-btn">
+                  </form>
+            </div>
+            <div class="row">
+               <div class="col-md-12">
+                  <button class="btn btn-secondary" onclick="handleSubmitClick()">Submit</button>
+               </div>
+            </div>
+
+            {% endif %}
+
+
+
+
+
+
+
+
+            <!-- <a href="{{request.script_root}}/warnings-report?datatype=test">Chemistry</a> -->
+
+         </div>
+      </div>
+   </div>
+
+   <script src="/bight23checker/static/warningsReport.js"></script>
+</body>
+
+</html>
+
+<!-- tbl_chembatch -->

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Completeness Report Selection</title>
+</head>
+<body>
+    <h1>Select a Report Type for Completeness Analysis</h1>
+    <form action="{{ url_for('report.completeness_report') }}" method="get">
+        <label for="report_type">Choose a report type:</label>
+        <select name="report_type" id="report_type">
+            {% for type in report_types %}
+                <option value="{{ type }}">{{ type.capitalize() }}</option>
+            {% endfor %}
+            <option value="all">All</option>
+        </select>
+        <button type="submit">Download Report</button>
+    </form>
+</body>
+</html>

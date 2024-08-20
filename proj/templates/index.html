@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSN1KajqxT6Orr6rQ1jb4BpLDf3wUnunW9ZvWwy_WWFrg&s">
+
+  <!--This helped so much: https://getbootstrap.com/docs/5.0/components/card/-->
+  <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
+  <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
+  <script>
+    let script_root = {{request.script_root|tojson|safe}};
+    script_root = script_root.replace('/','');
+    console.log('script_root');
+    console.log(script_root);
+  </script>
+  <script src="{{url_for('static', filename='globals.js')}}"></script>
+</head>
+<body>
+  <main>
+
+    <div class="container" id="main-outer-container">
+
+      <!--login screen-->
+      {% if not login_info %}
+      <div class="container" id="login-outer-container">
+        <div class="card inner-container" id="login-inner-container">
+          <div class="card-header">
+            {{projectname}} Checker
+          </div>
+          {% if global_login_form %}
+          <div class="card-body">
+            <div>
+              <form class="login-form" id="global-login-form">
+                <!-- <div class="login-input-container form-group">
+                  <label for="login_email">Enter your email address:</label>
+                  <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
+                </div> -->
+                {% for field in global_login_form %}
+                <div class="login-form-element-container login-{{field.fieldtype}}-container form-group">
+                  <label for="login_{{field.fieldname}}">{%if field.label %}{{field.label}}{% else %} {{field.fieldname}} {% endif %}:</label>
+                  {% if field.fieldtype == 'input' %}
+                  <input 
+                    id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" 
+                    type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}" 
+                    name="login_{{field.fieldname}}" 
+                    class="form-control login-form-element" 
+                    placeholder="{% if field.fieldname == 'email' %}name@example.com{% else %}{% endif %}"
+                    {% if field.fieldname != 'email' %}{% if field.defaultvalue %}value="{{field.defaultvalue}}"{% endif %}{% endif %}
+                  >
+                  {% else %}
+                  <!--There should only be two kinds of form elements - selects and inputs--> 
+                  <select 
+                    id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}"
+                    name="login_{{field.fieldname}}" 
+                    class="form-control {% if not field.static_options %}dynamic-select-item{% endif %} {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %} login-form-element"
+                    data-index="{%if field.independent == 'True' %}-1{% else %}{{field.sequencenum}}{% endif %}"
+                    {% if field.options_from_table %} data-option-table="{{field.options_from_table}}"{% endif %}
+                    {% if field.options_display_field %} data-option-display-field="{{field.options_display_field}}"{% endif %}
+                    {% if field.options_values_field %} data-option-values-field="{{field.options_values_field}}"{% endif %}
+                  >
+                  {% if field.static_options %}
+                  {% for opt in field.static_options %}
+                    <option value="{{opt}}">{{opt}}</option>
+                  {% endfor %}
+                  {%endif%}
+                </select>
+                  {% endif %}
+
+                </div>  
+                <br>
+                {% endfor %}
+                
+                <div class="form-check-container">
+                    <div class="form-check-label-container">
+                        I want to:
+                    </div>
+                    <div class="form-check-group">
+                        <div class="form-check-item">
+                            <input class="form-check-input" type="radio" name="check-or-submit" id="check-or-submit-option1" value="submit" checked>
+                            <label class="form-check-label" for="check-or-submit-option1">
+                                Submit data
+                            </label>
+                        </div>
+            
+                        <div class="form-check-item">
+                            <input class="form-check-input" type="radio" name="check-or-submit" id="check-or-submit-option2" value="no-submit">
+                            <label class="form-check-label" for="check-or-submit-option2">
+                                Check data without submitting
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            
+                
+                <br>
+              
+                <div class="login-input-container form form-group" id="login-form-submit-btn-container">
+                  <button class="btn btn-secondary" type="submit">Sign in</button>
+                </div>
+              </form>
+            </div>
+          
+          </div>
+          {% else %}
+          <div class="card-body">
+            <div>
+              <form id="dtype-form">
+                <label for="html">Select Submission Type:</label><br>
+                <select id="datatype-select" class = "form-control" name="dtype_select">
+                  {% for dtype in dtypes.keys() %}
+                    <option value = {{dtype}}>{% if dtypes[dtype].label %}{{dtypes[dtype].label}}{% else %}{{dtype}}{% endif %}</option>
+                  {% endfor %}
+                </select>
+              </form>
+            </div>
+            <br>
+            <div>
+              {% for dtype in dtypes.keys() %}
+              <div>
+                <form class="login-form {% if loop.index > 1 %} hidden {% endif %}" id="{{dtype}}-login-form">
+                  <!-- <div class="login-input-container form-group">
+                    <label for="login_email">Enter your email address:</label>
+                    <input id="login_email" type="email" name="login_email" class="form-control" placeholder="name@example.com">
+                  </div> -->
+                  {% for field in dtypes[dtype]['login_fields'] %}
+                  <div class="login-form-element-container login-{{field.fieldtype}}-container form-group">
+                    <label for="login_{{field.fieldname}}">{%if field.label %}{{field.label}}{% else %} {{field.fieldname}} {% endif %}:</label>
+                    {% if field.fieldtype == 'input' %}
+                    <input 
+                      id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}" 
+                      type="{% if field.fieldname == 'email' %}email{% else %}text{% endif %}" 
+                      name="login_{{field.fieldname}}" 
+                      class="form-control login-form-element" 
+                      placeholder="{% if field.fieldname == 'email' %}name@example.com{% else %}{% endif %}"
+                      {% if field.fieldname != 'email' %}{% if field.defaultvalue %}value="{{field.defaultvalue}}"{% endif %}{% endif %}
+                    >
+                    {% else %}
+                    <!--There should only be two kinds of form elements - selects and inputs--> 
+                    <select 
+                      id="{{dtype}}-{{field.fieldname}}-{{field.fieldtype}}"
+                      name="login_{{field.fieldname}}" 
+                      class="form-control {% if not field.static_options %}dynamic-select-item{% endif %} {{dtype}}-select-item {% if field.independent == 'True' %} independent-select-item {% else %} sequential-select-item {% endif %} login-form-element"
+                      data-dtype="{{dtype}}"
+                      data-index="{%if field.independent == 'True' %}-1{% else %}{{field.sequencenum}}{% endif %}"
+                      {% if field.options_from_table %} data-option-table="{{field.options_from_table}}"{% endif %}
+                      {% if field.options_display_field %} data-option-display-field="{{field.options_display_field}}"{% endif %}
+                      {% if field.options_values_field %} data-option-values-field="{{field.options_values_field}}"{% endif %}
+                    >
+                    {% if field.static_options %}
+                    {% for opt in field.static_options %}
+                      <option value="{{opt}}">{{opt}}</option>
+                    {% endfor %}
+                    {%endif%}
+                  </select>
+                    {% endif %}
+
+                  </div>  
+                  <br>
+                  {% endfor %}
+                
+                  <div class="login-input-container form form-group" id="login-form-submit-btn-container">
+                    <button class="btn btn-secondary" type="submit">Sign in</button>
+                  </div>
+                </form>
+              </div>
+              {%endfor%}
+            </div>
+            
+          </div>
+          <!--end the routine for building the different login forms for different datatypes-->
+          {% endif %}
+        </div>
+      </div>
+      <!--End login screen-->
+      {% else %}
+      <script src="{{url_for('static', filename='drop.js')}}"></script>
+
+      <!--File submission form-->
+      <div class="before-submit container">
+        <div class="card inner-container">
+          <div class="card-header">
+            <div class="card-title">
+              Choose a file or drag and drop a file anywhere on the page to begin
+            </div>
+          </div>
+          <div class="card-body">
+            
+            <div class="container login-info-title">
+              Current Session Login Information:
+            </div>
+            {% for k, v in login_info.items() %}
+            <div class="row container login-info-container">
+              <div class="col-md-4 login-info-container login-info-key">{{k}}:</div><div class="col-md-8 login-info-container login-info-value">{{v}}</div>
+            </div>
+            {% endfor %}
+            <br>
+            <div class="row container file-form-container">
+              <form id="file-submission-form">
+                <div class="row form-group file-submission-form-row">
+                  <input type="file" name="files" class="form-control-file" multiple>
+                </div>
+                <div class="row form-group file-submission-form-row">
+                  <button type="submit" class="btn btn-dark">Submit Data</button>
+                </div>
+              </form>
+            </div>
+            <br>
+            <div class="row container">
+              <a role = "button" href="{{url_for('info.attnpts')}}" target="_blank" class="btn btn-info" id="data-info-button">⚠️ Data submission attention points ⚠️</a>
+            </div>
+            <br>
+            <div class="row container">
+              <button class="btn btn-dark" id="clear-session-button">Clear Session Info and Start New Submission Session</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <!--End file submission form-->
+      {% endif %}
+
+
+
+      <!--Loader gif-->
+      <div class="container hidden" id="loader-gif-container">
+        <div class="card">
+          <div class="card-header loader-gif-card-header">
+            Please wait
+          </div>
+          <div class="card-body loader-gif-card-body">
+            <img id="loader-gif" src="{{url_for('static',filename='loader.gif')}}">
+          </div>
+        </div>
+      </div>
+      <!--End Loader gif-->
+
+
+
+      <!--Submission Report Section (outer container)-->
+      <div class="submission-report-outer-container after-submit hidden">
+
+        <div class="submission-report-inner-container container">
+          <div class="card container">
+
+
+            <div class="submission-report-headers row">
+              <div class="col-sm submission-info-tab-header active" id="submission-info-header">
+                Submission Information
+              </div>
+              <div class="col-sm submission-info-tab-header" id="errors-report-header">
+                Errors
+              </div>
+              <div class="col-sm submission-info-tab-header" id="warnings-report-header">
+                Warnings
+              </div>
+              
+                <div class="col-sm submission-info-tab-header hidden" id="map-report-header">
+                  <!--For certain projects that want map checks, we can add javascript that can unhide this tab header / tab body -->
+                  Map
+                </div> 
+              
+            </div>
+
+
+
+            <div class="submission-report-body container card-body">
+              <div id="submission-info-body" class="submission-info-tab-body">
+                <ul>
+                  <li class="list-group-item">
+                    <p><span id="submissionid-header">Submission ID: </span><span id="submissionid"></span></p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><span id="original-filename-header">File Name: </span><span id="original-filename"></span></p>
+                  </li>
+                  <li class="list-group-item">
+                    <p><span id="submission-type-header">Type of Submission: </span><span id="submission-type"> </span>
+                    </p>
+                  </li>
+                  <li class="list-group-item">
+                    <div class="card">
+                      <div class="card-header">
+                        <span id="compare-list-header"> Excel Tab to Database Table Comparison</span>
+                      </div>
+                      <div class="card-body">
+                        <ul id="tab-table-comparison-list">
+                        </ul>
+                      </div>
+                    </div>
+
+                  </li>
+                  <li class="list-group-item" id="excel-download-container">
+                    <p>
+                      <a id="excel-markup-download" target="_blank" href="#">Download Excel File with Errors Report Markup</a>
+                    </p>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Total Errors:</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="total-errors-count"></div>
+                    </div>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Core Errors (Tier 1 Checks):</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="core-errors-count"></div>
+                    </div>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Custom Errors (Tier 2 Checks):</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="custom-errors-count"></div>
+                    </div>
+                    <div class="row error-report-summary-table-row">
+                      <div class="col-md-4 error-report-summary-table-cell">Total Warnings:</div>
+                      <div class="col-md-4 error-report-summary-table-cell" id="total-warnings-count"></div>
+                    </div>
+                  </li>
+                </ul>
+
+
+                <!--for unsuccessful submissions-->
+                <div class="container hidden" id="reload-button-container">
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title">
+                        There were errors with your file
+                      </h5>
+                      <h6 class="card-subtitle">
+                        You may click the button below to reload and login again,
+                        or you may drag and drop a file anywhere on the page again
+                      </h6>
+                    </div>
+                    <div class="card-body">
+                      <button class="btn btn-secondary btn-lg btn-block btn-reload">
+                        Reload the application
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="container hidden" id="final-warning-container">
+                  <div class="card">
+                    <div class="card-header">
+                      <h5 class="card-title">
+                        There were warnings with your file
+                      </h5>
+                    </div>
+                    <div class="card-body">
+                      Your data is considered to be acceptable for a final submission, but it is strongly recommended you double check the warnings tab at the top right
+                    </div>
+                  </div>
+                </div>
+
+
+              </div>
+
+
+
+
+
+
+              <div id="errors-report-body"
+                class="errors-report-body-outer-container container submission-info-tab-body hidden">
+                <div class="card">
+
+
+
+                  <div id="errors-report-tab-headers" class="row tab-header-container container">
+
+                    <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="errors-tab-header tab-header col-sm">
+                      <!--id="${x.table}-errors-tab-header" -->
+                    </div>
+
+                  </div>
+
+                  <div id="errors-report-body-inner-tab-container" class="container">
+
+                    <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="errors-tab-body">
+                      <!--id would be tablename-errors-tab-body-->
+
+                      <div class="row errors-report-header">
+                        <div class="col-sm errors-report-cell">Column(s)</div>
+                        <!--<div class="col-sm errors-report-cell">Error Type</div>-->
+                        <div class="col-sm errors-report-cell">Error Message</div>
+                        <div class="col-sm errors-report-cell">Row(s)</div>
+                        <div class="col-sm errors-report-cell"></div>
+                      </div>
+
+                      <div class="errors-tab-rows">
+                      </div>
+
+                    </div>
+
+                  </div>
+
+
+
+                </div>
+
+              </div>
+
+
+
+
+              <div id="warnings-report-body"
+                class="warnings-report-body-outer-container container submission-info-tab-body hidden">
+                <div class="card">
+
+
+
+                  <div id="warnings-report-tab-headers" class="row tab-header-container container">
+
+                    <!--This div would need to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="warnings-tab-header tab-header col-sm">
+                      <!--id="${x.table}-warnings-tab-header" -->
+                    </div>
+
+                  </div>
+
+                  <div id="warnings-report-body-inner-tab-container" class="container">
+
+                    <!--This div needs to be repeated, one per table, meaning the innerHTML of the parent element gets repeated-->
+                    <div class="warnings-tab-body">
+                      <!--id would be tablename-warnings-tab-body-->
+
+                      <div class="row warnings-report-header">
+                        <div class="col-sm warnings-report-cell">Column(s)</div>
+                        <!--<div class="col-sm warnings-report-cell">Error Type</div>-->
+                        <div class="col-sm warnings-report-cell">Error Message</div>
+                        <div class="col-sm warnings-report-cell">Row(s)</div>
+                        <div class="col-sm warnings-report-cell"></div>
+                      </div>
+
+                      <div class="warnings-tab-rows">
+                      </div>
+
+                    </div>
+
+                  </div>
+
+
+
+                </div>
+
+              </div>
+
+
+              <!--Only for certain projects that will require a map or map checks-->
+              <div id="map-report-body" class="map-report-body-outer-container container submission-info-tab-body hidden">
+                
+                <iframe id="visual-map" width="1100" height="900" src="" ></iframe>
+
+              </div>
+
+
+            </div>
+
+            <!--for successful submissions (final submit)-->
+            <div class="container form-container hidden" id="final-submit-button-container">
+              <form id="final-submit">
+                <button type="submit" class="btn btn-success btn-lg btn-block">Final Submit</button>
+              </form>
+            </div>
+
+
+
+            <br>
+
+          </div>
+
+        </div>
+
+      </div>
+      <!--End error Report Section (outer container)-->
+
+
+
+      <!--Loader gif-->
+      <div class="container hidden" id="after-successful-final-submit">
+        <div class="card">
+          <div class="card-header" id="after-submit-sucess-card-header">
+            <h5 class="card-title">
+              Success!
+            </h5>
+          </div>
+          <div class="card-body loader-gif-card-body">
+            <p>Thank you for taking the time to submit your data. SCCWRP staff have been notified, and you should
+              be receiving an email receipt soon. Thank you!</p>
+            <div class="row">
+              <div class="col-sm">
+                <button class="btn btn-primary btn-reload">Reload the application</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!--End Loader gif-->
+
+    </div>
+  </main>
+</body>
+
+<!--Load js at the end rather than doing something similar to $('document').ready()-->
+<!--tabs.js has a function called tabs which i plan on using in report.js-->
+<!--main.js needs to be at the bottom-->
+<script src="{{url_for('static', filename='tabs.js')}}"></script>
+<script src="{{url_for('static', filename='finalsubmit.js')}}"></script>
+<script src="{{url_for('static', filename='report.js')}}"></script>
+<script src="{{url_for('static', filename='dragndrop.js')}}"></script>
+<script src="{{url_for('static', filename='login.js')}}"></script>
+<script src="{{url_for('static', filename='alterform.js')}}"></script>
+<script src="{{url_for('static', filename='main.js')}}"></script>
+
+</html>

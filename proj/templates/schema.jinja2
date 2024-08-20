@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title>Table Information</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .table td, .table th {
+            border: 1px solid #ddd; /* Light grey border */
+        }
+
+        /* Brought to you by Chat GPT */
+        .description-edit {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 16px;
+            font-family: Arial, sans-serif;
+            border: 1px solid #ccc;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+
+    </style>
+    
+</head>
+<body>
+    <div>
+        {% if datatypes_list %}
+        <p>Choose a datatype:</p>
+        {% for dtyp in datatypes_list %}
+        <ul>
+            <li>
+                <a href="{{request.script_root}}/schema?datatype={{dtyp}}">{{dtyp}}</a>
+            </li>
+        </ul>
+        {% endfor %}
+    {% else %}
+    </div>
+    <div class="container d-flex flex-column align-items-center justify-content-center">
+    <h1>Schema Information for {{datatype}}</h1>
+    <br>
+    <a href="{{request.script_root}}/schema"><button id="return-main-app"> Return to main page </button></a>
+    <br>
+    <a href="{{request.script_root}}/schema?datatype={{datatype}}&download=true" target=_blank><button id="download-schema"> Download as an Excel file </button></a>
+    <br>
+    {% if not authorized %}
+    <a href="{{request.script_root}}/adminauth?redirect_to=schema"><button id="edit-schema"> Log in to edit </button></a>
+    <br>
+    {% endif %}
+    {# metadata is essentially the schema information about all tables in the datatype #}
+    
+    {% for tablename, table in metadata.items() %}
+        <div class="table-info-container">
+            <div class="table-name-container">
+                <h3><strong>{{tablename}}</strong></h3>
+            </div>
+            
+            <div class="table-content-container">
+                <div class="table-description-container">
+                    {% if authorized %}
+                    <p data-tablename="{{tablename}}" id="description-text-{{tablename}}" class="description-text">{{table_descriptions[tablename]}}</p>
+                    <textarea data-tablename="{{tablename}}" id="description-edit-{{tablename}}" class="description-edit" style="display: none;"></textarea>
+                    <button data-tablename="{{tablename}}" id="description-button-{{tablename}}" class="description-button">Edit Description</button>
+                    
+                    {% else %}
+                    <p data-tablename="{{tablename}}" id="description-text-{{tablename}}" class="description-text">{{table_descriptions[tablename]}}</p>
+                    {% endif %}
+                </div>
+                <br>
+                <table id="{{tablename}}-schema-table" class="table table-striped table-hover">                    
+                    {% for row in table %}
+                        {# for the first loop, add the table header #}
+                        {% if loop.index0 == 0 %}
+                        <thead>
+                            {% for k, v in row.items() %}
+                            <th>{{ k | replace("_", " ") }}</th>
+                            {% endfor %}
+                        </thead>
+                        {% endif %}
+
+                        {# I moved the part that builds the <tr> inside the loop so i could capture the column name and store it in the dataset of the row #}
+                        <tr data-parent-table="{{tablename}}" data-row-number="{{loop.index0}}" {% if row.primary_key == 'YES' %} class="primary-key-row" {% endif %}>
+                        {% for k, v in row.items() %}
+                            <td 
+                                {% if ((authorized) and (k == 'description')) %}
+                                    class="description-cell editable-description-cell" 
+                                    contenteditable="true"
+                                {% else %}
+                                    class="{{k}}-cell"
+                                {% endif %}
+                            >
+                                {{v | safe}}
+                            </td>
+                        {% endfor %}    
+                                </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <br><br>
+    {% endfor %}
+    </div>
+
+    {% endif %}
+</body>
+
+{% if authorized %}
+<script>
+    Array.from(document.getElementsByClassName('editable-description-cell')).forEach(cell => {
+        cell.addEventListener('blur', function() {
+            const colDescription = this.innerText;
+            const parentTable = this.parentNode.dataset.parentTable;
+            const colName = this.parentNode.querySelector('.column_name-cell').innerText;
+
+            console.log("colDescription")
+            console.log(colDescription)
+            console.log("parentTable")
+            console.log(parentTable)
+            console.log("colName")
+            console.log(colName)
+
+            saveChanges(parentTable, colName, colDescription);
+        });
+
+        cell.addEventListener('focus', function(event) {
+            let range = document.createRange(); // create a new range
+            range.selectNodeContents(this); // set range to cell contents
+            let sel = window.getSelection(); // get the current selection
+            sel.removeAllRanges(); // remove all ranges from the selection
+            sel.addRange(range); // add the range to the selection
+        });
+
+        cell.addEventListener('keydown', function(event) {
+            const keyPressType = event.key;
+            if (['Enter','ArrowUp','ArrowDown'].includes(keyPressType)) {
+                event.preventDefault();  // Prevents adding a new line (if the cell is a multiline input like textarea)
+                this.blur();  // Remove focus from the cell
+                
+                // get the next row number, which was stored in the dataset of each <tr> element
+                let nextRow = Number(this.parentNode.dataset.rowNumber) + (keyPressType === 'ArrowUp' ? -1 : 1);
+
+                // this = td, parent is the tr, and the parent of that is tbody, and the parent of that is the table
+                // we want to do the queryselection for the next row from the parent table, rather than from the entire document
+                let parentTable = this.parentNode.parentNode.parentNode;
+
+                // focus on the "next cell" if it exists
+                parentTable.querySelector(`tr[data-row-number="${nextRow}"]`)?.querySelector("td.editable-description-cell").focus()
+
+            }
+        });
+    });
+    const saveChanges = function(tableName, colName, txt) {
+        fetch("{{request.script_root}}/save-changes", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "tablename": tableName,
+                "column_name" : colName,
+                "column_description" : txt 
+            })
+        })
+        .then(response => response.json())
+        .then(data => console.log(data))
+    }
+</script>
+<script>
+{# Logic for saving table descriptions #}
+
+Array.from(document.querySelectorAll('.description-button')).forEach(b => {
+
+    b.addEventListener('click', function(){
+        // const descriptionButton = document.getElementById(`description-button-${tablename}`);
+        const descriptionButton = this;
+        const tablename = this.dataset.tablename
+        const descriptionText = document.getElementById(`description-text-${tablename}`);
+        const descriptionEdit = document.getElementById(`description-edit-${tablename}`);
+    
+        if (descriptionEdit.style.display === "none") {
+            // Switch to edit mode
+            descriptionEdit.style.display = "";
+            descriptionEdit.value = descriptionText.innerHTML;
+            descriptionText.style.display = "none";
+            descriptionButton.innerHTML = "Save Description";
+
+            // Focus the textarea
+            descriptionEdit.focus();
+        } else {
+            // Switch back to text display
+            descriptionText.innerHTML = descriptionEdit.value;
+            descriptionText.style.display = "";
+            descriptionEdit.style.display = "none";
+            descriptionButton.innerHTML = "Edit Description";
+
+            // save description to the database
+            fetch("{{request.script_root}}/save-description", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    "tablename": tablename,
+                    "tabledescription" : descriptionEdit.value
+                })
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+        }
+    })
+})
+
+
+</script>
+{% endif %}
+
+</html>
+

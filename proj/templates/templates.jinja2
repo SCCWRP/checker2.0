@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{project_name}} Data Submission Templates</title>
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .list-group-header {
+            background-color: aliceblue;
+            padding: 1.2rem;
+            text-align: center;
+            border: 1px solid #000d1b;
+        }
+
+        .dataset-link {
+            color: #007bff;
+            /* Bootstrap primary blue color */
+            text-decoration: underline;
+            /* Underline the text */
+        }
+
+        .dataset-link:hover {
+            color: #0056b3;
+            /* Darker blue on hover */
+            /* text-decoration: none; */
+            /* Remove underline on hover for effect */
+        }
+
+        body {
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .flash-message {
+            top: 0;
+            width: 100%;
+            z-index: 1030;
+            /* High z-index to overlay content */
+            border: 1px solid #93751a;
+            /* Dark yellow border */
+            background-color: #f7e3a0;
+            /* Light yellow background */
+            text-align: center;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+{# Background image done with inline style so the dynamic link to the background image doesnt throw off the syntax
+highlighter #}
+
+<body {% if background_image %} style="background-image: url({{url_for('static',filename=background_image)}});" {% endif
+    %}>
+
+    <div class="container mt-5">
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert flash-message alert-dismissible fade show mb-1" role="alert">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="list-group-header">
+            <h2 class="mb-0">Available Data Submission Templates for {{project_name}}</h2>
+        </div>
+        <div class="list-group">
+            {% for datatype, data in datasets.items() %}
+            <a href="?datatype={{ datatype }}" class="list-group-item list-group-item-action dataset-link"
+                title="{{ data.label | safe }}">
+                {{ data.label | safe }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    <!-- Loader Modal -->
+    <div class="modal" id="loaderModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <p>Loading, please wait...</p>
+                    <img src="{{url_for('static',filename='loader.gif')}}" alt="Loading...">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {# Optional: Include Bootstrap JS and Popper.js for interactive components (if needed) #}
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.9/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    {# Javascript to hide and show a modal, while the user waits for the template file to download #}
+    <script>
+
+        let downloadInterval; //define this one ahead of time
+
+        function checkDownloadCookie() {
+            // Check if the cookie is set
+            if (document.cookie.split(';').some((item) => item.trim().startsWith('template_file_sent='))) {
+                // Close the modal
+                $('#loaderModal').modal('hide');
+
+                // Clear the cookie
+                document.cookie = 'template_file_sent=; Max-Age=-99999999;';
+
+                // Stop the interval
+                clearInterval(downloadInterval);
+            }
+        }
+
+        $(document).ready(function () {
+            $('.dataset-link').click(function () {
+
+                // Show the modal
+                $('#loaderModal').modal({
+                    backdrop: 'static',
+                    keyboard: false
+                });
+
+                // Start polling for the cookie
+                downloadInterval = setInterval(checkDownloadCookie, 500); // Check every half second
+            });
+        });
+    </script>
+
+</body>
+
+</html>

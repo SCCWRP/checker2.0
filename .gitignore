@@ -1,0 +1,18 @@
+files/*
+export/*
+logs
+.vscode
+testing/
+
+proj/config/config.json
+
+# ignore pycache directories
+__pycache__/
+proj/__pycache__/
+proj/custom/__pycache__/
+proj/core/__pycache__/
+proj/utils/__pycache__/
+
+docker/deploy.sh
+
+env.py

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ report_title }}</title>
+
+</head>
+<body>
+    {% if datatype %}
+    <button type="button" style="float: right;" id="download-report-button">Download</button>
+    <h1>{{ report_title }}</h1>
+    {% for table in tables %}
+        {{ table|safe }}
+    {% endfor %}
+
+    {% else %}
+    <h2>Choose a datatype</h2>
+    <ul class="styled-list">
+        <li><a href="{{request.script_root}}/report?datatype=field">Field</a></li>
+        <li><a href="{{request.script_root}}/report?datatype=chemistry">Chemistry</a></li>
+        <li><a href="{{request.script_root}}/report?datatype=toxicity">Toxicity</a></li>
+        <li><a href="{{request.script_root}}/report?datatype=infauna">Infauna</a></li>
+        <li><a href="{{request.script_root}}/report?datatype=microplastics">Microplastics</a></li>
+    </ul>
+    <h2>Other reports</h2>
+    <ul class="styled-list">
+        <li>
+            <a href="{{request.script_root}}/report?view=vw_grab_completion_status_simplified">
+                Field Grab Completenss
+            </a>
+        </li>
+        <li>
+            <a href="{{request.script_root}}/report?view=vw_trawl_completion_status_simplified">
+                Field Trawl Completeness (Fish, Invert, Debris, PT Sensor)
+            </a>
+        </li>
+    </ul>
+      
+
+    {% endif %}
+</body>
+<script>
+    document.getElementById('download-report-button').addEventListener('click', function() {
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const datatype = urlParams.get('datatype');
+        
+        let filename = `report-${datatype}.xlsx`;
+        console.log(datatype)
+
+        if (['field', 'chemistry', 'infauna', 'toxicity'].includes(datatype)){
+            fetch(`{{request.script_root}}/download?datatype=${datatype}`)
+                .then(response => response.blob())
+                .then(blob => {
+                    let link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = filename;
+
+                    document.body.appendChild(link);
+                    link.click();
+
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => console.error('Download error:', error));
+            } else {
+            alert("You've entered an invalid datatype")
+        }
+    });
+</script>
+
+</html>

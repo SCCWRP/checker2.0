@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSN1KajqxT6Orr6rQ1jb4BpLDf3wUnunW9ZvWwy_WWFrg&s">
+    <title>Data submission attention points{% if datatype %} for {{datatype}}{% endif %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Flashed Messages Section -->
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-warning" role="alert">
+                    {% for message in messages %}
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if datatypes_list %}
+            <h2 class="mb-3">Choose a datatype:</h2>
+            <div class="list-group">
+                {% for dtyp in datatypes_list %}
+                    <a href="{{request.script_root}}/info?dtype={{dtyp}}" class="list-group-item list-group-item-action">
+                        <span style="color:blue;text-decoration:underline;">
+                            {{dtyp}}
+                        </span>
+                    </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <h1 class="mb-4">Data Submission Attention Points for {{datatype}}</h1>
+            
+            <ul class="list-group">
+                {% for attnpt in attention_points %}
+                <li class="list-group-item">
+                    {{attnpt}}
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</body>
+<script>
+Array.from(document.querySelectorAll('button.close')).forEach(btn => {
+    btn.addEventListener('click', function(){
+        this.parentNode.remove();    
+    })
+})
+</script>
+</html>

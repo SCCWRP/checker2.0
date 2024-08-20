@@ -1,0 +1,56 @@
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Form styles */
+#track-auth-form {
+    background-color: #ffffff;
+    border-radius: 5px;
+    padding: 30px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Label styles */
+#track-auth-form label {
+    display: block;
+    font-size: 16px;
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+/* Input styles */
+#track-auth-form input[type="password"] {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+/* Button styles */
+#track-auth-submit-btn {
+    background-color: #007bff;
+    border: none;
+    color: #ffffff;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 3px;
+    text-transform: uppercase;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#track-auth-submit-btn:hover {
+    background-color: #0056b3;
+}

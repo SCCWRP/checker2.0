@@ -1,0 +1,202 @@
+{% if authorized %}
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Table Information</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <style>
+        .table td,
+        .table th {
+            border: 1px solid #ddd;
+            /* Light grey border */
+        }
+
+        .warning-cell {
+            background-color: #ece40c;
+        }
+
+        .error-cell {
+            background-color: #ff0000;
+        }
+        .draggable {
+            cursor: grab;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        {% if datatypes_list %}
+        <p>Choose a datatype:</p>
+        {% for dtyp in datatypes_list %}
+        <ul>
+            <li>
+                <a href="{{request.script_root}}/column-order?datatype={{dtyp}}">{{dtyp}}</a>
+            </li>
+        </ul>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="container d-flex flex-column align-items-center justify-content-center">
+        <h1>Column order for tables belonging to the datatype: {{datatype}}</h1>
+        <br>
+        <a href="{{url_for('admin.column_order')}}"><button id="return-main-app"> Return to main page </button></a>
+        <br>
+        <h5><p>Drag rows to re-arrange column order of the tables</p></h5>
+        <h5><p>Your changes will automatically save</p></h5>
+        <br>
+
+        {# metadata is essentially the schema information about all tables in the datatype #}
+
+        {% for tablename, table in metadata.items() %}
+        <div class="table-info-container">
+            <div class="table-name-container">
+                <h3><strong>{{tablename}}</strong></h3>
+            </div>
+            <div class="table-content-container">
+                <table id="{{tablename}}-col-order-table"
+                    class="table table-striped table-hover rearrangable-rows-table">
+                    {% for row in table %}
+                    {# for the first loop, add the table header #}
+                    {% if loop.index0 == 0 %}
+                    <thead>
+                        {% for k, v in row.items() %}
+                        <th>{{ k | replace("_", " ") }}</th>
+                        {% endfor %}
+                    </thead>
+                    {% endif %}
+
+                    {# I moved the part that builds the <tr> inside the loop so i could capture the column name and
+                        store it in the dataset of the row #}
+                    <tr draggable="true" class="draggable" data-parent-table="{{tablename}}" data-row-number="{{loop.index0}}">
+                        {% for k, v in row.items() %}
+                        <td class="col-order-cell {{k}}" >
+                            {{v | safe}}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <br><br>
+        {% endfor %}
+    </div>
+
+    {% endif %}
+</body>
+
+{% if authorized %}
+<script>
+
+    const saveChanges = function (tableName) {
+        const rows = document.querySelectorAll(`tr[data-parent-table='${tableName}']`)
+        const colOrderData = Array.from(rows).map(r => {
+            const colName = r.querySelector('.column_name').innerText;
+            const colPosition = Number(r.querySelector('.custom_column_position').innerText);
+            return {
+                column_name: colName,
+                column_position: colPosition
+            }
+        })
+        console.log("colOrderData")
+        console.log(colOrderData)
+        fetch("{{url_for('admin.column_order')}}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                "tablename": tableName,
+                "column_order_information": colOrderData
+            })
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+    }
+
+
+    /* Drag and Drop handling routine */
+    let dragSrcEl = null;
+
+    function handleDragStart(e) {
+        dragSrcEl = this;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        this.classList.add('over');
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragLeave() {
+        this.classList.remove('over');
+    }
+
+    function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+        if (dragSrcEl !== this) {
+            this.parentNode.removeChild(dragSrcEl);
+            var dropHTML = e.dataTransfer.getData('text/html');
+            this.insertAdjacentHTML('beforebegin', dropHTML);
+            var dropElem = this.previousSibling;
+            dropElem.addEventListener('dragstart', handleDragStart, false);
+            dropElem.addEventListener('dragover', handleDragOver, false);
+            dropElem.addEventListener('dragleave', handleDragLeave, false);
+            dropElem.addEventListener('drop', handleDrop, false);
+            updateColumnPosition();
+            console.log("this.dataset.parentTable")
+            console.log(this.dataset.parentTable)
+            saveChanges(this.dataset.parentTable)
+            
+        }
+        this.classList.remove('over');
+        return false;
+    }
+
+    function handleDragEnd() {
+        this.classList.remove('over');
+        
+
+        
+    }
+
+    function updateColumnPosition() {
+        const tables = document.querySelectorAll('.rearrangable-rows-table');
+        tables.forEach(tbl => {
+            const rows = tbl.querySelectorAll('tbody tr');
+            for (var i = 0; i < rows.length; i++) {
+                var positionCell = rows[i].querySelector('.custom_column_position');
+                positionCell.textContent = i + 1;
+            }
+        })
+    }
+
+    function addDnDHandlers(elem) {
+        elem.addEventListener('dragstart', handleDragStart, false);
+        elem.addEventListener('dragover', handleDragOver, false);
+        elem.addEventListener('dragleave', handleDragLeave, false);
+        elem.addEventListener('drop', handleDrop, false);
+        elem.addEventListener('dragend', handleDragEnd, false);
+    }
+
+    var rows = document.querySelectorAll('.rearrangable-rows-table tbody tr');
+    // [].forEach.call(rows, addDnDHandlers);
+    Array.from(rows).forEach(r => addDnDHandlers(r))
+
+</script>
+{% endif %}
+
+</html>
+{% else %}
+Not authorized
+{% endif %}

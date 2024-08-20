@@ -1,0 +1,33 @@
+<html>
+<head>
+
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.16/css/jquery.dataTables.min.css">
+  <style>
+	.datatablerowhighlight {
+    		background-color: #ECFFB3 !important;
+	}
+  </style>
+  <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.16/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript">
+  	$(document).ready( function () {
+    		 $('#track_table').DataTable( { "order": [[ 5, "desc" ]], "paging": true, "pageLength": 50 } );
+	} );
+  </script>
+</head>
+<body>
+<table id="track_table" class="display">
+<thead><tr><th>Email</th><th>Agency</th><th>Submission ID</th><th>Datatype</th><th>Submit</th><th>Created Date</th><th>Log File</th></tr></thead>
+<tbody>
+	{% for s in session_json %}
+		{% set submit_file = request.script_root + '/download/' + s.submissionid|string + '/' + s.original_filename %}
+		<tr>
+		<td>{{ s.login_email }}</td><td>{{ s.login_agency }}</td><td>{{ s.submissionid }}</td><td>{{ s.datatype }}</td><td>{{ s.submit }}</td><td>{{ s.created_date }}</td><td><a href="{{ submit_file }}"> {{ s.original_filename }} </a></td>
+		</tr>
+	{% endfor %}
+</tbody>
+</table>
+</body>
+</html>
+
+
