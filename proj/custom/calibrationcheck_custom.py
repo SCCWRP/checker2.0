@@ -5,7 +5,7 @@ from flask import current_app, g
 from .functions import checkData
 import pandas as pd
 
-def test(all_dfs):
+def calibrationcheck(all_dfs):
     
     current_function_name = str(currentframe().f_code.co_name)
     
@@ -27,19 +27,7 @@ def test(all_dfs):
     # This is the convention that was followed in the old checker
     
     # This data type should only have tbl_example
-    # example = all_dfs['tbl_example']
-
-    # Alter this args dictionary as you add checks and use it for the checkData function
-    # for errors that apply to multiple columns, separate them with commas
-    # args = {
-    #     "dataframe": example,
-    #     "tablename": 'tbl_example',
-    #     "badrows": [],
-    #     "badcolumn": "",
-    #     "error_type": "",
-    #     "is_core_error": False,
-    #     "error_message": ""
-    # }
+    calibrationcheck = all_dfs['tbl_calibrationcheck']
 
     # Example of appending an error (same logic applies for a warning)
     # args.update({
@@ -49,5 +37,15 @@ def test(all_dfs):
     #   "error_message" : "This is a helpful useful message for the user"
     # })
     # errs = [*errs, checkData(**args)]
+
+    calibrationcheck_args = {
+        "dataframe": calibrationcheck,
+        "tablename": 'tbl_calibrationcheck',
+        "badrows": [],
+        "badcolumn": "",
+        "error_type": "",
+        "is_core_error": False,
+        "error_message": ""
+    }
 
     return {'errors': errs, 'warnings': warnings}

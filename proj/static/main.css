@@ -7,7 +7,7 @@ body {
 }
 body::after {
     content: "";
-    background: url(b23background.jpg) no-repeat center center fixed;
+    background: url(pesticidebackground.png) no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     -o-background-size: cover;

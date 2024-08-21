@@ -12,7 +12,6 @@ from .download import download
 from .report import report_bp
 from .scraper import scraper
 from .templater import templater # for dynamic lookup lists called into template before output to user
-from .strata_map_check import map_check, getgeojson
 from .admin import admin
 from .info import info
 from .query import query
@@ -209,8 +208,6 @@ app.register_blueprint(download)
 app.register_blueprint(scraper)
 app.register_blueprint(templater)
 app.register_blueprint(report_bp)
-app.register_blueprint(map_check)
-app.register_blueprint(getgeojson)
 app.register_blueprint(admin)
 app.register_blueprint(info)
 app.register_blueprint(query)

@@ -2,26 +2,7 @@
 
 from flask import current_app, g
 import pandas as pd
-import re
-import time
-import numpy as np
 
-# its getting late and its Friday and i need to leave soon,
-# I put this in a table called "lu_teststation"
-# later i need to adjust the checker code to use that table rather 
-test_station_renaming_key = {
-    'B23-12000' : 'B23-TEST1',
-    'B23-12321' : 'B23-TEST2',
-    'B23-12177' : 'B23-TEST3',
-    'B23-12044' : 'B23-TEST4',
-    'B23-12217' : 'B23-TEST5',
-    'B23-12194' : 'B23-TEST6',
-    'B23-12196' : 'B23-TEST7',
-    'B23-12063' : 'B23-TEST8',
-    'B23-12013' : 'B23-TEST9',
-    'B23-12064' : 'B23-TEST10',
-    'B23-12113' : 'B23-TEST11'
-}
 
 def strip_whitespace(all_dfs: dict):
     print("BEGIN Stripping whitespace function")
@@ -137,26 +118,15 @@ def fix_case(all_dfs: dict):
 # because every project will have those non-generalizable, one off, "have to hard code" kind of fixes
 # and this project is no exception
 def hardcoded_fixes(all_dfs):
-    if 'tbl_chemresults' in all_dfs.keys():
-        all_dfs['tbl_chemresults']['units'] = all_dfs['tbl_chemresults'] \
-            .apply(
-                lambda row: str(row.units).replace('ug/kg ww','ng/g ww').replace('ug/kg dw','ng/g dw') if not ('Reference' in str(row.sampletype)) else row.units, 
-                axis = 1
-            )
-    print('hardcorde fixes - done')
+    
     return all_dfs
 
 
 def clean_data(all_dfs):
     print("preprocessing")
     print("strip whitespace")
-    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
-    #rint('\n')
     all_dfs = strip_whitespace(all_dfs)
-    #print(all_dfs['tbl_fish_sample_metadata'][['siteid','estuaryname']])
-    #print('\n')
-    
-    #disabled to test checks -- jk enabled to test submit data
+    print("done stripping whitespace")
     
     # print("fix case")
     # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
@@ -168,51 +138,6 @@ def clean_data(all_dfs):
     print('done')
     return all_dfs
 
-
-def rename_test_stations(all_dfs, login_email):
-    print("renaming test stations")
-    
-    # Make the test_station_renaming_key (https://chat.openai.com/share/3f615ac3-2dd3-4dba-9456-3ff8f5530628)
-    df = pd.read_sql("SELECT stationid, test_stationid FROM lu_teststation", g.eng)
-    test_station_renaming_key = pd.Series(df.test_stationid.values,index=df.stationid).to_dict()
-
-    if login_email == current_app.config.get('TESTING_EMAIL_ADDRESS'):
-        for dfname, df in all_dfs.items():
-            all_dfs[dfname] = df.replace(test_station_renaming_key)
-
-    
-    print('done')
-
-    return all_dfs
-
-
-def check_test_stations(all_dfs, login_email):
-    errs = []
-    if login_email != current_app.config.get('TESTING_EMAIL_ADDRESS'):
-        return errs
-
-    # Make the test_station_renaming_key (https://chat.openai.com/share/3f615ac3-2dd3-4dba-9456-3ff8f5530628)
-    df = pd.read_sql("SELECT stationid, test_stationid FROM lu_teststation", g.eng)
-    test_station_renaming_key = pd.Series(df.test_stationid.values,index=df.stationid).to_dict()
-
-
-    for dfname, df in all_dfs.items():
-        if 'stationid' in df.columns:
-            badrows = df[ ~df.stationid.isin( [*list(test_station_renaming_key.keys()), *list(test_station_renaming_key.values())] ) ].index.tolist()
-
-            if len(badrows) > 0:
-                # same structure as output of checkData
-                # Also i just found out, i dont have to use the script_root when i dont put a slash in from of "scraper"
-                #   it automatically puts it after the script root part and handles the relative url the way we want
-                errs.append({
-                    "table": dfname,
-                    "rows": badrows,
-                    "columns": 'stationid',
-                    "error_type": 'Value Error',
-                    "is_core_error" : True,
-                    "error_message": f"This is a test submission, but you are not using one of the designated <a href=scraper?action=help&layer=lu_teststation target=_blank>test stations</a> as a stationid. Your values may come from either the stationid or the test_stationid column."
-                })
-    return errs
 
 
 

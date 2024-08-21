@@ -4,8 +4,8 @@
 if [ -z "$1" ]; then
     echo "Usage: $0 <container_name>"
     # exit 1
-    echo "using default container name for this repo: bight23-checker"
-    container_name='bight23-checker'
+    echo "using default container name for this repo: rb5pesticides-checker"
+    container_name='rb5pesticides-checker'
 else 
     container_name=$1
 fi

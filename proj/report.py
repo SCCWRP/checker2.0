@@ -1,89 +1,15 @@
 import os
-import time
 import pandas as pd
 import json
-import sqlite3
-
-from io import BytesIO
-from copy import deepcopy
-from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template, send_from_directory, make_response
-from pandas import read_sql, DataFrame
+from flask import Blueprint, jsonify, request, g, render_template, send_from_directory
 from openpyxl import load_workbook
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
 
-from .utils.excel import format_existing_excel
 
 report_bp = Blueprint('report', __name__)
 
-# This view is pretty specific to the bight project
-# I am considering making a folder called custom blueprints
-@report_bp.route('/report', methods=['GET', 'POST'])
-def report():
-    valid_datatypes = ['field', 'chemistry', 'infauna', 'toxicity', 'microplastics']
-    
-    # Give option for them to download specific data report views - which Dario requested in April 2024
-    # As we create more views, we can add more here
-    valid_views = ['vw_trawl_completion_status_simplified', 'vw_grab_completion_status_simplified']
-    specificview = request.args.get('view')
-    
-    if specificview is not None:
-        if specificview not in valid_views:
-            return jsonify({"error":"Bad Request", "message": f"{specificview} is not a valid name for a view"}), 400
-        
-        excel_blob = BytesIO()
-        data = pd.read_sql(f"SELECT * FROM {specificview}", g.eng)
-        with pd.ExcelWriter(excel_blob) as writer:
-            data.to_excel(writer, sheet_name = specificview[:31], index = False)
-        excel_blob.seek(0)
-        
-        # apply formatting
-        print("# apply formatting")
-        formatted_blob = format_existing_excel(excel_blob)
-        
-        # Make a response object to set a custom cookie
-        resp = make_response(send_file(formatted_blob, as_attachment=True, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', download_name=f"""{specificview}.xlsx"""))
 
-        return resp
-
-
-    datatype = request.args.get('datatype')
-
-    if datatype is None:
-        print("No datatype specified")
-        return render_template(
-            'report.html',
-            datatype=datatype
-        )
-    if datatype in valid_datatypes:
-        report_df = pd.read_sql(f'SELECT * FROM vw_tac_{datatype}_completion_status', g.eng)
-        
-        # Write report_df to export folder so we can download it
-        report_df_for_download = deepcopy(report_df)
-        report_df_for_download = report_df_for_download.assign(
-            stations = report_df_for_download.stations.apply(lambda x: [x.strip() for x in x.split(",")])    
-        )
-        print(report_df_for_download)
-        report_df_for_download = report_df_for_download.explode('stations')
-        report_df_for_download.to_excel(os.path.join(os.getcwd(), "export", f"report-{datatype}.xlsx"), index=False)
-        #####
-
-        report_df.set_index(
-            ['submissionstatus', 'lab', 'parameter'], inplace=True)
-    else:
-        report_df = pd.DataFrame(
-            columns=['submissionstatus', 'lab', 'parameter', 'stations'])
-        report_df.set_index(['submissionstatus', 'lab'], inplace=True)
-
-
-
-    return render_template(
-        'report.html',
-        datatype=datatype,
-        tables=[report_df.to_html(
-            classes=['w3-table', 'w3-bordered'], header="true", justify='left', sparsify=True)],
-        report_title=f'{datatype.capitalize()} Completeness Report'
-    )
 
 
 # We need to put the warnings report code here
@@ -260,81 +186,3 @@ def download():
         return send_from_directory(os.path.join(os.getcwd(), "export", "warnings_report"), export_name, as_attachment=True)
     
 
-
-@report_bp.route('/completeness-report', methods=['GET', 'POST'])
-def completeness_report():
-
-    # The sqlalchemy database connection object
-    eng = g.eng 
-
-    # Types of reports and their corresponding views
-    report_types = {
-        'toxicity': {
-            'stratum': 'vw_tox_stratum_completeness_report',
-            'agency' : 'vw_tox_agency_completeness_report'
-        },
-        'chemistry': {
-            'stratum': 'vw_chem_stratum_completeness_report',
-            'agency' : 'vw_chem_agency_completeness_report'
-        },
-        'benthic': {
-            'stratum': 'vw_benthic_infauna_stratum_completeness_report',
-            'agency' : 'vw_benthic_infauna_agency_completeness_report'
-        },
-        'trawl': {
-            'stratum': 'vw_trawl_data_stratum_completeness_report',
-            'agency' : 'vw_trawl_data_agency_completeness_report'
-        },
-        'microplastics': {
-            'stratum': 'vw_microplastics_stratum_completeness_report',
-            'agency' : 'vw_microplastics_agency_completeness_report'
-        },
-    }
-
-    report_type = request.args.get('report_type')
-
-
-    if report_type is None:
-        return render_template('completeness_report.jinja2', report_types = report_types.keys())
-    
-    
-    # Prepare a BytesIO object to write the report to
-    output = BytesIO()
-
-    if report_type.lower() == 'all':
-        with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-            for type_key, views in report_types.items():
-                for view_key, view_name in views.items():
-                    print(view_name)
-                    df = pd.read_sql(f"SELECT * FROM {view_name}", eng)
-                    df.to_excel(writer, sheet_name=f"{type_key}_{view_key}", index = False)
-            writer.save()
-
-        output.seek(0)  # Important: move back to the start of the BytesIO object
-        
-        # Format the excel file
-        output = format_existing_excel(output)
-
-        return send_file(output, as_attachment=True, download_name="completeness_reports.xlsx", mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-
-    
-    # If they made no request for "All" datatypes, then make sure they arent putting something funny - it should be one of the specific ones
-    if report_type not in report_types.keys():
-        return "Bad request", 400
-
-
-    # Generate specific report
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        view_names = report_types[report_type]
-        for key, view in view_names.items():
-            print(view)
-            df = pd.read_sql(f"SELECT * FROM {view}", eng)
-            df.to_excel(writer, sheet_name=f"{key}", index = False)
-        writer.save()
-
-    output.seek(0)  # Reset the buffer position to the beginning
-
-    # Format the excel file
-    output = format_existing_excel(output)
-
-    return send_file(output, as_attachment=True, download_name=f'{report_type}_completeness_report.xlsx', mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

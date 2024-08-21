@@ -40,36 +40,7 @@ RUN pip3 install arcgis
 RUN pip3 install scipy 
 RUN pip3 install shapely 
 #RUN pip3 install opencv-python
-# Install what we need for the R Python bridge
-RUN apt-get install -y r-base
-WORKDIR /tmp
 
-# Install dependencies for the necessary R packages
-
-# readxl and openxlsx will always be needed as an interface for excel files
-RUN Rscript -e 'install.packages(c("readxl"))'
-RUN Rscript -e 'install.packages(c("openxlsx"))'
-
-# dependencies for SQOUnified
-RUN Rscript -e 'install.packages(c("DBI", "dbplyr", "reshape2", "RPostgreSQL"))'
-RUN Rscript -e 'install.packages(c("rstudioapi", "vegan", "dplyr", "plyr", "purrr", "stringr", "tidyr"))'
-
-# dependencies for phcorrection
-RUN Rscript -e 'install.packages(c("seacarb"))'
-
-# install SQOUnified
-# You will need to go to github and generate a personal access token with repo access, and use it as a build arg
-# https://github.com/settings/tokens
-RUN apt-get install -y git
-ARG access_token='default'
-ENV access_token_=$access_token
-
-RUN git clone "https://r7butler:${access_token_}@github.com/SCCWRP/SQOUnified"
-RUN R CMD INSTALL --no-multiarch --with-keep.source SQOUnified
-
-# install phcorrection
-RUN git clone https://github.com/SCCWRP/phcorrection
-RUN R CMD INSTALL --no-multiarch --with-keep.source phcorrection
 
 RUN mkdir -p /var/www/checker/
 #WORKDIR /var/www/checker/
