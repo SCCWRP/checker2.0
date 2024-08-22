@@ -130,6 +130,7 @@ def foreign_keys(table, eng):
     sql = f"""
         SELECT
         DISTINCT
+            kcu.table_name,
             kcu.column_name, 
             ccu.table_name AS foreign_table_name
         FROM 
@@ -148,6 +149,42 @@ def foreign_keys(table, eng):
     dat = read_sql(sql, eng)
     return dat.set_index('column_name')['foreign_table_name'].to_dict() if not dat.empty else dict()
 
+
+def foreign_key_detail(table, eng):
+    '''
+    table is the tablename you want the foreign key relationships for
+    eng is the database connection
+    '''
+
+    sql = f"""
+        WITH tmp AS (
+            SELECT
+                kcu.table_name AS table_name,
+                kcu.column_name AS column_name,
+                ccu.table_name AS foreign_table_name,
+                ccu.column_name AS foreign_column_name
+            FROM 
+                information_schema.table_constraints AS tc
+                JOIN information_schema.key_column_usage AS kcu
+                    ON tc.constraint_name = kcu.constraint_name
+                    AND tc.table_schema = kcu.table_schema
+                JOIN information_schema.constraint_column_usage AS ccu
+                    ON ccu.constraint_name = tc.constraint_name
+                    AND ccu.table_schema = tc.table_schema
+            WHERE 
+                tc.constraint_type = 'FOREIGN KEY'
+        )
+        
+        SELECT * FROM tmp 
+        WHERE 
+            table_name LIKE 'tbl_%%' 
+            AND table_name = '{table}' 
+        ORDER BY table_name, column_name
+
+    """
+
+    dat = read_sql(sql, eng)
+    return dat.to_dict('records') if not dat.empty else dict()
 
 
 # In the part that gets the column comments we might need also :
