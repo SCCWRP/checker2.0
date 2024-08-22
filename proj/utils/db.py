@@ -184,7 +184,27 @@ def foreign_key_detail(table, eng):
     """
 
     dat = read_sql(sql, eng)
-    return dat.to_dict('records') if not dat.empty else dict()
+    if dat.empty:
+        return {}
+
+    # Build the dictionary in the desired structure
+    result = {}
+    
+    for _, row in dat.iterrows():
+        table_name = row['table_name']
+        column_name = row['column_name']
+        foreign_table_name = row['foreign_table_name']
+        foreign_column_name = row['foreign_column_name']
+        
+        if table_name not in result:
+            result[table_name] = {}
+        
+        result[table_name][column_name] = {
+            "referenced_table": foreign_table_name,
+            "referenced_column": foreign_column_name
+        }
+
+    return result
 
 
 # In the part that gets the column comments we might need also :

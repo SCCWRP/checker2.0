@@ -10,6 +10,7 @@ from pandas import DataFrame
 import re
 import os
 import openpyxl
+from openpyxl.utils import get_column_letter, quote_sheetname
 from openpyxl.styles import PatternFill, Font
 from openpyxl.styles.alignment import Alignment
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -64,12 +65,17 @@ def template2():
         
         pkey_fields = primary_key(tbl, eng)
         fkey_detail = foreign_key_detail(tbl, eng)
+        print('fkey_detail')
+        print(fkey_detail)
         tabs_dict[tbl] = {
             'pkey_fields' : pkey_fields,
             'foreign_key_detail' : fkey_detail,
-            'foreign_key_tables' : [x.get('foreign_table_name') for x in fkey_detail],
-            'constrained_columns' : [x.get('column_name') for x in fkey_detail]
+            'foreign_key_tables' : list({info['referenced_table'] for info in fkey_detail.get(tbl, {}).values()}),
+            'constrained_columns' : list(fkey_detail.get(tbl).keys())
         }
+        
+        print("tabs dict")
+        print( tabs_dict[tbl])
     
     lookup_tables = [t for v in tabs_dict.values() for t in v.get('foreign_key_tables')]
     
@@ -123,7 +129,7 @@ def template2():
         # Gray highlight format
         FKEY_HIGHLIGHT = PatternFill(start_color="D7D6D6", end_color="D7D6D6", fill_type="solid")
         PKEY_BOLD_FONT = Font(bold=True)
-        COL_HEADER_ROTATION = Alignment(text_rotation=90, horizontal = 'center', vertical = 'center')
+        COL_HEADER_ROTATION = Alignment(text_rotation=90, horizontal='center', vertical='center')
 
         workbook = writer.book
 
@@ -131,11 +137,11 @@ def template2():
         for sheetname, df in xls.items():
             df.to_excel(writer, sheet_name=sheetname, index=False)
 
+
         # Iterate over each sheet in the workbook
         for sheet in writer.sheets:
             # Access the active worksheet
             worksheet = writer.sheets[sheet]
-            
             
             # Get the DataFrame corresponding to this sheet
             df = xls[sheet]
@@ -144,31 +150,66 @@ def template2():
                 
                 tmp_pkey_cols = tabs_dict.get(sheet).get('pkey_fields', [])
                 tmp_constrained_cols = tabs_dict.get(sheet).get('constrained_columns', [])
+                tmp_fkey_details = tabs_dict.get(sheet).get('foreign_key_detail', {})
+                
+                # Create a dictionary to map column names to their 1-based indices
+                col_indices = {col: idx + 1 for idx, col in enumerate(df.columns)}
                 
                 # Get the column indices for primary key fields (1-based index)
-                pkey_bold_col_indices = [df.columns.get_loc(col) + 1 for col in tmp_pkey_cols]
-                non_pkey_col_indices = [df.columns.get_loc(col) + 1 for col in list(set(df.columns) - set(tmp_pkey_cols))]
+                pkey_bold_col_indices = [col_indices[col] for col in tmp_pkey_cols]
+                non_pkey_col_indices = [col_indices[col] for col in list(set(df.columns) - set(tmp_pkey_cols))]
                 
                 # Get the column indices for foreign key fields (1-based index)
-                fkey_highlighted_cols = [df.columns.get_loc(col) + 1 for col in tmp_constrained_cols]
+                fkey_highlighted_cols = [col_indices[col] for col in tmp_constrained_cols]
                 
                 # Apply formatting for primary key columns (bold font)
                 for col_idx in pkey_bold_col_indices:
                     worksheet.cell(row=1, column=col_idx).font = PKEY_BOLD_FONT
                 
                 # Apply formatting for NON primary key columns (NON bold font)
-                # has to be set explicitly to non bold
                 for col_idx in non_pkey_col_indices:
                     worksheet.cell(row=1, column=col_idx).font = Font(bold=False)
                 
                 # Apply formatting for foreign key columns (gray highlight)
                 for col_idx in fkey_highlighted_cols:
                     worksheet.cell(row=1, column=col_idx).fill = FKEY_HIGHLIGHT
-                
+                    
+                    
+                    # col_idx is the index for the excel sheet, which is a 1 based index
+                    referenced_table = tmp_fkey_details.get(sheet).get(df.columns[ col_idx - 1 ]).get('referenced_table')
+                    referenced_column = tmp_fkey_details.get(sheet).get(df.columns[ col_idx - 1 ]).get('referenced_column')
+                    
+                    
+                    referenced_sheetname = quote_sheetname(referenced_table)
+                    referenced_sheet_column_letter = get_column_letter(xls.get(referenced_table).columns.get_loc(referenced_column) + 1)
+                    
+                    # Find the last row in the referenced table's worksheet
+                    referenced_sheet = writer.sheets[referenced_table]
+                    max_ref_row = referenced_sheet.max_row
+                    
+                    dv = DataValidation(
+                        type="list",
+                        formula1=f"={referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row}",
+                        allow_blank = True
+                    )
+                    
+                    
+                    dv.error ='Your entry is not in the list'
+                    dv.errorTitle = 'Invalid Entry'
+                    
+                    
+                    # Convert column index to Excel column letter
+                    col_letter = get_column_letter(col_idx)
+                    
+                    # Apply the validation to the entire column, starting from row 2
+                    dv.add(f"{col_letter}2:{col_letter}1048576")
+                    
+                    worksheet.add_data_validation(dv)
+
                 # Apply rotation and centering to all column headers
                 for col_idx in range(1, len(df.columns) + 1):  # Use 1-based indexing
                     worksheet.cell(row=1, column=col_idx).alignment = COL_HEADER_ROTATION
-                    
+            
             else:
                 # Set the column widths based on max length in column
                 for column_cells in worksheet.columns:
@@ -179,8 +220,6 @@ def template2():
                 # Apply filters to the specified header row
                 if worksheet.max_row >= 0:  # Check if the header_row is within the data range
                     worksheet.auto_filter.ref = f"{worksheet.dimensions.split(':')[0]}:{worksheet.dimensions.split(':')[1]}"
-                    
-                    
 
     ############################################################################################################################
     ############################################################################################################################
