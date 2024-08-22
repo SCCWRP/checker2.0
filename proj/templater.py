@@ -14,6 +14,8 @@ from openpyxl.utils import get_column_letter, quote_sheetname
 from openpyxl.styles import PatternFill, Font
 from openpyxl.styles.alignment import Alignment
 from openpyxl.worksheet.datavalidation import DataValidation
+from openpyxl.formatting.rule import FormulaRule
+from openpyxl.comments import Comment
 from io import BytesIO
 
 from .utils.db import primary_key, foreign_key_detail
@@ -130,6 +132,10 @@ def template2():
         FKEY_HIGHLIGHT = PatternFill(start_color="D7D6D6", end_color="D7D6D6", fill_type="solid")
         PKEY_BOLD_FONT = Font(bold=True)
         COL_HEADER_ROTATION = Alignment(text_rotation=90, horizontal='center', vertical='center')
+        
+        # Define a light red fill
+        DATA_VALIDATION_ERROR_FILL = PatternFill(start_color="FFCCCB", end_color="FFCCCB", fill_type="solid")
+
 
         workbook = writer.book
 
@@ -174,37 +180,57 @@ def template2():
                 for col_idx in fkey_highlighted_cols:
                     worksheet.cell(row=1, column=col_idx).fill = FKEY_HIGHLIGHT
                     
+                    # Get the relevant foreign key details
+                    column_name = df.columns[col_idx - 1]
+                    foreign_key_info = tmp_fkey_details.get(sheet, dict()).get(column_name)
                     
-                    # col_idx is the index for the excel sheet, which is a 1 based index
-                    referenced_table = tmp_fkey_details.get(sheet).get(df.columns[ col_idx - 1 ]).get('referenced_table')
-                    referenced_column = tmp_fkey_details.get(sheet).get(df.columns[ col_idx - 1 ]).get('referenced_column')
+                    if foreign_key_info is not None:
                     
-                    
-                    referenced_sheetname = quote_sheetname(referenced_table)
-                    referenced_sheet_column_letter = get_column_letter(xls.get(referenced_table).columns.get_loc(referenced_column) + 1)
-                    
-                    # Find the last row in the referenced table's worksheet
-                    referenced_sheet = writer.sheets[referenced_table]
-                    max_ref_row = referenced_sheet.max_row
-                    
-                    dv = DataValidation(
-                        type="list",
-                        formula1=f"={referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row}",
-                        allow_blank = True
-                    )
-                    
-                    
-                    dv.error ='Your entry is not in the list'
-                    dv.errorTitle = 'Invalid Entry'
-                    
-                    
-                    # Convert column index to Excel column letter
-                    col_letter = get_column_letter(col_idx)
-                    
-                    # Apply the validation to the entire column, starting from row 2
-                    dv.add(f"{col_letter}2:{col_letter}1048576")
-                    
-                    worksheet.add_data_validation(dv)
+                        # col_idx is the index for the excel sheet, which is a 1 based index
+                        referenced_table = tmp_fkey_details.get(sheet).get(df.columns[ col_idx - 1 ]).get('referenced_table')
+                        referenced_column = tmp_fkey_details.get(sheet).get(df.columns[ col_idx - 1 ]).get('referenced_column')
+                        
+                        # Add a comment to the header indicating the lookup table
+                        header_cell = worksheet.cell(row=1, column=col_idx)
+                        comment_text = f"References {referenced_table}.{referenced_column}"
+                        header_cell.comment = Comment(text=comment_text, author="System")
+                        
+                        
+                        
+                        referenced_sheetname = quote_sheetname(referenced_table)
+                        referenced_sheet_column_letter = get_column_letter(xls.get(referenced_table).columns.get_loc(referenced_column) + 1)
+                        
+                        # Find the last row in the referenced table's worksheet
+                        referenced_sheet = writer.sheets[referenced_table]
+                        max_ref_row = referenced_sheet.max_row
+                        
+                        dv = DataValidation(
+                            type="list",
+                            formula1=f"={referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row}",
+                            allow_blank = True
+                        )
+                        
+                        
+                        dv.error ='Your entry is not in the list'
+                        dv.errorTitle = 'Invalid Entry'
+                        
+                        
+                        # Convert column index to Excel column letter
+                        col_letter = get_column_letter(col_idx)
+                        
+                        # Apply the validation to the entire column, starting from row 2
+                        dv.add(f"{col_letter}2:{col_letter}1048576")
+                        
+                        worksheet.add_data_validation(dv)
+                        
+                        # Apply Conditional Formatting to highlight invalid entries
+                        formula = f'=AND({col_letter}2<>"", COUNTIF({referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row},{col_letter}2)=0)'
+
+                        worksheet.conditional_formatting.add(
+                            f"{col_letter}2:{col_letter}1048576",
+                            FormulaRule(formula=[formula], fill=DATA_VALIDATION_ERROR_FILL)
+                        )
+
 
                 # Apply rotation and centering to all column headers
                 for col_idx in range(1, len(df.columns) + 1):  # Use 1-based indexing
