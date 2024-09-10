@@ -18,7 +18,7 @@ from openpyxl.formatting.rule import FormulaRule
 from openpyxl.comments import Comment
 from io import BytesIO
 
-from .utils.db import primary_key, foreign_key_detail
+from .utils.db import primary_key, foreign_key_detail, get_column_comments
 
 # dynamic lookup lists to template
 # skip the formatting
@@ -29,7 +29,7 @@ templater = Blueprint('templater', __name__)
 @templater.route('/templates', methods = ['GET', 'POST']) # this will be added to the index.html file to dynamically call the lookup lists to each template
 @templater.route('/templater', methods = ['GET', 'POST']) # this will be added to the index.html file to dynamically call the lookup lists to each template
 # consider using the app.datasets dictionary to generalize the code better
-def template2():
+def template():
     system_fields = current_app.system_fields
     datatype = request.args.get("datatype")
 
@@ -131,19 +131,34 @@ def template2():
         
     with pd.ExcelWriter(excel_blob, engine='openpyxl') as writer:
         # Gray highlight format
+        
+        
+        
         FKEY_HIGHLIGHT = PatternFill(start_color="D7D6D6", end_color="D7D6D6", fill_type="solid")
         PKEY_BOLD_FONT = Font(bold=True)
-        COL_HEADER_ROTATION = Alignment(text_rotation=90, horizontal='center', vertical='center')
+        
+        try:
+            rotation = int(current_app.config.get("TEMPLATE_COLUMN_HEADER_ROTATION", 90))
+            COL_HEADER_ROTATION = Alignment(text_rotation = rotation , horizontal='center', vertical='center')
+        except Exception as e:
+            print("Warning: Couldnt set custom column header rotation - likely an error in the app configuration - defaulting to 90")
+            COL_HEADER_ROTATION = Alignment(text_rotation=90, horizontal='center', vertical='center')
+            
         
         # Define a light red fill
         DATA_VALIDATION_ERROR_FILL = PatternFill(start_color="FFCCCB", end_color="FFCCCB", fill_type="solid")
 
+        # Fetch column comments if config option is True
+        INCLUDE_COMMENTS = current_app.config.get("INCLUDE_COLUMN_COMMENTS", False)
+        
+        # Start the offset at 0, add one 
+        COMMENT_OFFSET = int(INCLUDE_COMMENTS)
 
         workbook = writer.book
 
         # Write each DataFrame to the appropriate sheet
         for sheetname, df in xls.items():
-            df.to_excel(writer, sheet_name=sheetname, index=False)
+            df.to_excel(writer, sheet_name=sheetname, index=False, header = False)
 
 
         # Iterate over each sheet in the workbook
@@ -155,6 +170,28 @@ def template2():
             df = xls[sheet]
             
             if sheet in tabs_dict.keys():
+                
+                if INCLUDE_COMMENTS:
+                    
+                    # Grab the column comments from the database
+                    column_comments = get_column_comments(sheet, eng)
+                    comment_map = column_comments.set_index('column_name')['column_comment'].to_dict()
+
+                    # Create a new DataFrame with comments as the first row
+                    comment_row = [comment_map.get(col, '') for col in df.columns]
+                    
+                    worksheet.insert_rows(1)
+                    
+                    # Write the new row to the first row
+                    for col_idx, value in enumerate(comment_row, start=1):
+                        worksheet.cell(row=1, column=col_idx).value = value
+                    
+                # Write the column headers
+                for col_idx, value in enumerate( list(df.columns), start = 1 ):
+                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).value = value
+                
+                
+                
                 
                 tmp_pkey_cols = tabs_dict.get(sheet).get('pkey_fields', [])
                 tmp_constrained_cols = tabs_dict.get(sheet).get('constrained_columns', [])
@@ -172,15 +209,15 @@ def template2():
                 
                 # Apply formatting for primary key columns (bold font)
                 for col_idx in pkey_bold_col_indices:
-                    worksheet.cell(row=1, column=col_idx).font = PKEY_BOLD_FONT
+                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).font = PKEY_BOLD_FONT
                 
                 # Apply formatting for NON primary key columns (NON bold font)
                 for col_idx in non_pkey_col_indices:
-                    worksheet.cell(row=1, column=col_idx).font = Font(bold=False)
+                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).font = Font(bold=False)
                 
                 # Apply formatting for foreign key columns (gray highlight)
                 for col_idx in fkey_highlighted_cols:
-                    worksheet.cell(row=1, column=col_idx).fill = FKEY_HIGHLIGHT
+                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).fill = FKEY_HIGHLIGHT
                     
                     # Get the relevant foreign key details
                     column_name = df.columns[col_idx - 1]
@@ -193,7 +230,7 @@ def template2():
                         referenced_column = tmp_fkey_details.get(sheet).get(df.columns[ col_idx - 1 ]).get('referenced_column')
                         
                         # Add a comment to the header indicating the lookup table
-                        header_cell = worksheet.cell(row=1, column=col_idx)
+                        header_cell = worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx)
                         comment_text = f"References {referenced_table}.{referenced_column}"
                         header_cell.comment = Comment(text=comment_text, author="System")
                         
@@ -208,7 +245,7 @@ def template2():
                         
                         dv = DataValidation(
                             type="list",
-                            formula1=f"={referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row}",
+                            formula1=f"={referenced_sheetname}!${referenced_sheet_column_letter}${2 + COMMENT_OFFSET}:${referenced_sheet_column_letter}${max_ref_row}",
                             allow_blank = True
                         )
                         
@@ -220,23 +257,23 @@ def template2():
                         # Convert column index to Excel column letter
                         col_letter = get_column_letter(col_idx)
                         
-                        # Apply the validation to the entire column, starting from row 2
-                        dv.add(f"{col_letter}2:{col_letter}1048576")
+                        # Apply the validation to the entire column, starting from row 2 + COMMENT_OFFSET
+                        dv.add(f"{col_letter}{2 + COMMENT_OFFSET}:{col_letter}1048576")
                         
                         worksheet.add_data_validation(dv)
                         
                         # Apply Conditional Formatting to highlight invalid entries
-                        formula = f'=AND({col_letter}2<>"", COUNTIF({referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row},{col_letter}2)=0)'
+                        formula = f'=AND({col_letter}{2 + COMMENT_OFFSET}<>"", COUNTIF({referenced_sheetname}!${referenced_sheet_column_letter}${2 + COMMENT_OFFSET}:${referenced_sheet_column_letter}${max_ref_row},{col_letter}{2 + COMMENT_OFFSET})=0)'
 
                         worksheet.conditional_formatting.add(
-                            f"{col_letter}2:{col_letter}1048576",
+                            f"{col_letter}{2 + COMMENT_OFFSET}:{col_letter}1048576",
                             FormulaRule(formula=[formula], fill=DATA_VALIDATION_ERROR_FILL)
                         )
 
 
                 # Apply rotation and centering to all column headers
                 for col_idx in range(1, len(df.columns) + 1):  # Use 1-based indexing
-                    worksheet.cell(row=1, column=col_idx).alignment = COL_HEADER_ROTATION
+                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).alignment = COL_HEADER_ROTATION
             
             else:
                 # Set the column widths based on max length in column

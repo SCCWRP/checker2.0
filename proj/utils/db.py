@@ -280,3 +280,26 @@ def metadata_summary(table, eng):
 				ORDER BY colorder.column_position;
     """
     return read_sql(sql, eng)
+
+
+# Get the column comments for the excel data submission template
+def get_column_comments(table, eng):
+    query = f"""
+        SELECT
+            cols.TABLE_NAME AS tablename,
+            cols.COLUMN_NAME AS column_name,
+            (
+                SELECT
+                    pg_catalog.col_description ( C.oid, cols.ordinal_position :: INT ) 
+                FROM
+                    pg_catalog.pg_class C 
+                WHERE
+                    C.oid = ( SELECT ( '"' || cols.TABLE_NAME || '"' ) :: regclass :: oid ) 
+                    AND C.relname = cols.TABLE_NAME 
+            ) AS column_comment 
+        FROM
+            information_schema.COLUMNS cols 
+        WHERE
+            cols.TABLE_NAME = '{table}'
+    """
+    return read_sql(query, eng)

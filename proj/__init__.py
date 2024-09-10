@@ -49,8 +49,17 @@ app.config.update(CONFIG)
 # add option to allow empty tables in submissions
 # some projects have asked for that, other projects require us to not allow empty tables in submissions
 if 'ALLOW_EMPTY_TABLES' in CONFIG.keys():
-    assert CONFIG.get('ALLOW_EMPTY_TABLES') in ('True', 'False'), 'ALLOW_EMPTY_TABLES option in app configuration must be "True" or "False" - case sensitive'
-    app.config['ALLOW_EMPTY_TABLES'] = eval(CONFIG.get('ALLOW_EMPTY_TABLES'))
+    assert str(CONFIG.get('ALLOW_EMPTY_TABLES')).lower() in ('true', 'false'), 'ALLOW_EMPTY_TABLES option in app configuration must be "True" or "False" '
+    app.config['ALLOW_EMPTY_TABLES'] = eval( str(CONFIG.get('ALLOW_EMPTY_TABLES')).capitalize() ) 
+
+
+# add option to allow column comments in the data submission templates
+if 'INCLUDE_COLUMN_COMMENTS' in CONFIG.keys():
+    assert str(CONFIG.get('INCLUDE_COLUMN_COMMENTS')).lower() in ('true', 'false'), 'INCLUDE_COLUMN_COMMENTS option in app configuration must be "True" or "False" '
+    app.config['INCLUDE_COLUMN_COMMENTS'] = eval( str(CONFIG.get('INCLUDE_COLUMN_COMMENTS')).capitalize() ) 
+
+
+
 
 # set the database connection string, database, and type of database we are going to point our application at
 #app.eng = create_engine(os.environ.get("DB_CONNECTION_STRING"))
