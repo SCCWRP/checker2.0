@@ -206,10 +206,12 @@
               </form>
             </div>
             <br>
+            {% if submission_tips_enabled %}
             <div class="row container">
-              <a role = "button" href="{{url_for('info.attnpts')}}" target="_blank" class="btn btn-info" id="data-info-button">⚠️ Data submission attention points ⚠️</a>
+                <a role = "button" href="{{url_for('info.attnpts')}}" target="_blank" class="btn btn-info" id="data-info-button">⚠️ Data submission attention points ⚠️</a>
             </div>
             <br>
+            {% endif %}
             <div class="row container">
               <button class="btn btn-dark" id="clear-session-button">Clear Session Info and Start New Submission Session</button>
             </div>

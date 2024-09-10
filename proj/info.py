@@ -14,7 +14,7 @@ teams_username = os.environ.get("MS_USERNAME")
 teams_password = os.environ.get("MS_PASSWORD")
 sitefolder = os.environ.get("TEAMS_SITEFOLDER")
 url = os.environ.get("SHAREPOINT_SITE_URL")
-teamname = 'Bight2023IM'
+teamname = os.environ.get("TEAM_NAME")
 instructions_filename = os.environ.get('INSTRUCTIONS_FILENAME')
 
 

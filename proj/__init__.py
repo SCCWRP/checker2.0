@@ -99,6 +99,7 @@ print("app.datasets")
 print(app.datasets)
 
 app.global_login_form = CONFIG.get('GLOBAL_LOGIN_FORM') # may be a nonetype object
+app.submission_tips_enabled = str(CONFIG.get('SUBMISSION_TIPS_ENABLED')).lower() == 'true' 
 
 print("Be sure not to prefix the login fields with 'login' in the datasets.json config file")
 
