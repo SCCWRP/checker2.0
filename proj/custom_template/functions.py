@@ -3,7 +3,6 @@ from pandas import isnull, DataFrame
 
 def checkData(dataframe, tablename, badrows, badcolumn, error_type, is_core_error = False, error_message = "Error", errors_list = [], q = None):
     
-    # See comments on the get_badrows function
     # doesnt have to be used but it makes it more convenient to plug in a check
     # that function can be used to get the badrows argument that would be used in this function
     
