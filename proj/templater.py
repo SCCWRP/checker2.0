@@ -62,6 +62,8 @@ def template2():
     tabs_dict = {}
 
     for tbl in tbls:
+        print('tbl')
+        print(tbl)
         # foreign key detail returns a dictionary in records fashion rather than just columns and which tables they reference
         # foreign key detail gives the name of the referenced column as well
         
@@ -73,11 +75,11 @@ def template2():
             'pkey_fields' : pkey_fields,
             'foreign_key_detail' : fkey_detail,
             'foreign_key_tables' : list({info['referenced_table'] for info in fkey_detail.get(tbl, {}).values()}),
-            'constrained_columns' : list(fkey_detail.get(tbl).keys())
+            'constrained_columns' : list(fkey_detail.get(tbl, {}).keys())
         }
         
         print("tabs dict")
-        print( tabs_dict[tbl])
+        print( tabs_dict[tbl] )
     
     lookup_tables = [t for v in tabs_dict.values() for t in v.get('foreign_key_tables')]
     
