@@ -130,12 +130,21 @@ def template():
     excel_blob = BytesIO()
         
     with pd.ExcelWriter(excel_blob, engine='openpyxl') as writer:
+        
+        # Set the correct font size for the column headers, according to the config file
+        try:
+            COLUMN_HEADER_FONT_SIZE = current_app.config.get("TEMPLATE_COLUMN_HEADER_FONT_SIZE", 12)
+        except Exception as e:
+            
+            print(
+                "Warning: Could not set custom header font size for data submission template - most likely there is an error in the app configuration (wrong datatype for TEMPLATE_COLUMN_HEADER_FONT_SIZE?)"
+            )
+            
+            COLUMN_HEADER_FONT_SIZE = 12
+        
         # Gray highlight format
-        
-        
-        
         FKEY_HIGHLIGHT = PatternFill(start_color="D7D6D6", end_color="D7D6D6", fill_type="solid")
-        PKEY_BOLD_FONT = Font(bold=True)
+        PKEY_BOLD_FONT = Font(bold=True,size=COLUMN_HEADER_FONT_SIZE)
         
         try:
             rotation = int(current_app.config.get("TEMPLATE_COLUMN_HEADER_ROTATION", 90))
@@ -153,7 +162,8 @@ def template():
         
         # Start the offset at 0, add one 
         COMMENT_OFFSET = int(INCLUDE_COMMENTS)
-
+        
+        
         workbook = writer.book
 
         # Write each DataFrame to the appropriate sheet
@@ -183,14 +193,22 @@ def template():
                     worksheet.insert_rows(1)
                     
                     # Write the new row to the first row
-                    for col_idx, value in enumerate(comment_row, start=1):
-                        worksheet.cell(row=1, column=col_idx).value = value
+                    for col_idx, value in enumerate(comment_row, start = 1):
+                        cell = worksheet.cell(row = 1, column = col_idx)
+                        cell.value = value
+                        
+                        # Apply text wrap to the comment cells
+                        cell.alignment = Alignment(wrap_text=True, horizontal='center', vertical='center')
                     
                 # Write the column headers
                 for col_idx, value in enumerate( list(df.columns), start = 1 ):
-                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).value = value
-                
-                
+                    cell = worksheet.cell(row = 1 + COMMENT_OFFSET, column = col_idx)
+                    cell.value = value
+                    
+                    max_length = len(str(value))
+                    
+                    # Give a little bit of a cushion - a bit more if there are comments
+                    worksheet.column_dimensions[worksheet.cell(row= 1 + COMMENT_OFFSET, column = col_idx).column_letter].width = max_length + (5 * (1 + (COMMENT_OFFSET*2) ) )
                 
                 
                 tmp_pkey_cols = tabs_dict.get(sheet).get('pkey_fields', [])
@@ -213,7 +231,9 @@ def template():
                 
                 # Apply formatting for NON primary key columns (NON bold font)
                 for col_idx in non_pkey_col_indices:
-                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).font = Font(bold=False)
+                    
+                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).font = Font(bold=False,size=COLUMN_HEADER_FONT_SIZE)
+                    
                 
                 # Apply formatting for foreign key columns (gray highlight)
                 for col_idx in fkey_highlighted_cols:
