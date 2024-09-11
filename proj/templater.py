@@ -11,7 +11,7 @@ import re
 import os
 import openpyxl
 from openpyxl.utils import get_column_letter, quote_sheetname
-from openpyxl.styles import PatternFill, Font
+from openpyxl.styles import PatternFill, Font, Border, Side, Color
 from openpyxl.styles.alignment import Alignment
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import FormulaRule
@@ -134,6 +134,7 @@ def template():
         # Set the correct font size for the column headers, according to the config file
         try:
             COLUMN_HEADER_FONT_SIZE = current_app.config.get("TEMPLATE_COLUMN_HEADER_FONT_SIZE", 12)
+            COLUMN_COMMENT_FONT_SIZE = current_app.config.get("TEMPLATE_COLUMN_COMMENT_FONT_SIZE", 12)
         except Exception as e:
             
             print(
@@ -141,6 +142,14 @@ def template():
             )
             
             COLUMN_HEADER_FONT_SIZE = 12
+            COLUMN_COMMENT_FONT_SIZE = 12
+        
+        # Get the custom column header fill
+        CUSTOM_COLUMN_HEADER_FILL = current_app.config.get("TEMPLATE_COLUMN_HEADER_FILL", None)
+        CUSTOM_COLUMN_HEADER_BORDER_COLOR = current_app.config.get("TEMPLATE_COLUMN_HEADER_BORDER_COLOR", "#000000")
+        
+        CUSTOM_COLUMN_COMMENT_FILL = current_app.config.get("TEMPLATE_COLUMN_COMMENT_FILL", None)
+        CUSTOM_COLUMN_COMMENT_BORDER_COLOR = current_app.config.get("TEMPLATE_COLUMN_COMMENT_BORDER_COLOR", "#000000")
         
         # Gray highlight format
         FKEY_HIGHLIGHT = PatternFill(start_color="D7D6D6", end_color="D7D6D6", fill_type="solid")
@@ -168,7 +177,9 @@ def template():
 
         # Write each DataFrame to the appropriate sheet
         for sheetname, df in xls.items():
-            df.to_excel(writer, sheet_name=sheetname, index=False, header = False)
+            
+            # For the actual sheets where they will fill in their data, we dont want to write the column headers here
+            df.to_excel(writer, sheet_name=sheetname, index=False, header = (not sheetname.startswith('tbl_')) )
 
 
         # Iterate over each sheet in the workbook
@@ -199,6 +210,29 @@ def template():
                         
                         # Apply text wrap to the comment cells
                         cell.alignment = Alignment(wrap_text=True, horizontal='center', vertical='center')
+                        
+                        # If app config has a custom column comment fill, set it
+                        if CUSTOM_COLUMN_COMMENT_FILL is not None:
+                            CUSTOM_COLUMN_COMMENT_FILL = str(CUSTOM_COLUMN_COMMENT_FILL).replace("#","").upper()
+                            try:
+                                cell = worksheet.cell(row = 1, column = col_idx)
+                                cell.fill = PatternFill(start_color = CUSTOM_COLUMN_COMMENT_FILL, end_color = CUSTOM_COLUMN_COMMENT_FILL, fill_type = "solid")
+                            except Exception as e:
+                                print("Couldn't set custom column header fill - likely an error in app configuration")
+                                print("Here is the exception message:")
+                                print(e)
+                        
+                        # set font size for the comments
+                        cell.font = Font(bold=False,size=COLUMN_COMMENT_FONT_SIZE)
+                        
+                        # Stick borders on the column comments
+                        CUSTOM_COLUMN_COMMENT_BORDER_COLOR = str(CUSTOM_COLUMN_COMMENT_BORDER_COLOR).replace("#","").upper()
+                        border_style = Side(border_style="thin", color=CUSTOM_COLUMN_COMMENT_BORDER_COLOR)
+                        # Create the full border using the defined sides
+                        border = Border(left=border_style, right=border_style, top=border_style, bottom=border_style)
+                        # stick the border on the cell
+                        cell = worksheet.cell(row = 1, column = col_idx)
+                        cell.border = border
                     
                 # Write the column headers
                 for col_idx, value in enumerate( list(df.columns), start = 1 ):
@@ -291,9 +325,47 @@ def template():
                         )
 
 
-                # Apply rotation and centering to all column headers
+                # Apply final styling for the column headers
                 for col_idx in range(1, len(df.columns) + 1):  # Use 1-based indexing
-                    worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx).alignment = COL_HEADER_ROTATION
+                    
+                    # define the cell object that we will apply styling to
+                    cell = worksheet.cell(row=1 + COMMENT_OFFSET, column=col_idx)
+                    
+                    # Apply rotation and centering to all column headers
+                    cell.alignment = COL_HEADER_ROTATION
+                    
+                    # If app config has a custom column header fill, set it - overriding the previously set ones for the foreign keys, etc.
+                    if CUSTOM_COLUMN_HEADER_FILL is not None:
+                        CUSTOM_COLUMN_HEADER_FILL = str(CUSTOM_COLUMN_HEADER_FILL).replace("#","").upper()
+                        try:
+                            cell = worksheet.cell(row = 1 + COMMENT_OFFSET, column = col_idx)
+                            cell.fill = PatternFill(start_color = CUSTOM_COLUMN_HEADER_FILL, end_color = CUSTOM_COLUMN_HEADER_FILL, fill_type = "solid")
+                        except Exception as e:
+                            print("Couldn't set custom column header fill - likely an error in app configuration")
+                            print("Here is the exception message:")
+                            print(e)
+                    
+                        
+                    
+                    # Border
+                    try:
+                        # Apply custom border - default it to black
+                        CUSTOM_COLUMN_HEADER_BORDER_COLOR = str(CUSTOM_COLUMN_HEADER_BORDER_COLOR).replace("#","").upper()
+                        
+                        border_style = Side(border_style="thin", color=CUSTOM_COLUMN_HEADER_BORDER_COLOR)
+                        
+                        # Create the full border using the defined sides
+                        border = Border(left=border_style, right=border_style, top=border_style, bottom=border_style)
+
+                        # stick the border on the cell
+                        cell = worksheet.cell(row = 1 + COMMENT_OFFSET, column = col_idx)
+                        cell.border = border
+                        
+                    except Exception as e:
+                        print("Couldn't set column border - likely an error in app configuration")
+                        print("Here is the exception message:")
+                        print(e)
+                            
             
             else:
                 # Set the column widths based on max length in column
