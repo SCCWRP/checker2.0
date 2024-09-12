@@ -1,104 +1,18 @@
-import os, shutil
+import re, os, shutil
 from io import BytesIO
 
 from openpyxl import load_workbook
 from openpyxl.comments import Comment
 from openpyxl.styles import Font, Border, Side, PatternFill
 
-from flask import session
+from flask import session, current_app
 from math import floor
 
-
-def mark_workbook(all_dfs, excel_path, errs, warnings):
-    assert session.get('submission_dir') is not None, "function - mark_workbook - session submission dir is not defined."
-    orig_filename = excel_path.rsplit('/', 1)[-1]
-    filename = orig_filename.rsplit('.',1)[0]
-    ext = orig_filename.rsplit('.',1)[-1]
-    marked_path = os.path.join(session.get('submission_dir'), f"{filename}-marked.{ext}")
-    
-    # copy the excel file and have "marked" in the name, and we will mark this excel file
-    shutil.copy(excel_path, marked_path)
-
-    # No empty errors allowed otherwise it crashes
-    errs = [e for e in errs if len(e) > 0]
-
-    errs_cells = dict()
-    for table in set([e.get('table') for e in errs]):
-        errs_cells[table] = []
-        [    
-            errs_cells[table].append(
-                {
-                    'row_index': r,
-                    'column_index': all_dfs[table].columns.get_loc(str(col).strip().lower()),
-                    'message': e.get('error_message')
-                }
-            )
-            for e in errs
-            for col in e.get('columns').split(',')
-            for r in e.get('rows')
-            if e.get('table') == table
-        ]
-
-    warnings_cells = dict()
-    for table in set([w.get('table') for w in warnings]):
-        warnings_cells[table] = []
-        [    
-            warnings_cells[table].append(
-                {
-                    'row_index': r,
-                    'column_index': all_dfs[table].columns.get_loc(str(col).strip().lower()),
-                    'message': f"{w.get('error_message')} (Warning)"
-                }
-            )
-            for w in warnings
-            for col in w.get('columns').split(',')
-            for r in w.get('rows')
-            if w.get('table') == table
-        ]
-
-    
-    # for errors
-    redFill = PatternFill(
-        start_color='FF8585',
-        end_color='FF8585',
-        fill_type='solid'
-    )
-
-    # for warnings
-    yellowFill = PatternFill(
-        start_color='00FFFF00',
-        end_color='00FFFF00',
-        fill_type='solid'
-    )
-
-
-    wb = load_workbook(marked_path)
-
-    for sheet in wb.sheetnames:
-        # Mark warnings first - this way if there are an error and warning in the same cell, the error will be shown
-        for coord in warnings_cells.get(sheet) if warnings_cells.get(sheet) is not None else []:
-            colindex = coord.get('column_index')
-            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{int(coord.get('row_index'))}"].fill = yellowFill 
-            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{int(coord.get('row_index'))}"].comment = Comment(coord.get('message'), "Checker")
-        
-        for coord in errs_cells.get(sheet) if errs_cells.get(sheet) is not None else []:
-            
-            # the workbook sheet or whatever its called accesses the cells of the excel file not with the numeric indexing like pandas but rather that letter indexing thing
-            # like "Cell A1" and stuff like that
-
-            # So the gigantic disgusting f string f"{chr(65 +  (math.floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"
-            # is to convert from pandas indexing to the letter indexing style thing
-
-            colindex = coord.get('column_index')
-            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{int(coord.get('row_index'))}"].fill = redFill 
-            wb[sheet][f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{int(coord.get('row_index'))}"].comment = Comment(coord.get('message'), "Checker")
-        
-    wb.save(marked_path)
-
-    return marked_path
+import traceback
 
 
 
+# Also gets called in the mark_workbook function
 def format_existing_excel(file_path_or_bytes_object, header_row = 1, cushion = 5, freeze_headers = True):
     
     assert isinstance(file_path_or_bytes_object, (str, BytesIO)), "file_path_or_bytes_object must be a string or BytesIO"
@@ -164,7 +78,23 @@ def format_existing_excel(file_path_or_bytes_object, header_row = 1, cushion = 5
 
         # Apply filters to the specified header row
         if sheet.max_row >= header_row:  # Check if the header_row is within the data range
-            sheet.auto_filter.ref = f"{sheet.dimensions.split(':')[0]}:{sheet.dimensions.split(':')[1]}"
+            print("Filter ref")
+            sheet_range_start = sheet.dimensions.split(':')[0]
+            sheet_range_end = sheet.dimensions.split(':')[1]
+
+            # Handle the case where we need to put the filters on "not the first row"
+            if header_row > 1:
+
+                # Column would stay the same
+                sheet_range_start_col = re.findall('[A-Z]', sheet_range_start)[0] if re.findall('[A-Z]', sheet_range_start) else 'A'
+
+                # shift the row by one
+                sheet_range_start_row = (int(re.findall('\d', sheet_range_start)[0]) + 1) if re.findall('\d', sheet_range_start) else '1'
+                
+                sheet_range_start = f"{sheet_range_start_col}{sheet_range_start_row}"
+
+
+            sheet.auto_filter.ref = f"{sheet_range_start}:{sheet_range_end}"
 
     # Save the workbook
     if isinstance(file_path_or_bytes_object, BytesIO):
@@ -176,3 +106,112 @@ def format_existing_excel(file_path_or_bytes_object, header_row = 1, cushion = 5
         workbook.save(file_path_or_bytes_object)
         return
         
+
+
+
+
+def mark_workbook(all_dfs, excel_path, errs, warnings):
+    assert session.get('submission_dir') is not None, "function - mark_workbook - session submission dir is not defined."
+    orig_filename = excel_path.rsplit('/', 1)[-1]
+    filename = orig_filename.rsplit('.',1)[0]
+    ext = orig_filename.rsplit('.',1)[-1]
+    marked_path = os.path.join(session.get('submission_dir'), f"{filename}-marked.{ext}")
+    
+    # copy the excel file and have "marked" in the name, and we will mark this excel file
+    shutil.copy(excel_path, marked_path)
+
+    # No empty errors allowed otherwise it crashes
+    errs = [e for e in errs if len(e) > 0]
+
+    errs_cells = dict()
+    for table in set([e.get('table') for e in errs]):
+        errs_cells[table] = []
+        [    
+            errs_cells[table].append(
+                {
+                    'row_index': r,
+                    'column_index': all_dfs[table].columns.get_loc(str(col).strip().lower()),
+                    'message': e.get('error_message')
+                }
+            )
+            for e in errs
+            for col in e.get('columns').split(',')
+            for r in e.get('rows')
+            if e.get('table') == table
+        ]
+
+    warnings_cells = dict()
+    for table in set([w.get('table') for w in warnings]):
+        warnings_cells[table] = []
+        [    
+            warnings_cells[table].append(
+                {
+                    'row_index': r,
+                    'column_index': all_dfs[table].columns.get_loc(str(col).strip().lower()),
+                    'message': f"{w.get('error_message')} (Warning)"
+                }
+            )
+            for w in warnings
+            for col in w.get('columns').split(',')
+            for r in w.get('rows')
+            if w.get('table') == table
+        ]
+
+    
+    # for errors
+    redFill = PatternFill(
+        start_color='FF8585',
+        end_color='FF8585',
+        fill_type='solid'
+    )
+
+    # for warnings
+    yellowFill = PatternFill(
+        start_color='00FFFF00',
+        end_color='00FFFF00',
+        fill_type='solid'
+    )
+
+    # Freeze top row
+    try:
+        EXCEL_OFFSET = (current_app.config.get("EXCEL_OFFSET", 0))
+    except Exception:
+        EXCEL_OFFSET = 0
+        print(f"Error in mark_workbook - setting the excel offset failed - likely an app configuration error (is it set to be an integer?):")
+        print(traceback.format_exc())
+
+    format_existing_excel(marked_path, header_row = 1 + EXCEL_OFFSET)
+
+    wb = load_workbook(marked_path)
+
+    for sheet in wb.sheetnames:
+
+        ws = wb[sheet]
+
+     
+        # Mark warnings first - this way if there are an error and warning in the same cell, the error will be shown
+        for coord in warnings_cells.get(sheet) if warnings_cells.get(sheet) is not None else []:
+            
+            colindex = coord.get('column_index')
+            cell = f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{int(coord.get('row_index'))}"
+            ws[cell].fill = yellowFill 
+            ws[cell].comment = Comment(coord.get('message'), "Checker")
+        
+        for coord in errs_cells.get(sheet) if errs_cells.get(sheet) is not None else []:
+            
+            # the workbook sheet or whatever its called accesses the cells of the excel file not with the numeric indexing like pandas but rather that letter indexing thing
+            # like "Cell A1" and stuff like that
+
+            # So the gigantic disgusting f string f"{chr(65 +  (math.floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{coord.get('row_index')}"
+            # is to convert from pandas indexing to the letter indexing style thing
+
+            colindex = coord.get('column_index')
+            cell = f"{chr(65 +  (floor(colindex/26) - 1)  ) if colindex >= 26 else ''}{chr(65 + (colindex % 26))}{int(coord.get('row_index'))}"
+            ws[cell].fill = redFill 
+            ws[cell].comment = Comment(coord.get('message'), "Checker")
+        
+
+    wb.save(marked_path)
+
+    return marked_path
+

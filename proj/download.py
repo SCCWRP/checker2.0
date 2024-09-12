@@ -1,8 +1,5 @@
-import os, time
-from flask import send_file, Blueprint, jsonify, request, g, current_app, render_template, send_from_directory, g 
-import pandas as pd
-from pandas import read_sql, DataFrame
-import re
+import os
+from flask import send_file, Blueprint, jsonify
 
 download = Blueprint('download', __name__)
 @download.route('/download/<submissionid>/<filename>', methods = ['GET','POST'])

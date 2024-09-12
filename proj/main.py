@@ -261,8 +261,6 @@ def main():
     errs = []
     warnings = []
 
-    # Special routine for test data:
-    errs.extend(check_test_stations(all_dfs, session.get('login_info').get('login_email')))
 
     print("Core Checks")
 
