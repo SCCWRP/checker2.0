@@ -47,7 +47,6 @@ def template():
     tbls = current_app.datasets.get(datatype)['tables']
     
     file_prefix = datatype.upper()
-    database_name = str(g.eng).replace(")","").split("/")[-1]
     print(current_app.datasets.keys())
 
     static_template = current_app.datasets.get(datatype).get('template_filename')
@@ -172,8 +171,6 @@ def template():
         # Start the offset at 0, add one 
         COMMENT_OFFSET = int(INCLUDE_COMMENTS)
         
-        
-        workbook = writer.book
 
         # Write each DataFrame to the appropriate sheet
         for sheetname, df in xls.items():
@@ -299,7 +296,7 @@ def template():
                         
                         dv = DataValidation(
                             type="list",
-                            formula1=f"={referenced_sheetname}!${referenced_sheet_column_letter}${2 + COMMENT_OFFSET}:${referenced_sheet_column_letter}${max_ref_row}",
+                            formula1=f"={referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row}",
                             allow_blank = True
                         )
                         
@@ -317,7 +314,7 @@ def template():
                         worksheet.add_data_validation(dv)
                         
                         # Apply Conditional Formatting to highlight invalid entries
-                        formula = f'=AND({col_letter}{2 + COMMENT_OFFSET}<>"", COUNTIF({referenced_sheetname}!${referenced_sheet_column_letter}${2 + COMMENT_OFFSET}:${referenced_sheet_column_letter}${max_ref_row},{col_letter}{2 + COMMENT_OFFSET})=0)'
+                        formula = f'=AND({col_letter}{2 + COMMENT_OFFSET}<>"", COUNTIF({referenced_sheetname}!${referenced_sheet_column_letter}$2:${referenced_sheet_column_letter}${max_ref_row},{col_letter}{2 + COMMENT_OFFSET})=0)'
 
                         worksheet.conditional_formatting.add(
                             f"{col_letter}{2 + COMMENT_OFFSET}:{col_letter}1048576",

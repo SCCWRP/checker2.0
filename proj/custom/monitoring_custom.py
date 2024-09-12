@@ -23,6 +23,12 @@ def monitoring(all_dfs):
     wq = all_dfs['tbl_ceden_waterquality']
     precip = all_dfs['tbl_precipitation']
     flow = all_dfs['tbl_flow']
+    
+    
+    # add tmp_row column - a copy of the index which ensures accuracy of assigning errors to rows
+    wq['tmp_row'] = wq.index
+    precip['tmp_row'] = precip.index
+    flow['tmp_row'] = flow.index
 
     errs = []
     warnings = []
@@ -48,7 +54,7 @@ def monitoring(all_dfs):
             flow[
                 (~flow['volumeunits'].isin(["L","ft3","gal"]))
                 & (~pd.isnull(flow['volumeunits']))
-            ].index.tolist()
+            ].tmp_row.tolist()
         ,
         "badcolumn": "volumeunits",
         "error_type": "Value Error",
@@ -65,7 +71,7 @@ def monitoring(all_dfs):
         ][
             # Then get where the units aree not what they should be
             ~flow['peakflowunits'].isin(['cfs','lps','gal/min','cms'])
-        ].index.tolist()
+        ].tmp_row.tolist()
     args.update({
         "dataframe": flow,
         "tablename": 'tbl_flow',
@@ -82,7 +88,7 @@ def monitoring(all_dfs):
             (~precip['totaldepth'].isna()) & precip['totaldepth'] !=-88
         ][
             ~precip['totaldepthunits'].isin(['cm','in'])
-        ].index.tolist()
+        ].tmp_row.tolist()
 
     args.update({
         "dataframe": precip,
@@ -101,7 +107,7 @@ def monitoring(all_dfs):
             (~pd.isnull(precip['onehourpeakintensity'])) & precip['onehourpeakintensity'] !=-88
         ][
             ~precip['onehourpeakrateunit'].isin(['in/hr','cm/hr','mm/hr'])
-        ].index.tolist()
+        ].tmp_row.tolist()
         
     args.update({
         "dataframe": precip,
@@ -135,7 +141,7 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )
-    ].index.tolist()
+    ].tmp_row.tolist()
     args.update({
         "dataframe": wq,
         "tablename": 'tbl_ceden_waterquality',
@@ -160,7 +166,7 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )
-    ].index.tolist()
+    ].tmp_row.tolist()
 
     args.update({
         "dataframe": flow,
@@ -189,7 +195,7 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )  
-    ].index.tolist()
+    ].tmp_row.tolist()
     args.update({
         "dataframe": flow,
         "tablename": 'tbl_flow',
@@ -219,7 +225,7 @@ def monitoring(all_dfs):
             ,
             axis = 1
         )  
-    ].index.tolist()
+    ].tmp_row.tolist()
     args.update({
         "dataframe": wq,
         "tablename": 'tbl_ceden_waterquality',

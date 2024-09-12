@@ -25,6 +25,15 @@ def meta(all_dfs):
     ms = all_dfs['tbl_monitoringstation']
     catchment = all_dfs['tbl_catchment']
     
+    
+    # add tmp_row column - a copy of the index which ensures accuracy of assigning errors to rows
+    testsite['tmp_row'] = testsite.index
+    bmp['tmp_row'] = bmp.index
+    ms['tmp_row'] = ms.index
+    catchment['tmp_row'] = catchment.index
+    
+    
+    
     errs = []
     warnings = []
 
@@ -58,8 +67,7 @@ def meta(all_dfs):
         "dataframe": bmp, 
         "tablename": 'tbl_bmpinfo',
         # Commented out code is what i think will work - Robert
-        #"badrows": bmp[bmpbmpname.apply(lambda x: ',' in x)]),
-        "badrows": bmp[bmp['bmpname'].isin([x for x in bmp.bmpname.values if "," in x])].index.tolist(),
+        "badrows": bmp[bmp.bmpname.apply(lambda x: ',' in str(x))].tmp_row.tolist(),
         "badcolumn": "bmpname",
         "error_type" : "Invalid BMP Name",
         "error_message" : "BMP Names may not contain commas."
@@ -75,10 +83,9 @@ def meta(all_dfs):
         set(bmp['bmpname'].values)
     )
     
-        
     badrows = bmp[bmp['upstreambmpnames'].isin(
         set([x for x in bmp['upstreambmpnames'].dropna().values for y in bad_upstreambmp if y in x]) 
-    )].index.tolist()
+    )].tmp_row.tolist()
 
     args.update({
         "dataframe": bmp, 
@@ -91,18 +98,7 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
 
-    # (3)
-
-    # sitecode_measurementtype = {
-    #     tmpsitename: 
-    #     set([
-    #         x.strip() 
-    #         for item in ms[ms.sitename ==tmpsitename].measurementtype.dropna().values  
-    #         for x in item.split(",")
-    #     ]) 
-    #     for tmpsitename in ms.sitename.unique()    
-    # }
-
+    # (3) Each site needs a rain gauge
     sitecode_measurementtype = {
         x :
         set(
@@ -121,7 +117,7 @@ def meta(all_dfs):
     }
     bad_sitename = [x for x in sitecode_measurementtype.keys() if "P" not in sitecode_measurementtype[x]]
     
-    badrows = ms[ms['sitename'].isin(bad_sitename)].index.tolist()
+    badrows = ms[ms['sitename'].isin(bad_sitename)].tmp_row.tolist()
     args.update({
         "dataframe": ms, 
         "tablename": 'tbl_monitoringstation',
@@ -132,7 +128,8 @@ def meta(all_dfs):
     })
     errs = [*errs, checkData(**args)]
 
-    # (4)
+    # (4) Each record in the BMP tab needs a corresponding record in the Monitoring Station tab 
+    # (This method is outdated and needs to be updated)
     badrows = bmp[
         bmp.apply(
             lambda row:
@@ -142,7 +139,7 @@ def meta(all_dfs):
             ,
             axis = 1
         )
-    ].index.tolist()
+    ].tmp_row.tolist()
     args.update({
         "dataframe": bmp,
         "tablename": "tbl_bmpinfo",
@@ -156,7 +153,7 @@ def meta(all_dfs):
     })
     errs = [*errs, checkData(**args)]
     
-    # (5) 
+    # (5) Each record in monitoringstation tab needs a corresponding record in the BMPInfo tab
     badrows = ms[
         ms.apply(
             lambda row:
@@ -166,7 +163,7 @@ def meta(all_dfs):
             ,
             axis = 1
         )
-    ].index.tolist()
+    ].tmp_row.tolist()
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
@@ -181,7 +178,7 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (6)
-    badrows = testsite[testsite['sitename'].isin(list(set(testsite['sitename']) - set(bmp['sitename'])) )].index.tolist()
+    badrows = testsite[testsite['sitename'].isin(list(set(testsite['sitename']) - set(bmp['sitename'])) )].tmp_row.tolist()
     args.update({
         "dataframe": testsite,
         "tablename": "tbl_testsite",
@@ -193,7 +190,7 @@ def meta(all_dfs):
     errs = [*errs, checkData(**args)]
 
     # (7)
-    badrows = bmp[bmp['sitename'].isin(list(set(bmp['sitename']) - set(testsite['sitename'])) )].index.tolist()
+    badrows = bmp[bmp['sitename'].isin(list(set(bmp['sitename']) - set(testsite['sitename'])) )].tmp_row.tolist()
     args.update({
         "dataframe": bmp,
         "tablename": "tbl_bmpinfo",
@@ -227,7 +224,7 @@ def meta(all_dfs):
             ,
             axis=1
         )
-    ].index.tolist()
+    ].tmp_row.tolist()
     args.update({
         "dataframe": ms,
         "tablename": "tbl_monitoringstation",
@@ -258,7 +255,6 @@ def meta(all_dfs):
 
 
     # (10)
-    print("------------ The error is here ----------------")
     sitecode_measurementtype = {
         x : 
         set(
@@ -269,22 +265,11 @@ def meta(all_dfs):
         ) 
         for x,y in ms.groupby('sitename')
     }
-
-    print("sitecode_measurementtype.values()")
-    print(sitecode_measurementtype.values())
-    print("set(sitecode_measurementtype.values()")
-    print(set([val for s in sitecode_measurementtype.values() for val in s]))
-    print("pd.read_sql('SELECT measurementtype FROM lu_measurementtype',g.eng).measurementtype.values")
-    print(pd.read_sql('SELECT measurementtype FROM lu_measurementtype',g.eng).measurementtype.values)
-    print("set(pd.read_sql('SELECT measurementtype FROM lu_measurementtype',g.eng).measurementtype.values)")
-    print(set(pd.read_sql('SELECT measurementtype FROM lu_measurementtype',g.eng).measurementtype.values))
-    
     bad_measurement_type = (
         set([val for s in sitecode_measurementtype.values() for val in s]) 
         -
         set(pd.read_sql("SELECT measurementtype FROM lu_measurementtype",g.eng).measurementtype.values)
     )
-    print("------------ I WAS WRONG !!! ---------------")
     
     ms['badrows'] = ms.apply(
         lambda row: ",".join([
@@ -294,7 +279,7 @@ def meta(all_dfs):
         else pd.NA, 
         axis=1
     )
-    badrows = ms[~ms['badrows'].isnull()].index.tolist()
+    badrows = ms[~ms['badrows'].isnull()].tmp_row.tolist()
 
     args.update({
         "dataframe": ms,
@@ -324,7 +309,7 @@ def meta(all_dfs):
     #         ,
     #         axis=1
     #     )
-    # ].index.tolist()
+    # ].tmp_row.tolist()
     # args.update({
     #     "dataframe": ms,
     #     "tablename": "tbl_monitoringstation",
@@ -334,19 +319,6 @@ def meta(all_dfs):
     #     "error_message" : "Duplicates found for StationName. Monitoring StationNames must be unique for test site."
     # })
     #errs = [*errs, checkData(**args)]
-
-
-    
-    # I think this code commented out wont work because the second mask is of a greater length than the dataframe it is filtering - Robert
-    # Let me know if that is not clear
-
-    # badrows = catchment[
-    #         ~catchment['insitusoil'].isnull()
-    #     ][
-    #         catchment['insitusoil'].isin(
-    #             [x for x in catchment['insitusoil'] if x not in lu_insitusoil]
-    #         )
-    #     ].index.tolist()
     
 
     # NOTE THIS CHECK MAY ONLY APPLY IF insitusoilmeasuretype is NRCS
@@ -356,7 +328,7 @@ def meta(all_dfs):
     #         # I replace empty string with none since i dont want an empty string to be falsely interpreted as a non missing value
     #         catchment.insitusoil.replace('', None).apply(lambda x: (not pd.isnull(x)) and (x not in lu_insitusoil))
     #     ] \
-    #     .index.tolist()
+    #     .tmp_row.tolist()
 
     # args.update({
     #     "dataframe": catchment, 
