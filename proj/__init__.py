@@ -167,6 +167,7 @@ try:
             SELECT 
                 DISTINCT table_name AS tablename, table_name AS tablealias, NULL AS tabledescription, '{projectname}' AS project, NULL AS comments 
             FROM information_schema.tables
+            ORDER BY table_name
         ) ON CONFLICT (tablename) DO NOTHING;
     """)
 
@@ -195,7 +196,10 @@ try:
                     ordinal_position AS custom_column_position
                 FROM 
                     information_schema.COLUMNS
-            ) 
+                ORDER BY 
+                   table_name, 
+                   ordinal_position
+            )
             ON CONFLICT (table_name, column_name) DO NOTHING
     """)
     # execute order 66 (create the column order table)
@@ -349,7 +353,8 @@ try:
                             meta.datatype,
                             meta.tablename,
                             meta.tablealias,
-                            meta.tabledescription
+                            meta.tabledescription,
+                            meta.column_position
                         FROM meta
                         WHERE (NOT ((meta.field)::name IN ( SELECT DISTINCT system_fields.fieldname
                             FROM system_fields)))
@@ -371,6 +376,10 @@ try:
                         meta_outer_query.tablealias,
                         meta_outer_query.tabledescription
                     FROM meta_outer_query
+                        ORDER BY 
+                            meta_outer_query.project, 
+                            meta_outer_query.tablename, 
+                            meta_outer_query.column_position
             """
         )
 
