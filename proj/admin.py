@@ -219,6 +219,7 @@ def savetabledescription():
     return ''
 
 
+@admin.route('/column_order', methods = ['GET','POST'])
 @admin.route('/column-order', methods = ['GET','POST'])
 def column_order():
     authorized = session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")

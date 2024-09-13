@@ -1,7 +1,7 @@
 import os, json
 from flask import Flask, g
 from flask_cors import CORS
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 
 # import blueprints to register them
@@ -113,8 +113,10 @@ app.submission_tips_enabled = str(CONFIG.get('SUBMISSION_TIPS_ENABLED')).lower()
 print("Be sure not to prefix the login fields with 'login' in the datasets.json config file")
 
 
-# Add system fields to system fields table
+# Metadata initialization
 try:
+
+    # ---- System Fields ---- #
     print("Create temporary db connection")
     tmpeng = connect_db()
     print("Done creating temporary db connection")
@@ -149,6 +151,270 @@ try:
     print("Remove fields that are no longer there")
     tmpeng.execute(f"DELETE FROM system_fields WHERE fieldname NOT IN {system_fields_delete_tuple_string}")
     print("Done removing fields that are no longer there")
+
+    # ----- Table Descriptions ----- #
+    projectname = str(CONFIG.get("PROJECTNAME")).replace(';','').replace('"','').replace("'","") 
+    order66 = text(f"""
+        CREATE TABLE IF NOT EXISTS table_descriptions (
+            tablename VARCHAR(255) PRIMARY KEY,
+            tablealias VARCHAR(255),
+            tabledescription VARCHAR(500),
+            project VARCHAR(255),
+            comments VARCHAR(1000)
+        );
+         
+        INSERT INTO table_descriptions (
+            SELECT 
+                DISTINCT table_name AS tablename, table_name AS tablealias, NULL AS tabledescription, '{projectname}' AS project, NULL AS comments 
+            FROM information_schema.tables
+        ) ON CONFLICT (tablename) DO NOTHING;
+    """)
+
+    # execute order 66 (create the table descriptions)
+    tmpeng.execute(order66)
+    
+    # (clean it up)
+    del order66
+
+
+    order66 = text(f"""
+        CREATE TABLE IF NOT EXISTS column_order (
+            table_name VARCHAR(255),
+            column_name VARCHAR(255),
+            original_db_position INTEGER,
+            custom_column_position INTEGER,
+            PRIMARY KEY (table_name, column_name)
+        );
+
+        INSERT INTO column_order (table_name, column_name, original_db_position, custom_column_position)
+            (
+                SELECT 
+                    table_name,
+                    column_name,
+                    ordinal_position AS original_db_position,
+                    ordinal_position AS custom_column_position
+                FROM 
+                    information_schema.COLUMNS
+            ) 
+            ON CONFLICT (table_name, column_name) DO NOTHING
+    """)
+    # execute order 66 (create the column order table)
+    tmpeng.execute(order66)
+    del order66
+
+
+
+    # --------------- Building the metadata view --------------- #
+    # app config datasets
+    DATASETS = CONFIG.get('DATASETS')
+    PROJECT = CONFIG.get("PROJECTNAME")
+
+
+    # Complete SQL query with dynamic case statement
+    check_view_sql = """
+        SELECT 1 FROM pg_views WHERE viewname = 'vw_metadata';
+    """
+
+    # Execute the check
+    result = tmpeng.execute(text(check_view_sql)).fetchone()
+
+    if result is None:
+        
+        # Function to build the SQL case statement - for the datatypes column of the view
+        def generate_case_statement(datasets):
+            case_statement = "CASE \n"
+            for _, value in datasets.items():
+                
+                # error checking
+                assert isinstance(value, dict), "Configuration error - check the datasets param"
+                assert "tables" in value.keys(), "Configuration error - check the datasets param - tables not found in a dataset"
+                if "tables" not in value.keys():
+                    print("WARNING: A dataset is missing a label")
+
+                tables = value.get("tables", [])
+                label = value.get("label", "")
+                if tables and label:
+                    table_list = ", ".join(f"'{table}'::name " for table in tables)
+                    case_statement += f"    WHEN ((isc.table_name)::name = ANY (ARRAY[{table_list}])) THEN '{label}'::text\n"
+            case_statement += "    ELSE NULL::text\nEND AS datatype"
+            return case_statement
+
+        vw_metadata_query = text(
+            f"""
+                CREATE VIEW vw_metadata AS 
+                    WITH meta_outer_query AS (
+                        WITH meta AS (
+                            WITH fkeys AS (
+                                SELECT DISTINCT kcu.table_name,
+                                    kcu.column_name,
+                                    ccu.table_name AS foreign_table_name
+                                FROM ((information_schema.table_constraints tc
+                                JOIN information_schema.key_column_usage kcu ON ((((tc.constraint_name)::name = (kcu.constraint_name)::name) 
+                                AND ((tc.table_schema)::name = (kcu.table_schema)::name))))
+                                JOIN information_schema.constraint_column_usage ccu ON ((((ccu.constraint_name)::name = (tc.constraint_name)::name) 
+                                AND ((ccu.table_schema)::name = (tc.table_schema)::name))))
+                                WHERE (((tc.constraint_type)::text = 'FOREIGN KEY'::text) 
+                                AND (
+                                    ((tc.table_name)::name ~~ 'tbl_%'::text) 
+                                    OR ((tc.table_name)::name ~~ 'analysis_%'::text)
+                                    OR ((tc.table_name)::name ~~ 'unified_%'::text)
+                                ) 
+                                AND ((ccu.table_name)::name ~~ 'lu_%'::text))
+                            ), 
+                            pkey AS (
+                                SELECT c.table_name,
+                                    c.column_name,
+                                    'YES'::text AS primary_key
+                                FROM ((information_schema.table_constraints tc
+                                JOIN information_schema.constraint_column_usage ccu USING (constraint_schema, constraint_name))
+                                JOIN information_schema.columns c ON ((((c.table_schema)::name = (tc.constraint_schema)::name) 
+                                AND ((tc.table_name)::name = (c.table_name)::name) 
+                                AND ((ccu.column_name)::name = (c.column_name)::name))))
+                                WHERE (((tc.constraint_type)::text = 'PRIMARY KEY'::text) 
+                                AND (
+                                    ((tc.table_name)::name ~~ 'tbl_%'::text) 
+                                    OR ((tc.table_name)::name ~~ 'analysis_%'::text)
+                                    OR ((tc.table_name)::name ~~ 'unified_%'::text)
+                                ))
+                            ), 
+                            cmt AS (
+                                SELECT cols.table_name AS tablename,
+                                    cols.column_name,
+                                    ( SELECT col_description(c.oid, (cols.ordinal_position)::integer) AS col_description
+                                        FROM pg_class c
+                                        WHERE ((c.oid = ( SELECT (((('"'::text || (cols.table_name)::text) || '"'::text))::regclass)::oid AS oid)) 
+                                        AND (c.relname = (cols.table_name)::name))) AS description
+                                FROM information_schema.columns cols
+                                WHERE (((cols.table_name)::name ~~ 'tbl_%'::text) OR ((cols.table_name)::name ~~ 'analysis_%'::text) OR ((cols.table_name)::name ~~ 'unified_%'::text) )
+                            ), 
+                            colorder AS (
+                                SELECT column_order.table_name AS tablename,
+                                    column_order.column_name,
+                                    column_order.custom_column_position AS column_position
+                                FROM column_order
+                                WHERE ((column_order.table_name)::name = '{{table}}'::name)
+                            )
+                            SELECT isc.column_name AS field,
+                                isc.column_name AS fieldalias,
+                                CASE
+                                    WHEN ((isc.udt_name)::name = 'varchar'::name) THEN 'Text'::text
+                                    WHEN ((isc.udt_name)::name = 'timestamp'::name) THEN 'Date/Time'::text
+                                    WHEN ((isc.udt_name)::name = 'numeric'::name) THEN 'Decimal'::text
+                                    WHEN ((isc.udt_name)::name = ANY (ARRAY['int2'::name, 'int4'::name])) THEN 'Integer'::text
+                                    WHEN ((fkeys.foreign_table_name)::name = 'lu_yesno'::name) THEN 'Yes/No'::text
+                                    ELSE ''::text
+                                END AS fieldtype,
+                                CASE
+                                    WHEN ((isc.udt_name)::name = 'varchar'::name) THEN 'String'::text
+                                    WHEN ((isc.udt_name)::name = 'timestamp'::name) THEN 'Date'::text
+                                    WHEN ((isc.udt_name)::name = 'numeric'::name) THEN 'Double'::text
+                                    WHEN ((isc.udt_name)::name = ANY (ARRAY['int2'::name, 'int4'::name])) THEN 'SmallInteger'::text
+                                    ELSE ''::text
+                                END AS metadatafieldtype,
+                                CASE
+                                    WHEN (pkey.primary_key = 'YES'::text) THEN 'y'::text
+                                    ELSE 'n'::text
+                                END AS primarykey,
+                                CASE
+                                    WHEN ((isc.is_nullable)::text = 'NO'::text) THEN 'y'::text
+                                    ELSE 'n'::text
+                                END AS required,
+                                isc.character_maximum_length AS size,
+                                fkeys.foreign_table_name AS lookuplist,
+                                cmt.description,
+                                '{PROJECT}'::text AS project,
+                                {generate_case_statement(DATASETS)}, -- Dynamic CASE block
+                                isc.table_name AS tablename,
+                                td.tablealias,
+                                td.tabledescription,
+                                colorder.column_position
+                            FROM (((((information_schema.columns isc
+                            LEFT JOIN pkey ON ((((isc.column_name)::name = (pkey.column_name)::name) AND ((isc.table_name)::name = (pkey.table_name)::name))))
+                            LEFT JOIN fkeys ON ((((isc.column_name)::name = (fkeys.column_name)::name) AND ((isc.table_name)::name = (fkeys.table_name)::name))))
+                            LEFT JOIN cmt ON ((((isc.table_name)::name = (cmt.tablename)::name) AND ((isc.column_name)::name = (cmt.column_name)::name))))
+                            LEFT JOIN colorder ON ((((isc.table_name)::name = (colorder.tablename)::name) AND ((isc.column_name)::name = (colorder.column_name)::name))))
+                            LEFT JOIN table_descriptions td ON (((td.tablename)::text = ((isc.table_name)::name)::text)))
+                            WHERE (((isc.table_name)::name ~~ 'tbl_%'::text) OR ((isc.table_name)::name ~~ 'analysis_%'::text)  OR ((isc.table_name)::name ~~ 'unified_%'::text) )
+                        )
+                        SELECT meta.field,
+                            meta.fieldalias,
+                            meta.fieldtype,
+                            meta.metadatafieldtype,
+                            meta.primarykey,
+                            meta.required,
+                            meta.size,
+                            meta.lookuplist,
+                            meta.description,
+                            meta.project,
+                            meta.datatype,
+                            meta.tablename,
+                            meta.tablealias,
+                            meta.tabledescription
+                        FROM meta
+                        WHERE (NOT ((meta.field)::name IN ( SELECT DISTINCT system_fields.fieldname
+                            FROM system_fields)))
+                        ORDER BY meta.datatype, meta.tablename, meta.column_position
+                    )
+                    SELECT row_number() OVER () AS objectid,
+                        meta_outer_query.field,
+                        meta_outer_query.fieldalias,
+                        meta_outer_query.fieldtype,
+                        meta_outer_query.metadatafieldtype,
+                        meta_outer_query.primarykey,
+                        meta_outer_query.required,
+                        meta_outer_query.size,
+                        meta_outer_query.lookuplist,
+                        meta_outer_query.description,
+                        meta_outer_query.project,
+                        meta_outer_query.datatype,
+                        meta_outer_query.tablename,
+                        meta_outer_query.tablealias,
+                        meta_outer_query.tabledescription
+                    FROM meta_outer_query
+            """
+        )
+
+        # Create metadata view
+        tmpeng.execute(vw_metadata_query)
+
+    # Create the template glossary (for data submission templates, based on the metadata view)
+    check_view_sql = """
+        SELECT 1 FROM pg_views WHERE viewname = 'vw_template_glossary';
+    """
+    # Execute the check
+    result = tmpeng.execute(text(check_view_sql)).fetchone()
+    
+    if result is None:
+        tmpeng.execute(
+            text("""
+                CREATE VIEW vw_template_glossary AS 
+                    WITH meta AS (
+                        SELECT vw_metadata.field,
+                            vw_metadata.fieldtype,
+                            vw_metadata.primarykey,
+                            vw_metadata.required,
+                            vw_metadata.size,
+                            vw_metadata.description,
+                            vw_metadata.tablename,
+                            vw_metadata.tablealias,
+                            vw_metadata.tabledescription
+                        FROM vw_metadata
+                    )
+                    SELECT meta.field,
+                        meta.fieldtype,
+                        meta.primarykey,
+                        meta.required,
+                        meta.size,
+                        meta.description,
+                        meta.tablename,
+                        meta.tablealias,
+                        meta.tabledescription
+                    FROM (meta
+                        LEFT JOIN column_order cols ON ((((meta.field)::name = (cols.column_name)::name) AND ((meta.tablename)::name = (cols.table_name)::name))))
+                    ORDER BY meta.tablename, cols.custom_column_position
+            """)
+        )
+
 
     print("Dispose temprary engine/connection")
     tmpeng.dispose()

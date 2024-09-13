@@ -247,8 +247,7 @@ def meta(all_dfs):
     #     "badcolumn": "stationtype",
     #     "error_type" : "Logic Error",
     #     "error_message" : (
-    #         "This Monitoring Station is a bypass, " 
-    #         "but it seems like it is associated with a BMP which has upstream treatment"
+    #      
     #     )
     # })
     # errs = [*errs, checkData(**args)]
@@ -291,34 +290,11 @@ def meta(all_dfs):
     })
     errs = [*errs, checkData(**args)]
 
-    # (11)
-    # disable for now - I can never remember if this is something we actually need to check or not
-    # duplicate_stationname = {
-    #     x :
-    #     [
-    #         x for x in y['stationname'].values 
-    #         if y['stationname'].to_list().count(x) > 1
-    #     ] 
-    #     for x,y in ms.groupby('sitename')
-    # }
 
-    # badrows = ms[
-    #     ms.apply(
-    #         lambda row: 
-    #         row['stationname'] in duplicate_stationname[row['sitename']]
-    #         ,
-    #         axis=1
-    #     )
-    # ].tmp_row.tolist()
-    # args.update({
-    #     "dataframe": ms,
-    #     "tablename": "tbl_monitoringstation",
-    #     "badrows": badrows,
-    #     "badcolumn": "measurementtype",
-    #     "error_type" : "Duplicate Submission Error",
-    #     "error_message" : "Duplicates found for StationName. Monitoring StationNames must be unique for test site."
-    # })
-    #errs = [*errs, checkData(**args)]
+
+    # (11) A sitename may not have two of the same monitoring station name
+    # Check removed - I do not think it is actually something that we will check for
+
     
 
     # NOTE THIS CHECK MAY ONLY APPLY IF insitusoilmeasuretype is NRCS
