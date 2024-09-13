@@ -42,8 +42,6 @@
     <br>
     <a href="{{request.script_root}}/schema"><button id="return-main-app"> Return to main page </button></a>
     <br>
-    <a href="{{request.script_root}}/schema?datatype={{datatype}}&download=true" target=_blank><button id="download-schema"> Download as an Excel file </button></a>
-    <br>
     {% if not authorized %}
     <a href="{{request.script_root}}/adminauth?redirect_to=schema"><button id="edit-schema"> Log in to edit </button></a>
     <br>
