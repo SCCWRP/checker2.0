@@ -3,6 +3,9 @@ from flask import Flask, g
 from flask_cors import CORS
 from sqlalchemy import create_engine, text
 
+import psycopg2
+from psycopg2 import sql
+
 
 # import blueprints to register them
 from .main import upload
@@ -15,6 +18,9 @@ from .templater import templater # for dynamic lookup lists called into template
 from .admin import admin
 from .info import info
 from .query import query
+
+# update column order table on startup
+from .utils.db import update_column_order_table
 
 CUSTOM_CONFIG_PATH = os.path.join(os.getcwd(), 'proj', 'config')
 
@@ -124,7 +130,7 @@ try:
     print("Creating system fields table")
     tmpeng.execute(
         """
-        CREATE TABLE IF NOT EXISTS "sde"."system_fields" (
+        CREATE TABLE IF NOT EXISTS "sde"."meta_system_fields" (
             "fieldname" varchar(255) COLLATE "pg_catalog"."default" NOT NULL PRIMARY KEY
         );
         """
@@ -140,8 +146,8 @@ try:
         )
 
     system_fields_command = f"""
-        INSERT INTO sde.system_fields (fieldname) VALUES {system_fields_tuple_string} 
-        ON CONFLICT ON CONSTRAINT system_fields_pkey DO NOTHING
+        INSERT INTO sde.meta_system_fields (fieldname) VALUES {system_fields_tuple_string} 
+        ON CONFLICT (fieldname) DO NOTHING
     """
     print("Inserting system fields")
     print(system_fields_command)
@@ -149,13 +155,13 @@ try:
     print("DONE inserting system fields")
 
     print("Remove fields that are no longer there")
-    tmpeng.execute(f"DELETE FROM system_fields WHERE fieldname NOT IN {system_fields_delete_tuple_string}")
+    tmpeng.execute(f"DELETE FROM meta_system_fields WHERE fieldname NOT IN {system_fields_delete_tuple_string}")
     print("Done removing fields that are no longer there")
 
     # ----- Table Descriptions ----- #
     projectname = str(CONFIG.get("PROJECTNAME")).replace(';','').replace('"','').replace("'","") 
     order66 = text(f"""
-        CREATE TABLE IF NOT EXISTS table_descriptions (
+        CREATE TABLE IF NOT EXISTS meta_table_descriptions (
             tablename VARCHAR(255) PRIMARY KEY,
             tablealias VARCHAR(255),
             tabledescription VARCHAR(500),
@@ -163,7 +169,7 @@ try:
             comments VARCHAR(1000)
         );
          
-        INSERT INTO table_descriptions (
+        INSERT INTO meta_table_descriptions (
             SELECT 
                 DISTINCT table_name AS tablename, table_name AS tablealias, NULL AS tabledescription, '{projectname}' AS project, NULL AS comments 
             FROM information_schema.tables
@@ -337,7 +343,7 @@ try:
                             LEFT JOIN fkeys ON ((((isc.column_name)::name = (fkeys.column_name)::name) AND ((isc.table_name)::name = (fkeys.table_name)::name))))
                             LEFT JOIN cmt ON ((((isc.table_name)::name = (cmt.tablename)::name) AND ((isc.column_name)::name = (cmt.column_name)::name))))
                             LEFT JOIN colorder ON ((((isc.table_name)::name = (colorder.tablename)::name) AND ((isc.column_name)::name = (colorder.column_name)::name))))
-                            LEFT JOIN table_descriptions td ON (((td.tablename)::text = ((isc.table_name)::name)::text)))
+                            LEFT JOIN meta_table_descriptions td ON (((td.tablename)::text = ((isc.table_name)::name)::text)))
                             WHERE (((isc.table_name)::name ~~ 'tbl_%'::text) OR ((isc.table_name)::name ~~ 'analysis_%'::text)  OR ((isc.table_name)::name ~~ 'unified_%'::text) )
                         )
                         SELECT meta.field,
@@ -356,8 +362,8 @@ try:
                             meta.tabledescription,
                             meta.column_position
                         FROM meta
-                        WHERE (NOT ((meta.field)::name IN ( SELECT DISTINCT system_fields.fieldname
-                            FROM system_fields)))
+                        WHERE (NOT ((meta.field)::name IN ( SELECT DISTINCT meta_system_fields.fieldname
+                            FROM meta_system_fields)))
                         ORDER BY meta.datatype, meta.tablename, meta.column_position
                     )
                     SELECT row_number() OVER () AS objectid,
@@ -382,6 +388,7 @@ try:
                             meta_outer_query.column_position
             """
         )
+
 
         # Create metadata view
         tmpeng.execute(vw_metadata_query)
@@ -430,57 +437,18 @@ try:
     print("Done disposing temprary engine/connection")
 
 
+    update_column_order_table(
+        DB_HOST = os.environ.get("DB_HOST"),
+        DB_NAME = os.environ.get("DB_NAME"),
+        DB_USER = os.environ.get("DB_USER"),
+        PGPASSWORD = os.environ.get("PGPASSWORD")
+    )
+
+
 except Exception as e:
     print("WARNING: Unable to create and insert system fields into the system fields table")
     print("Here is the error message")
     print(e)
-
-
-# This we can use for adding the login columns
-
-# It will be better in the future to simply store these in the environment separately
-# constring = re.search("postgresql://(\w+):(.+)@(.+):(\d+)/(\w+)", os.environ.get('DB_CONNECTION_STRING')).groups()
-# connection = psycopg2.connect(
-#     host=constring[2],
-#     database=constring[4],
-#     user=constring[0],
-#     password=constring[1],
-# )
-
-# connection.set_session(autocommit=True)
-
-# for datasetname, dataset in app.datasets.items():
-#     fields = [f"login_{f.get('fieldname')}" for f in dataset.get('login_fields')]
-#     with connection.cursor() as cursor:
-#         for fieldname in fields:
-#             print("Attempting to add field to submission tracking table")
-#             print(fieldname)
-#             command = sql.SQL(
-#                 """
-#                 ALTER TABLE submission_tracking_table ADD COLUMN IF NOT EXISTS {field} VARCHAR(255);
-#                 """
-#             ).format(
-#                 field = sql.Identifier(fieldname),
-#             )
-            
-#             cursor.execute(command)
-#             print(dataset)
-#             for tablename in dataset.get('tables'):
-#                 print(f"Attempting to add login fields to {tablename}")
-#                 print(fieldname)
-#                 command = sql.SQL(
-#                     """
-#                     ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {field} VARCHAR(255);
-#                     """
-#                 ).format(
-#                     field = sql.Identifier(fieldname),
-#                     table = sql.Identifier(tablename)
-#                 )
-#                 cursor.execute(command)
-            
-#             # login fields need to be in the system fields list
-#             app.system_fields.append(fieldname)
-
 
 
 

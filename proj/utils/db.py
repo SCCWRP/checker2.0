@@ -1,5 +1,6 @@
-import re
-from pandas import read_sql, Timestamp, isnull, DataFrame
+import psycopg2
+from psycopg2 import sql
+from pandas import read_sql, isnull, DataFrame
 
 
 def check_dtype(t, x):
@@ -303,3 +304,78 @@ def get_column_comments(table, eng):
             cols.TABLE_NAME = '{table}'
     """
     return read_sql(query, eng)
+
+
+# fix the column order
+# this function is designed to fix problems with the templater and query routine which cause the thing to break when a column name changes
+# rather than repeating this code block in 3 different places where it needs to run, we are making this function
+def update_column_order_table(DB_HOST, DB_NAME, DB_USER, PGPASSWORD, column_order_table = 'column_order'):
+
+    # connect with psycopg2
+    connection = psycopg2.connect(
+        host = DB_HOST,
+        database = DB_NAME,
+        user = DB_USER,
+        password = PGPASSWORD
+    )
+
+    connection.set_session(autocommit=True)
+
+    # update column-order table based on contents of information schema
+    cols_to_add_qry = sql.SQL(
+            """
+            WITH cols_to_add AS (
+                SELECT 
+                    table_name,
+                    column_name,
+                    ordinal_position AS original_db_position,
+                    ordinal_position AS custom_column_position 
+                FROM
+                    information_schema.COLUMNS 
+                WHERE
+                    table_name IN ( SELECT DISTINCT table_name FROM {column_order_table} ) 
+                    AND ( table_name, column_name ) NOT IN ( SELECT DISTINCT table_name, column_name FROM {column_order_table} )
+            )
+            INSERT INTO 
+                {column_order_table} (table_name, column_name, original_db_position, custom_column_position) 
+                (
+                    SELECT table_name, column_name, original_db_position, custom_column_position FROM cols_to_add
+                )
+            ;
+            """
+        ).format(
+            column_order_table = sql.Identifier(column_order_table),
+        )
+
+    # remove records from column order if they are not there anymore
+    cols_to_delete_qry = sql.SQL(
+            """
+            WITH cols_to_delete AS (
+                SELECT TABLE_NAME
+                    ,
+                    COLUMN_NAME,
+                    original_db_position,
+                    custom_column_position 
+                FROM
+                    {column_order_table} 
+                WHERE
+                    TABLE_NAME NOT IN ( SELECT DISTINCT TABLE_NAME FROM information_schema.COLUMNS ) 
+                    OR ( TABLE_NAME, COLUMN_NAME ) NOT IN ( SELECT DISTINCT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS ) 
+                ) 
+                DELETE FROM {column_order_table} 
+                WHERE
+                    ( TABLE_NAME, COLUMN_NAME ) IN ( SELECT TABLE_NAME, COLUMN_NAME FROM cols_to_delete )
+            ;
+            """
+        ).format(
+            column_order_table = sql.Identifier(column_order_table)
+        )
+    
+
+    with connection.cursor() as cursor:
+        cursor.execute(cols_to_add_qry)
+        cursor.execute(cols_to_delete_qry)
+        
+    connection.close()
+
+    return None

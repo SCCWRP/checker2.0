@@ -6,6 +6,9 @@ testing/
 
 proj/config/config.json
 
+proj/custom/sql
+proj/custom/*_custom.py
+
 # ignore pycache directories
 __pycache__/
 proj/__pycache__/

@@ -4,12 +4,8 @@
 #from flask import send_from_directory, render_template, request, redirect, Response, jsonify, send_file, json, current_app
 #below is from empa main.py
 from flask import request, current_app, Blueprint, g, send_file, make_response, flash, render_template
-from sqlalchemy import Table, MetaData
 import pandas as pd
-from pandas import DataFrame
-import re
 import os
-import openpyxl
 from openpyxl.utils import get_column_letter, quote_sheetname
 from openpyxl.styles import PatternFill, Font, Border, Side, Color
 from openpyxl.styles.alignment import Alignment
@@ -18,7 +14,7 @@ from openpyxl.formatting.rule import FormulaRule
 from openpyxl.comments import Comment
 from io import BytesIO
 
-from .utils.db import primary_key, foreign_key_detail, get_column_comments
+from .utils.db import primary_key, foreign_key_detail, get_column_comments, update_column_order_table
 
 # dynamic lookup lists to template
 # skip the formatting
@@ -57,6 +53,16 @@ def template():
         )
     
     eng = g.eng
+
+    # update the rows in the column order table to reflect the current table schema
+    # this will prevent inaccurate templates from being issued
+    update_column_order_table(
+        DB_HOST = os.environ.get("DB_HOST"),
+        DB_NAME = os.environ.get("DB_NAME"),
+        DB_USER = os.environ.get("DB_USER"),
+        PGPASSWORD = os.environ.get("PGPASSWORD")
+    )
+
 
     tabs_dict = {}
 

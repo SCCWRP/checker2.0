@@ -9,7 +9,7 @@ from psycopg2 import sql
 from sqlalchemy import text
 from sqlalchemy.exc import ProgrammingError
 
-from .utils.db import metadata_summary
+from .utils.db import metadata_summary, update_column_order_table
 
 admin = Blueprint('admin', __name__)
 
@@ -83,12 +83,12 @@ def schema():
 
             try:
                 # Prepare and execute the query
-                sql_query = text("SELECT tabledescription FROM table_descriptions WHERE tablename = :tbl") 
+                sql_query = text("SELECT tabledescription FROM meta_table_descriptions WHERE tablename = :tbl") 
                 tbldesc_query_result = pd.read_sql(sql_query, eng, params={"tbl": tbl}).tabledescription.values
                 tbldesc = tbldesc_query_result[0] if len(tbldesc_query_result) > 0 else ''
             except ProgrammingError as e:
                 print(f"An error occurred: {e}")
-                raise Exception(f"Error occurred getting table description for {tbl}: Most likely the table_descriptions table doesnt exist.\n{e}")
+                raise Exception(f"Error occurred getting table description for {tbl}: Most likely the meta_table_descriptions table doesnt exist.\n{e}")
 
             # This ensures that the keys of each dictionary always match - this will be useful for the jinja template
             tbl_column_info[tbl] = df.to_dict('records')
@@ -173,7 +173,7 @@ def savetabledescription():
         with connection.cursor() as cursor:
             command = sql.SQL(
                 """
-                INSERT INTO table_descriptions (tablename, tabledescription) 
+                INSERT INTO meta_table_descriptions (tablename, tabledescription) 
                     VALUES ({tablename}, {tabledescription}) 
                     ON CONFLICT ON CONSTRAINT table_descriptions_pkey 
                     DO UPDATE SET tabledescription = EXCLUDED.tabledescription;
@@ -216,56 +216,14 @@ def column_order():
     if request.method == 'GET':
         eng = g.eng
 
-        # update column-order table based on contents of information schema
-        cols_to_add_qry = (
-            """
-            WITH cols_to_add AS (
-                SELECT 
-                    table_name,
-                    column_name,
-                    ordinal_position AS original_db_position,
-                    ordinal_position AS custom_column_position 
-                FROM
-                    information_schema.COLUMNS 
-                WHERE
-                    table_name IN ( SELECT DISTINCT table_name FROM column_order ) 
-                    AND ( table_name, column_name ) NOT IN ( SELECT DISTINCT table_name, column_name FROM column_order )
-            )
-            INSERT INTO 
-                column_order (table_name, column_name, original_db_position, custom_column_position) 
-                (
-                    SELECT table_name, column_name, original_db_position, custom_column_position FROM cols_to_add
-                )
-            ;
-            """
+        # update the rows in the column order table to reflect the current table schema
+        update_column_order_table(
+            DB_HOST = os.environ.get("DB_HOST"),
+            DB_NAME = os.environ.get("DB_NAME"),
+            DB_USER = os.environ.get("DB_USER"),
+            PGPASSWORD = os.environ.get("PGPASSWORD")
         )
 
-        # remove records from column order if they are not there anymore
-        cols_to_delete_qry = (
-            """
-            WITH cols_to_delete AS (
-                SELECT TABLE_NAME
-                    ,
-                    COLUMN_NAME,
-                    original_db_position,
-                    custom_column_position 
-                FROM
-                    column_order 
-                WHERE
-                    TABLE_NAME NOT IN ( SELECT DISTINCT TABLE_NAME FROM information_schema.COLUMNS ) 
-                    OR ( TABLE_NAME, COLUMN_NAME ) NOT IN ( SELECT DISTINCT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS ) 
-                ) 
-                DELETE FROM column_order 
-                WHERE
-                    ( TABLE_NAME, COLUMN_NAME ) IN ( SELECT TABLE_NAME, COLUMN_NAME FROM cols_to_delete );
-            ;
-            """
-        )
-        with connection.cursor() as cursor:
-            command = sql.SQL(cols_to_add_qry)
-            cursor.execute(command)
-            command = sql.SQL(cols_to_delete_qry)
-            cursor.execute(command)
 
         basequery = (
             """

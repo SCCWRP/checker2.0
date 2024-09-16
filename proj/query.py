@@ -6,6 +6,7 @@ from functools import wraps
 from datetime import datetime
 
 from .utils.excel import format_existing_excel
+from .utils.db import update_column_order_table
 
 
 def support_jsonp(f):
@@ -51,6 +52,18 @@ def qrydata():
         flash(f"Dataset {dataset} not found")
         return render_template('query.jinja2', datasets = datasets, authorized = authorized, project_name = current_app.project_name, background_image = current_app.config.get("BACKGROUND_IMAGE"))
         
+
+    # update the rows in the column order table to reflect the current table schema
+    # this will prevent the app from querying non existent columns, or from missing columns that should be in the returned dataset
+    update_column_order_table(
+        DB_HOST = os.environ.get("DB_HOST"),
+        DB_NAME = os.environ.get("DB_NAME"),
+        DB_USER = os.environ.get("DB_USER"),
+        PGPASSWORD = os.environ.get("PGPASSWORD")
+    )
+
+
+
     excel_blob = BytesIO()
     
     with pd.ExcelWriter(excel_blob) as writer:
