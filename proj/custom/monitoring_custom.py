@@ -153,7 +153,7 @@ def monitoring(all_dfs):
         "badcolumn": "sitename,monitoringstation",
         "error_type": "Logic Error",
         "is_core_error": False,
-        "error_message": "This Monitoring Station name was not found in the Monitoring Station table for this Site - Was it registered as a Rain Gauge?"
+        "error_message": "This Monitoring Station name was not found in the Monitoring Station table for this Site (Was it registered as a Rain Gauge?)"
     })
     errs = [*errs, checkData(**args)]
     
@@ -176,7 +176,7 @@ def monitoring(all_dfs):
         "badcolumn": "sitename,bmpname,monitoringstation",
         "error_type": "Logic Error",
         "is_core_error": False,
-        "error_message": "This Monitoring Station name was not found in the Monitoring Station table for this Site and BMP - Was it registered as a Flow Monitoring Station?"
+        "error_message": "This Monitoring Station name was not found in the Monitoring Station table for this Site and BMP (It may be assigned to the wrong BMP, or not correctly registered as a Flow Station)"
     })
     errs = [*errs, checkData(**args)]
     
@@ -200,7 +200,7 @@ def monitoring(all_dfs):
         "badcolumn": "sitename,bmpname,stationcode",
         "error_type": "Logic Error",
         "is_core_error": False,
-        "error_message": "This Monitoring Station name was not found in the Monitoring Station table for this Site and BMP - Was it registered as a Water Quality Station?"
+        "error_message": "This Monitoring Station name was not found in the Monitoring Station table for this Site and BMP (It may be assigned to the wrong BMP, or not correctly registered as a Water Quality Station)"
     })
     errs = [*errs, checkData(**args)]
     
@@ -283,6 +283,53 @@ def monitoring(all_dfs):
        
 
     
+    # CHECK - if antecedentdryperiod is less than zero, it must be -88
+    print("# CHECK - if antecedentdryperiod is less than zero, it must be -88")
+
+    badrows = precip[
+        (precip['antecedentdryperiod'] < 0) & (precip['antecedentdryperiod'] != -88)
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": precip,
+        "tablename": 'tbl_precipitation',
+        "badrows": badrows,
+        "badcolumn": "antecedentdryperiod",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "If antecedentdryperiod is less than zero, it must be -88"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - if antecedentdryperiod is less than zero, it must be -88
+    print("# END CHECK - if antecedentdryperiod is less than zero, it must be -88")
+
+       
+
+    
+    # CHECK - eventid must be a positive integer
+    print("# CHECK - eventid must be a positive integer")
+
+    badrows = precip[
+        (precip['eventid'] <= 0)
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": precip,
+        "tablename": 'tbl_precipitation',
+        "badrows": badrows,
+        "badcolumn": "eventid",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "eventid must be a positive integer"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - eventid must be a positive integer
+    print("# END CHECK - eventid must be a positive integer")
+
+
+
 
     # Check the time format of starttime and endtime columns
     print("# Check the time format of starttime and endtime columns")
@@ -440,7 +487,7 @@ def monitoring(all_dfs):
 
 
 
-    
+
 
     # Check the time format of timestart and timeend columns
     print("# Check the time format of timestart and timeend columns")
