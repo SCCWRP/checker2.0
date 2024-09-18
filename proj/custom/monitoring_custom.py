@@ -416,6 +416,31 @@ def monitoring(all_dfs):
        
 
     
+    # CHECK - if hydrographcapturedpct is less than zero, it must be -88
+    print("# CHECK - if hydrographcapturedpct is less than zero, it must be -88")
+
+    badrows = flow[
+        (flow['hydrographcapturedpct'] < 0) & (flow['hydrographcapturedpct'] != -88)
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": flow,
+        "tablename": 'tbl_flow',
+        "badrows": badrows,
+        "badcolumn": "hydrographcapturedpct",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "If hydrographcapturedpct is less than zero, it must be -88"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - if hydrographcapturedpct is less than zero, it must be -88
+    print("# END CHECK - if hydrographcapturedpct is less than zero, it must be -88")
+
+
+
+
+    
 
     # Check the time format of timestart and timeend columns
     print("# Check the time format of timestart and timeend columns")
