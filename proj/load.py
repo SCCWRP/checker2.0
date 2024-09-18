@@ -71,9 +71,12 @@ def load():
             # percent signs are escaped by doubling them, not with a backslash
             # percent signs need to be escaped because otherwise the python interpreter will think you are trying to create a format string
             f"""
-            SELECT table_name 
-            FROM information_schema.tables 
-            WHERE (table_name LIKE 'tbl_%%') OR (table_name LIKE 'analysis_%%') OR (table_name = '{current_app.config.get("TOXSUMMARY_TABLENAME")}') """, eng
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE (table_name LIKE 'tbl_%%') 
+                    OR (table_name LIKE 'analysis_%%') 
+                    OR (table_name = '{ "','".join(current_app.config.get("EXCEL_TABS_CREATED_BY_CHECKER", [])) }') 
+            """, eng
         ) \
         .table_name \
         .values
@@ -135,7 +138,6 @@ def load():
 
 
 
-    # We have to make an exception for toxsummary, since the summary table gets added after the fact
     analysis_tables = current_app.datasets.get(session.get('datatype')).get('analysis_tables')
 
     if analysis_tables is None: # not all datatypes have analysis tables
@@ -161,8 +163,8 @@ def load():
 
         # Below comment applied to one project where the tables had foreign key relationships
         # We may or may not want to also apply that to bight
-        # print(f"Loading Data to {tbl}. Be sure that the tables are in the correct order in __init__.py datasets")
         print("If foreign key relationships are set, the tables need to be loadede in a particular order")
+        print(f"Loading Data to {tbl}. Be sure that the tables are in the correct order in __init__.py datasets")
         
         # These columns are needed in all submission tables, but they are often overlooked
         g.eng.execute(
@@ -181,32 +183,33 @@ def load():
             """
         )
 
-        all_dfs[tbl].to_geodb(tbl, g.eng)
-
-        print(f"done loading data to {tbl}")
-
-        g.eng.execute(
-            f"""
-            INSERT INTO submission_tracking_checksum
-            (objectid, submissionid, tablename, checksum, excel_rows)
-            VALUES
-            (
-                sde.next_rowid('sde','submission_tracking_checksum'),
-                {session.get('submissionid')},
-                '{tbl}',
-                {
-                    pd.read_sql(
-                        'SELECT COUNT(*) as n_rows FROM {} WHERE submissionid = {}'
-                        .format(tbl, session.get('submissionid')),
-                        eng
-                    )
-                    .n_rows 
-                    .values[0]
-                },
-                {len(all_dfs[tbl])}
+        if not all_dfs[tbl].empty:
+            all_dfs[tbl].to_geodb(tbl, g.eng)        
+            print(f"done loading data to {tbl}")
+            g.eng.execute(
+                f"""
+                INSERT INTO submission_tracking_checksum
+                (objectid, submissionid, tablename, checksum, excel_rows)
+                VALUES
+                (
+                    sde.next_rowid('sde','submission_tracking_checksum'),
+                    {session.get('submissionid')},
+                    '{tbl}',
+                    {
+                        pd.read_sql(
+                            'SELECT COUNT(*) as n_rows FROM {} WHERE submissionid = {}'
+                            .format(tbl, session.get('submissionid')),
+                            eng
+                        )
+                        .n_rows 
+                        .values[0]
+                    },
+                    {len(all_dfs[tbl])}
+                )
+                ;"""
             )
-            ;"""
-        )
+        else:
+            print(f"{tbl} is empty - skipping")
     
     # So we know the massive argument list of the data receipt function, which is like the notification email for successful submission
     #def data_receipt(send_from, always_send_to, login_email, dtype, submissionid, originalfile, tables, eng, mailserver, *args, **kwargs):

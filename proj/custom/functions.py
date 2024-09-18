@@ -1,17 +1,13 @@
-import json
-from pandas import DataFrame, to_datetime, read_sql
+import re
+from pandas import to_datetime, read_sql
 import math
 import numpy as np
-from arcgis.geometry import Point, Polyline
-from arcgis.geometry.functions import intersect as arc_geometry_intersect
 import pandas as pd
 from flask import current_app
 
 from shapely.geometry import Point as shapelyPoint
-from shapely.geometry import Polygon as shapelyPolygon
 from shapely.geometry import LineString as shapelyLineString
-from shapely import wkb
-from pyproj import CRS, Transformer
+from pyproj import Transformer
 
 
 def checkData(tablename, badrows, badcolumn, error_type, error_message = "Error", is_core_error = False, errors_list = [], q = None, **kwargs):
@@ -208,3 +204,30 @@ def multivalue_lookup_check(df, field, listname, listfield, dbconnection, displa
 
     return args
 
+
+def check_time_format(df, column, time_format_regex=r'^\d{2}:\d{2}:\d{2}$', row_identifier = 'tmp_row'):
+    """
+    Checks columns of a dataframe for a 24 hour time format (HH:MM:SS) and ensures the values are logical.
+
+    Parameters:
+    df                : The user's dataframe
+    column            : The column name of the dataframe to check
+    time_format_regex : The regex pattern to match the time format (default is HH:MM:SS)
+    row_identifier    : The column name to use as row identifier (default is 'tmp_row')
+
+    Returns a list of indices of rows with invalid time format
+    """
+    assert column in df.columns, f"The column {column} was not found in the dataframe"
+
+    if not 'tmp_row' in df.columns:
+        df['tmp_row'] = df.index
+
+    def is_valid_time_format(time_str):
+        if not re.match(time_format_regex, time_str):
+            return False
+        hours, minutes, seconds = map(int, time_str.split(':'))
+        return 0 <= hours < 24 and 0 <= minutes < 60 and 0 <= seconds < 60
+
+    badrows = df[~df[column].astype(str).apply(is_valid_time_format)][row_identifier].tolist()
+    
+    return badrows
