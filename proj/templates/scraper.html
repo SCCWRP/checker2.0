@@ -15,6 +15,17 @@
   </script>
 </head>
 <body>
+
+{% if list_all %}
+
+<h3>All Lookup Lists</h3><hr>
+<ul>
+  {% for lookup in all_lookups %}
+    <li><a target="_blank" href="{{ url_for('scraper.lookuplists', action='help', layer=lookup) }}">{{ lookup }}</a></li>
+  {% endfor %}
+</ul>
+
+{% else %}
 <h3>Lookup list: {{ list }}</h3><hr>
 <table id="mytable" class="display">
 {% for k in scraper %}
@@ -40,5 +51,7 @@
 {% endfor %}
 	</tbody>
 </table>
+{% endif %}
+
 </body>
 </html>

@@ -69,17 +69,20 @@ if 'INCLUDE_COLUMN_COMMENTS' in CONFIG.keys():
 
 # set the database connection string, database, and type of database we are going to point our application at
 #app.eng = create_engine(os.environ.get("DB_CONNECTION_STRING"))
-def connect_db():
-    return create_engine(os.environ.get("DB_CONNECTION_STRING"))
+def connect_db(readonly=False):
+    return create_engine(os.environ.get( "DB_CONNECTION_STRING" if not readonly else "READONLY_DB_CONNECTION_STRING" ))  
 
 @app.before_request
 def before_request():
     g.eng = connect_db()
+    g.readonly_eng = connect_db(readonly=True)
 
 @app.teardown_request
 def teardown_request(exception):
     if hasattr(g, 'eng'):
         g.eng.dispose()
+    if hasattr(g, 'readonly_eng'):
+        g.readonly_eng.dispose()
 
 # Project name
 app.project_name = CONFIG.get("PROJECTNAME")

@@ -4,9 +4,13 @@ from .utils.mail import send_mail
 
 
 scraper = Blueprint('scraper', __name__)
+@scraper.route('/lookuplists', methods=['GET'])
 @scraper.route('/scraper', methods=['GET'])
 def lookuplists():
     print("start scraper")
+
+    eng = g.readonly_eng # postgresql - readonly user
+
     if request.args.get("action"):
         action = request.args.get("action")
         message = str(action)
@@ -15,10 +19,7 @@ def lookuplists():
             datatype = request.args.get('datatype')
 
             # layer should start with lu - if not return empty - this tool is only for lookup lists
-            if layer.startswith("lu_") or layer.startswith("xwalk_") or layer.endswith("_assignment") or layer.endswith("_completion_status"):
-
-                # unfortunately readonly user doesnt have access to information_schema
-                eng = g.eng # postgresql
+            if layer.startswith("lu_"):
 
                 # below should be more sanitized
                 # https://stackoverflow.com/questions/39196462/how-to-use-variable-for-sqlite-table-name?rq=1
@@ -43,32 +44,15 @@ def lookuplists():
                     primary_key = primary_key_result.fetchone()
                     print(f"primary_key: {primary_key}")
                     try:
-                        # get all fields first
-                        print("get all fields first")
                         
-                        # for field and sample assignment tables, it is too cluttered. We should reduce fields that are displayed
-                        fieldlist = ['stationid','latitude','longitude','stratum','region','parameter','assigned_agency']
-                        if layer.endswith('sample_assignment'):
-                            fieldlist.append('datatype')
+                        # get all the data from the lookup list
+                        scrape_qry = f"SELECT * FROM {layer}"
                         
-                        fields = ','.join(fieldlist) if layer.endswith('_assignment') else 'sampleid,matrix' if layer.endswith("chem_intercal_samples") else '*'
-
-                        scrape_qry = f"SELECT {fields} FROM {layer}"
-                        
-                        if layer.endswith("sample_assignment") and (datatype is not None):
-                            scrape_qry += f" WHERE UPPER(datatype) = '{str(datatype).upper()}'"
-
-                        elif primary_key:
-                            scrape_qry += f" ORDER BY {primary_key[0]} ASC;"
-                            
-                        
-                        if layer.endswith("sample_assignment"):
-                            scrape_qry += f" ORDER BY stationid, datatype, parameter;"
+                        scrape_qry += f" ORDER BY {primary_key[0]} ASC;" if primary_key else ";"
                         
                         scraper_results = pd.read_sql(scrape_qry, eng)
                         
-                        #print(scraper_results)
-                        # for bight we dont want system columns
+                        # bight we dont want system columns
                         for fieldname in current_app.system_fields:
                             if fieldname in scraper_results:
 
@@ -79,6 +63,7 @@ def lookuplists():
                         scraper_json = scraper_results.to_dict('records')
                         # give jinga the listname, primary key (to highlight row), and fields/rows
                         return render_template('scraper.html', list=layer, primary=primary_key[0] if primary_key is not None else primary_key, scraper=scraper_json)
+                    
                     # if sql error just return empty 
                     except Exception as err:
                         print(err)
@@ -89,7 +74,11 @@ def lookuplists():
             else:
                 return "empty"
 
-    return "Nothing found"
+    
+    all_lookups = pd.read_sql("""SELECT "table_name" FROM information_schema.tables WHERE "table_name" LIKE 'lu_%%' ORDER BY "table_name";""", eng).table_name.tolist()
+    return render_template('scraper.html', list_all = True, all_lookups = all_lookups)
+
+
 
 
 # When an exception happens when the browser is sending requests to the scraper blueprint, this routine runs
