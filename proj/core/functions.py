@@ -85,6 +85,15 @@ def convert_dtype(t, x):
             # checking for a valid postgres timestamp literal
             # Postgres technically also accepts the format like "January 8 00:00:00 1999" but we won't be checking for that unless it becomes a problem
             datepat = re.compile("\d{4}-\d{1,2}-\d{1,2}\s*(\d{1,2}:\d{1,2}:\d{2}(\.\d+){0,1}){0,1}$")
+
+            try:
+                # if it can be converted to a timestamp, it is valid
+                pd.Timestamp(x)
+            except Exception as e:
+                # if it can't be converted to a timestamp, it is invalid
+                return False
+            
+            
             return bool(re.match(datepat, str(x)))
         
         return True
@@ -93,6 +102,15 @@ def convert_dtype(t, x):
             # checking for a valid postgres timestamp literal
             # Postgres technically also accepts the format like "January 8 00:00:00 1999" but we won't be checking for that unless it becomes a problem
             datepat = re.compile("\d{4}-\d{1,2}-\d{1,2}\s*(\d{1,2}:\d{1,2}:\d{2}(\.\d+){0,1}){0,1}$")
+
+            try:
+                # if it can be converted to a timestamp, it is valid
+                pd.Timestamp(x)
+            except Exception as e:
+                # if it can't be converted to a timestamp, it is invalid
+                return False
+            
+
             return bool(re.match(datepat, str(x)))
         
         return False
