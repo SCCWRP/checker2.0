@@ -45,6 +45,9 @@ def monitoring(all_dfs):
         "error_message": ""
     }
 
+    # database connection - readonly
+    eng = g.readonly_eng
+
     print("# ----------------------                         Logic Checks                                    ----------------------- #")
     ##############################################################################################################################
     # ----------------------                         Logic Checks                                    --------------------------- #
@@ -59,7 +62,7 @@ def monitoring(all_dfs):
     print("Query database and get combined sitename, eventid pairs and combining with current submission")
     combined_precip = pd.concat(
         [
-            pd.read_sql("SELECT sitename,eventid from tbl_precipitation", g.eng),
+            pd.read_sql("SELECT sitename,eventid from tbl_precipitation", eng),
             precip[['sitename','eventid']]
         ],
         ignore_index = True
@@ -143,7 +146,7 @@ def monitoring(all_dfs):
 
     # CHECK - Monitoringstation in Precipitation tab must match corresponding SiteName, and it must have a measurementtype of "P" (Precipitation)
     print("# CHECK - Monitoringstation in Precipitation tab must match corresponding SiteName, and it must have a measurementtype of 'P' (Precipitation)")
-    unified_ms = pd.read_sql("SELECT sitename, stationname AS monitoringstation FROM unified_monitoringstation WHERE measurementtype = 'P'", g.eng)
+    unified_ms = pd.read_sql("SELECT sitename, stationname AS monitoringstation FROM unified_monitoringstation WHERE measurementtype = 'P'", eng)
     
     badrows = mismatch(precip, unified_ms, mergecols=['sitename', 'monitoringstation'], row_identifier='tmp_row')
     args.update({
@@ -166,7 +169,7 @@ def monitoring(all_dfs):
 
     # CHECK - Monitoringstation in Flow tab must match corresponding SiteName and BMPName, and it must have a measurementtype of "Q" (Flow)
     print("# CHECK - Monitoringstation in Flow tab must match corresponding SiteName and BMPName, and it must have a measurementtype of 'Q' (Flow)")
-    unified_ms = pd.read_sql("SELECT sitename, bmpname, stationname AS monitoringstation FROM unified_monitoringstation WHERE measurementtype = 'Q'", g.eng)
+    unified_ms = pd.read_sql("SELECT sitename, bmpname, stationname AS monitoringstation FROM unified_monitoringstation WHERE measurementtype = 'Q'", eng)
     
     badrows = mismatch(flow, unified_ms, mergecols=['sitename', 'bmpname', 'monitoringstation'], row_identifier='tmp_row')
     args.update({
@@ -190,7 +193,7 @@ def monitoring(all_dfs):
 
     # CHECK - Monitoringstation in WQ tab must match corresponding SiteName and BMPName, and it must have a measurementtype of "WQ" (Water Quality)
     print("# CHECK - Monitoringstation in WQ tab must match corresponding SiteName and BMPName, and it must have a measurementtype of 'WQ' (Water Quality)")
-    unified_ms = pd.read_sql("SELECT sitename, bmpname, stationname AS stationcode FROM unified_monitoringstation WHERE measurementtype = 'WQ'", g.eng)
+    unified_ms = pd.read_sql("SELECT sitename, bmpname, stationname AS stationcode FROM unified_monitoringstation WHERE measurementtype = 'WQ'", eng)
     
     badrows = mismatch(wq, unified_ms, mergecols=['sitename', 'bmpname', 'stationcode'], row_identifier='tmp_row')
     args.update({
@@ -575,10 +578,10 @@ def monitoring(all_dfs):
     print("# CHECK - qacode values must be found in the qacode column of the lu_qacode table")
 
     # Query the lu_qacode table to get valid qacode values
-    valid_qacodes = pd.read_sql("SELECT qacode FROM lu_qacode", g.eng)['qacode'].tolist()
+    valid_qacodes = pd.read_sql("SELECT qacode FROM lu_qacode", eng)['qacode'].tolist()
 
     # Find rows in wq where any qacode is not in the valid_qacodes list
-    badrows = wq[wq['qacode'].apply(lambda x: any(code.strip() not in valid_qacodes for code in x.split(',')))].tmp_row.tolist()
+    badrows = wq[wq['qacode'].apply(lambda x: any(code.strip() not in valid_qacodes for code in str(x).split(',')))].tmp_row.tolist()
     
     args.update({
         "dataframe": wq,
@@ -705,7 +708,7 @@ def monitoring(all_dfs):
         FROM lu_analyte a
         JOIN lu_analyteunits u ON a.analyteclass = u.analyteclass
     """
-    analyte_units = pd.read_sql(query, g.eng)
+    analyte_units = pd.read_sql(query, eng)
 
     # Join wq with the resulting dataframe on the analytename column to tack on the correct_units column
     # If the units column is not specified in the database, we dont need to check for it
