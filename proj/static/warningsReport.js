@@ -2,7 +2,7 @@ let datatype = ''
 let warningsArray = []
 console.log(datatype)
 
-document.querySelector("#datatype-select").addEventListener("change", async (e) => {
+document.querySelector("#datatype-select")?.addEventListener("change", async (e) => {
    datatype = e.target.value
    let tablesObject = await getTables(datatype)
    let tables = tablesObject.tables
@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 
 const getTables = async (dt) => {
-   const response = await fetch('/bight23checker/warnings-report', {
+   const response = await fetch('warnings-report', {
       method: "POST",
       headers: {
          "Content-Type" : "application/json"
@@ -69,7 +69,7 @@ async function handleExport(warnings, table) {
    }
    else {
       showSpinner()
-      const response = await fetch('/bight23checker/warnings-report/export', {
+      const response = await fetch('warnings-report/export', {
          method: "POST",
          headers: {
             "Content-Type" : "application/json"

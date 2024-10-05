@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 import json
-from flask import Blueprint, jsonify, request, g, render_template, send_from_directory
+from flask import Blueprint, jsonify, request, g, render_template, send_from_directory, current_app
 from openpyxl import load_workbook
 from openpyxl.comments import Comment
 from openpyxl.styles import PatternFill
@@ -39,6 +39,9 @@ report_bp = Blueprint('report', __name__)
 @report_bp.route('/warnings-report',  methods=['GET', 'POST'])
 def warnings_report():
 
+    PROJECT_NAME = current_app.config.get('PROJECTNAME')
+    DATASETS = current_app.config.get("DATASETS")
+
     if request.method == 'POST':
         req = request.get_json()
         datatype = req['datatype']
@@ -47,10 +50,7 @@ def warnings_report():
         if datatype is None:
             return jsonify({'no datatype'})
         elif table is None:
-            json_file = open('proj/config/config.json')
-            data = json.load(json_file)
-            dataset_options = data["DATASETS"].keys()
-            table_options = data['DATASETS'][datatype]['tables']
+            table_options = DATASETS.get(datatype).get('tables')
             return jsonify({'tables': table_options})
 
     datatype = request.args.get('datatype')
@@ -58,22 +58,23 @@ def warnings_report():
     table = request.args.get('table')
     print(table)
     if datatype is None and table is None:
-        json_file = open('proj/config/config.json')
-        data = json.load(json_file)
-        dataset_options = data["DATASETS"].keys()
+        dataset_options = DATASETS.keys()
         print("Missing fields")
         return render_template(
             'warnings-report.html',
+            projectname=PROJECT_NAME,
             dataset_options=dataset_options
         )
     elif table is None:
-        json_file = open('proj/config/config.json')
-        data = json.load(json_file)
-        dataset_options = data["DATASETS"].keys()
-        table_options = data['DATASETS'][datatype]['tables']
+        
+        dataset_options = DATASETS.keys()
+        table_options = DATASETS.get(datatype).get('tables')
+        
         print("Missing fields")
+        
         return render_template(
             'warnings-report.html',
+            projectname=PROJECT_NAME,
             dataset_options=dataset_options,
             table_options=table_options
         )
@@ -92,6 +93,7 @@ def warnings_report():
 
         return render_template(
             'warnings-report.html',
+            projectname=PROJECT_NAME,
             datatype=datatype,
             table=table,
             warnings=warnings,

@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<link rel="stylesheet" href="/bight23checker/static/warnings-report.css">
+<link rel="stylesheet" href="{{url_for('static', filename='warnings-report.css')}}">
 <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <link rel="stylesheet" href="{{url_for('static', filename='bootstrap.min.css')}}">
 <html lang="en">
 
 <head>
    <meta charset="UTF-8">
-   <title>Bight23 Warnings Report</title>
+   <title>{{projectname}} Warnings Report</title>
 </head>
 
 <body>
@@ -16,7 +16,7 @@
       </div>
       <div class="my-card inner-container">
          <div class="my-card-header">
-            <h6>Bight 2023 Warnings Report</h6>
+            <h6>{{projectname}} Warnings Report</h6>
             <button class="btn btn-secondary" id="restart" onclick="window.location.href = 'warnings-report'">Start
                Over</button>
          </div>
@@ -52,7 +52,7 @@
 
             <div class="row">
                <h6>Select a datatype:</h4>
-                  <form action="/bight23checker/warnings-report">
+                  <form action="warnings-report">
                      <label for="datatype">
                         <select name=datatype id="datatype-select" method="GET" action="/">
                            <option>Select a datatype</option>
@@ -65,7 +65,7 @@
             </div>
             <div class="row">
                <h6>Select a table:</h4>
-                  <form action="/bight23checker/warnings-report">
+                  <form action="warnings-report">
                      <label for="table">
                         <select name=table id='table-select' method="GET" action="/">
                            {% for data in table_options %}
@@ -97,7 +97,7 @@
       </div>
    </div>
 
-   <script src="/bight23checker/static/warningsReport.js"></script>
+   <script src="{{url_for('static', filename='warningsReport.js')}}"></script>
 </body>
 
 </html>
