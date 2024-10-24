@@ -16,9 +16,12 @@ admin = Blueprint('admin', __name__)
 @admin.route('/track')
 def tracking():
     print("start track")
+
+    org_field = current_app.config.get('ORGANIZATION_IDENTIFYING_FIELD', "agency")
+    org_field = str(org_field).replace('"', '').replace("'","").replace(";","").upper()
     sql_session =   '''
                     SELECT LOGIN_EMAIL,
-                        LOGIN_AGENCY,
+                        LOGIN_{} AS LOGIN_AGENCY,
                         SUBMISSIONID,
                         DATATYPE,
                         SUBMIT,
@@ -28,7 +31,9 @@ def tracking():
                     WHERE SUBMISSIONID IS NOT NULL
                         AND ORIGINAL_FILENAME IS NOT NULL
                     ORDER BY CREATED_DATE DESC
-                    '''
+                    '''.format(org_field)
+    
+
     session_results = g.eng.execute(sql_session)
     session_json = [dict(r) for r in session_results]
     authorized = session.get("AUTHORIZED_FOR_ADMIN_FUNCTIONS")
@@ -37,7 +42,7 @@ def tracking():
 
     
     # session is a reserved word in flask - renaming to something different
-    return render_template('track.html', session_json=session_json, authorized=authorized)
+    return render_template('track.html', session_json=session_json, organization_identifier_field = f'login_{org_field.lower()}', authorized=authorized)
 
 
 @admin.route('/schema')

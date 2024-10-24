@@ -380,7 +380,7 @@ def meta(all_dfs):
 
 
 
-    # Think about the comment section in tbl_bmpinfo instead of tbl_testsite
+
     # Check - If NumberofBMPS does not match the number of BMPs in the submissionm, a commment is required.
     print("CHECK - If NumberofBMPS does not match the number of BMPs in the submission, a comment is required.")
     testsite_bmp = testsite[testsite.apply(lambda row: row['numberofbmps'] != len(bmp[bmp['sitename'] == row['sitename']].reset_index(drop=True)), axis=1)]
@@ -425,34 +425,6 @@ def meta(all_dfs):
     print("END CHECK - Zipcode should be a 5 digit positive number ( in actuality, it should follow a regex pattern \d{5} because it can start with a zero)")
 
 
-
-
-
-    # CHECK - Data provider may or may not correspond to the entity conductin or sponsoirng the study (tbl_testsite as well)
-    print("CHECK - Data provider may or may not correspond to the entity conductin or sponsoirng the study (tbl_testsite as well)")
-    
-    unified_testsite_bmp = pd.merge(testsite, bmp, on='dataprovider', how='inner', suffixes=('_test', '_bmp'))
-    #print(unified_testsite_bmp)
-
-    #badrows = unified_testsite_bmp[(unified_testsite_bmp['dataprovider'].str.lower() != unified_testsite_bmp['bmpdataprovider'].str.lower())].tmp_row_test.tolist()
-
-
-
-    #args.update({
-     #   "dataframe": bmp,
-     #   "tablename": 'tbl_bmpinfo',
-     #   "badrows": badrows,
-     #   "badcolumn": "designflowrate",
-     #   "error_type": "Value Error",
-     #   "is_core_error": False,
-    #    "error_message": "Warning: Data provider does not correspond to the entity conducting or sponsoring the study."
-    #})
-    #warnings = [*warnings, checkData(**args)]
-
-
-    
-    # END CHECK - Data provider may or may not correspond to the entity conductin or sponsoirng the study (tbl_testsite as well)
-    print("CHECK - Data provider may or may not correspond to the entity conductin or sponsoirng the study (tbl_testsite as well)")
 
 
 

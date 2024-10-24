@@ -10,6 +10,7 @@ def check_dtype(t, x):
     except Exception as e:
         return False
 
+
 class GeoDBDataFrame(DataFrame):
     def __init__(self, *args, **kwargs):
         super(GeoDBDataFrame, self).__init__(*args, **kwargs)

@@ -167,12 +167,14 @@ def load():
         print(f"Loading Data to {tbl}. Be sure that the tables are in the correct order in __init__.py datasets")
         
         # These columns are needed in all submission tables, but they are often overlooked
+        org_field = current_app.config.get('ORGANIZATION_IDENTIFYING_FIELD', "agency")
+        org_field = str(org_field).replace('"', '').replace("'","").replace(";","").lower()
         g.eng.execute(
             f"""
             ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS submissionid int4;
             ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS warnings VARCHAR(5000);
             ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS login_email VARCHAR(50);
-            ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS login_agency VARCHAR(50);
+            ALTER TABLE "{tbl}" ADD COLUMN IF NOT EXISTS login_{org_field} VARCHAR(50);
             """
         )
 
