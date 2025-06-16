@@ -98,7 +98,7 @@ def template():
                             "Information about this spreadsheet:",
                             "SCCWRP spreadsheets follow a standard format, each consisting of several sheets: data templates, lookup lists, and a glossary.",
                             "Metadata for each column can be found by selecting the header cell for that column, or in the glossary sheet. Please do not add or rename columns. Use note columns to provide additional information or context.",
-                            "Questions or comments? Please contact Paul Smith at pauls@sccwrp.org"
+                            "Questions or comments? Please contact us at smcbmp-im@sccwrp.org"
                         ]
                     }
                 
