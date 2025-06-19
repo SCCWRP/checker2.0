@@ -12,32 +12,51 @@ def checkLookUpLists(dataframe, tablename, eng, *args, output = None, **kwargs):
     
     lu_list_script_root = current_app.script_root
 
+    # lookup_sql = f"""
+    #     SELECT
+    #         kcu.column_name, 
+    #         ccu.table_name AS foreign_table_name,
+    #         ccu.column_name AS foreign_column_name 
+    #     FROM 
+    #         information_schema.table_constraints AS tc 
+    #         JOIN information_schema.key_column_usage AS kcu
+    #         ON tc.constraint_name = kcu.constraint_name
+    #         AND tc.table_schema = kcu.table_schema
+    #         JOIN information_schema.constraint_column_usage AS ccu
+    #         ON ccu.constraint_name = tc.constraint_name
+    #         AND ccu.table_schema = tc.table_schema
+    #     WHERE tc.constraint_type = 'FOREIGN KEY' 
+    #     AND tc.table_name='{tablename}'
+    #     AND ccu.table_name LIKE 'lu_%%';
+    # """
     lookup_sql = f"""
-        SELECT
-            kcu.column_name, 
-            ccu.table_name AS foreign_table_name,
-            ccu.column_name AS foreign_column_name 
+        SELECT 
+            src_col.attname AS column_name,
+            tgt_table.relname AS foreign_table_name,
+            tgt_col.attname AS foreign_column_name
         FROM 
-            information_schema.table_constraints AS tc 
-            JOIN information_schema.key_column_usage AS kcu
-            ON tc.constraint_name = kcu.constraint_name
-            AND tc.table_schema = kcu.table_schema
-            JOIN information_schema.constraint_column_usage AS ccu
-            ON ccu.constraint_name = tc.constraint_name
-            AND ccu.table_schema = tc.table_schema
-        WHERE tc.constraint_type = 'FOREIGN KEY' 
-        AND tc.table_name='{tablename}'
-        AND ccu.table_name LIKE 'lu_%%';
+            pg_constraint con
+            JOIN pg_class src_table ON con.conrelid = src_table.oid
+            JOIN pg_class tgt_table ON con.confrelid = tgt_table.oid
+            JOIN unnest(con.conkey) WITH ORDINALITY AS src_col_nums(src_attnum, ord)
+                ON true
+            JOIN unnest(con.confkey) WITH ORDINALITY AS tgt_col_nums(tgt_attnum, ord)
+                ON src_col_nums.ord = tgt_col_nums.ord
+            JOIN pg_attribute src_col ON src_col.attrelid = src_table.oid AND src_col.attnum = src_col_nums.src_attnum
+            JOIN pg_attribute tgt_col ON tgt_col.attrelid = tgt_table.oid AND tgt_col.attnum = tgt_col_nums.tgt_attnum
+        WHERE 
+            con.contype = 'f'
+            AND src_table.relname = '{tablename}';
     """
 
     # fkeys = foreign keys
     fkeys = pd.read_sql(lookup_sql, eng)
     # dont check lookup lists for columns that are not in unified table
     fkeys = fkeys[fkeys.column_name.isin(dataframe.columns)]
-    # print("fkeys")
-    # print(fkeys)
-    # print("lookup_sql")
-    # print(lookup_sql)
+    print("fkeys")
+    #print(fkeys)
+    print("lookup_sql")
+    print(lookup_sql)
 
 
     out = [
