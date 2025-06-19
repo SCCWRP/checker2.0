@@ -159,30 +159,24 @@ def foreign_key_detail(table, eng):
     '''
 
     sql = f"""
-        WITH tmp AS (
-            SELECT
-                kcu.table_name AS table_name,
-                kcu.column_name AS column_name,
-                ccu.table_name AS foreign_table_name,
-                ccu.column_name AS foreign_column_name
-            FROM 
-                information_schema.table_constraints AS tc
-                JOIN information_schema.key_column_usage AS kcu
-                    ON tc.constraint_name = kcu.constraint_name
-                    AND tc.table_schema = kcu.table_schema
-                JOIN information_schema.constraint_column_usage AS ccu
-                    ON ccu.constraint_name = tc.constraint_name
-                    AND ccu.table_schema = tc.table_schema
-            WHERE 
-                tc.constraint_type = 'FOREIGN KEY'
-        )
-        
-        SELECT * FROM tmp 
+        SELECT 
+            src_table.relname AS table_name,
+            src_col.attname AS column_name,
+            tgt_table.relname AS foreign_table_name,
+            tgt_col.attname AS foreign_column_name
+        FROM 
+            pg_constraint con
+            JOIN pg_class src_table ON con.conrelid = src_table.oid
+            JOIN pg_class tgt_table ON con.confrelid = tgt_table.oid
+            JOIN unnest(con.conkey) WITH ORDINALITY AS src_col_nums(src_attnum, ord)
+                ON true
+            JOIN unnest(con.confkey) WITH ORDINALITY AS tgt_col_nums(tgt_attnum, ord)
+                ON src_col_nums.ord = tgt_col_nums.ord
+            JOIN pg_attribute src_col ON src_col.attrelid = src_table.oid AND src_col.attnum = src_col_nums.src_attnum
+            JOIN pg_attribute tgt_col ON tgt_col.attrelid = tgt_table.oid AND tgt_col.attnum = tgt_col_nums.tgt_attnum
         WHERE 
-            table_name LIKE 'tbl_%%' 
-            AND table_name = '{table}' 
-        ORDER BY table_name, column_name
-
+            con.contype = 'f'
+            AND src_table.relname = '{table}';
     """
 
     dat = read_sql(sql, eng)

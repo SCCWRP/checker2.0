@@ -98,7 +98,18 @@ def template():
                             "Information about this spreadsheet:",
                             "SCCWRP spreadsheets follow a standard format, each consisting of several sheets: data templates, lookup lists, and a glossary.",
                             "Metadata for each column can be found by selecting the header cell for that column, or in the glossary sheet. Please do not add or rename columns. Use note columns to provide additional information or context.",
-                            "Questions or comments? Please contact us at smcbmp-im@sccwrp.org"
+                            "Questions or comments? Please contact us at smcbmp-im@sccwrp.org",
+                            " ",
+                            "Calculators and Tools to Help Prepare Your Data Prior to Submission",
+                            "Hydrologic analysis:  Rainfall statistics, hydrograph statistics, infiltration rate",
+                            "https://sccwrp.shinyapps.io/bmp-hydrology-calculator/",
+                            "If there is more than one instrument measuring the infiltration rate for a single BMP, calculate the infiltration rate for each instrument, then report the average rate in the monitoring template.",
+                            "Turbidity data: ",
+                            "https://sccwrp.shinyapps.io/FWC_EMC_Calculator/",
+                            "Use this calculator to convert continuous time-series data into an EMC to include in the Monitoring Data template. You will need hydrograph data as well as the turbidity data for the calculator.",
+                            "Calculate aliquot volumes of discrete samples to mix a flow-weighted composite sample prior to laboratory analysis: ",
+                            "https://sccwrp.shinyapps.io/FWC_EMC_Calculator/ ",
+                            "Use this calculator during the monitoring season if you cannot use an auto-sampler to directly collect a flow-weighted composite, for example for fecal indicator bacteria sampling."
                         ]
                     }
                 
