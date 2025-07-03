@@ -714,13 +714,13 @@ def monitoring(all_dfs):
     print("# END CHECK - if mdl < 0 it must be -88")
 
 
+    # ----------------------------------------------------------------------------------- #
 
-
-    # CHECK - Fractionname must not be "None" unless the analytename is pH
-    print('# CHECK - Fractionname must not be "None" unless the analytename is pH')
+    # CHECK - FractionName can not be None for Copper and Zinc
+    print('# CHECK - FractionName can not be None for Copper and Zinc')
 
     badrows = wq[
-        (wq['fractionname'] == 'None') & (wq['analytename'] != 'pH')
+        (wq['fractionname'] == 'None') & (wq['analytename'].isin(['Copper', 'Zinc']))
     ].tmp_row.tolist()
     
     args.update({
@@ -730,16 +730,39 @@ def monitoring(all_dfs):
         "badcolumn": "fractionname",
         "error_type": "Value Error",
         "is_core_error": False,
-        "error_message": 'Fractionname must not be "None" unless the analytename is pH'
+        "error_message": 'FractionName can not be None for Copper and Zinc'
     })
     errs = [*errs, checkData(**args)]
 
-    # END CHECK - Fractionname must not be "None" unless the analytename is pH
-    print('# END CHECK - Fractionname must not be "None" unless the analytename is pH')
+    # END CHECK - FractionName can not be None for Copper and Zinc
+    print('# END CHECK - FractionName can not be None for Copper and Zinc')
 
 
+    # ----------------------------------------------------------------------------------- #
+
+    # CHECK - if Analytename is pH, the fractionname must be None
+    print('# CHECK - if Analytename is pH, the fractionname must be None')
+
+    badrows = wq[
+         (wq['analytename'] == 'pH') & (wq['fractionname'] != 'None')
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": wq,
+        "tablename": 'tbl_waterquality',
+        "badrows": badrows,
+        "badcolumn": "fractionname",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": 'if Analytename is pH, the fractionname must be None'
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - if Analytename is pH, the fractionname must be None
+    print('# END CHECK - if Analytename is pH, the fractionname must be None')
 
 
+    # ----------------------------------------------------------------------------------- #
 
     # CHECK - unitname should match the one from the lu_analyteunits table
     print('# CHECK - unitname should match the one from the lu_analyteunits table')
