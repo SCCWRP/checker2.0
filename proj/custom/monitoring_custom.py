@@ -90,6 +90,10 @@ def monitoring(all_dfs):
         "dataframe": flow,
         "tablename": 'tbl_flow',
         "badrows": badrows,
+        "badcolumn": "sitename,eventid",
+        "error_type": "Logic Error",
+        "is_core_error": False,
+        "error_message": "There is no matching precipitation record for this EventID at this Site."
     })
     errs = [*errs, checkData(**args)]
     
@@ -149,6 +153,7 @@ def monitoring(all_dfs):
     unified_ms = pd.read_sql("SELECT sitename, stationname AS monitoringstation FROM unified_monitoringstation WHERE measurementtype = 'P'", eng)
     
     badrows = mismatch(precip, unified_ms, mergecols=['sitename', 'monitoringstation'], row_identifier='tmp_row')
+
     args.update({
         "dataframe": precip,
         "tablename": 'tbl_precipitation',
@@ -398,6 +403,70 @@ def monitoring(all_dfs):
 
 
 
+
+    # CHECK - No two events at a single testsite may have the same start date (within the submission)
+    print("# Check - No two events at a single testsite may have the same start date (within the submission)")
+    
+    precip_s = precip.sort_values(by=['sitename','eventid','startdate'])
+    duplicate_detect = precip_s.duplicated(subset=['sitename','eventid','startdate'], keep=False)
+    badrows = precip_s[duplicate_detect].tmp_row.tolist()
+
+    args.update({
+        "dataframe": precip,
+        "tablename": 'tbl_precipitation',
+        "badrows": badrows,
+        "badcolumn": "startdate",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "Submitted start dates conflict with existing precipitation records for the same site (Within the submission)."
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - No two events at a single testsite may have the same start date (within the submission)
+    print("# END Check - No two events at a single testsite may have the same start date (within the submission)")
+
+
+
+        # CHECK - No two events at a single testsite may have the same start date (within the database)
+    print("# Check - No two events at a single testsite may have the same start date (within the database)")
+
+
+    print("Query database and get combined sitename, eventid, startdate pairs and combining with current submission")
+    #combined_precip = pd.concat(
+    #    [
+    #        precip[['sitename','eventid', 'startdate']],
+    #        pd.read_sql("SELECT sitename,eventid,startdate from tbl_precipitation", eng)
+    #    ],
+    #    ignore_index = True
+    #)
+    db_precip = pd.read_sql("SELECT sitename, eventid, startdate FROM tbl_precipitation", eng)
+
+    print("DONE - Querying database and get combined sitename, eventid, startdate pairs and combining with current submission")
+    
+    conflicts = precip.merge(
+        db_precip,
+        on=['sitename', 'eventid', 'startdate'],
+        how='inner'
+    )
+    badrows = conflicts['tmp_row'].tolist()
+
+    args.update({
+        "dataframe": precip,
+        "tablename": 'tbl_precipitation',
+        "badrows": badrows,
+        "badcolumn": "startdate",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "Submitted start dates conflict with existing precipitation records from the database for the same site."
+    })
+    errs = [*errs, checkData(**args)]
+
+     # END Check - No two events at a single testsite may have the same start date (among pre-existing precipitation records in the database)
+    print("#END check - No two events at a single testsite may have the same start date (among pre-existing precipitation records in the database")
+
+
+
+
     ######################################################################################################################################
     # ----------------------                         END Precipitation Checks                                    ----------------------- #
     ######################################################################################################################################
@@ -573,33 +642,6 @@ def monitoring(all_dfs):
     print("# ----------------------                         Water Quality Checks                                    ----------------------- #")
 
 
-    
-    # CHECK - qacode values must be found in the qacode column of the lu_qacode table
-    print("# CHECK - qacode values must be found in the qacode column of the lu_qacode table")
-
-    # Query the lu_qacode table to get valid qacode values
-    valid_qacodes = pd.read_sql("SELECT qacode FROM lu_qacode", eng)['qacode'].tolist()
-
-    # Find rows in wq where any qacode is not in the valid_qacodes list
-    badrows = wq[wq['qacode'].apply(lambda x: any(code.strip() not in valid_qacodes for code in str(x).split(',')))].tmp_row.tolist()
-    
-    args.update({
-        "dataframe": wq,
-        "tablename": 'tbl_waterquality',
-        "badrows": badrows,
-        "badcolumn": "qacode",
-        "error_type": "Value Error",
-        "is_core_error": False,
-        "error_message": "Invalid qacode value. It must be found in the lu_qacode table"
-    })
-    errs = [*errs, checkData(**args)]
-
-    # END CHECK - qacode values must be found in the qacode column of the lu_qacode table
-    print("# END CHECK - qacode values must be found in the qacode column of the lu_qacode table")
-
-
-
-
 
     # CHECK - if result < 0 it must be -88
     print("# CHECK - if result < 0 it must be -88")
@@ -737,7 +779,6 @@ def monitoring(all_dfs):
 
 
 
-
     # CHECK - sampletypecode should be "EMC-Flow Weighted"
     print('# CHECK - sampletypecode should be "EMC-Flow Weighted"')
 
@@ -759,6 +800,120 @@ def monitoring(all_dfs):
     # END CHECK - sampletypecode should be "EMC-Flow Weighted"
     print('# END CHECK - sampletypecode should be "EMC-Flow Weighted"')
 
+
+
+    # CHECK - If Result < MDL Then the ResQualCode must say "ND"
+    print("# CHECK - If Result < MDL Then the ResQualCode must say 'ND'")
+
+    badrows = wq[
+        (wq['result'] < wq['mdl']) & (wq['resqualcode'] != 'ND')
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": wq,
+        "tablename": 'tbl_waterquality',
+        "badrows": badrows,
+        "badcolumn": "resqualcode",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "If Result < MDL Then the ResQualCode must say 'ND'"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - If Result < MDL Then the ResQualCode must say "ND"
+    print("# END CHECK - If Result < MDL Then the ResQualCode must say 'ND'")
+
+
+
+    # CHECK - If MDL <= Result < RL Then ResQualCode must say "DNQ"
+    print("# CHECK - If MDL <= Result < RL Then ResQualCode must say 'DNQ'")
+
+    badrows = wq[
+        (wq['mdl'] <= wq['result']) & (wq['result'] < wq['rl']) & (wq['resqualcode'] != 'DNQ')
+    ].tmp_row.tolist()
+    args.update({
+        "dataframe": wq,
+        "tablename": 'tbl_waterquality',
+        "badrows": badrows,
+        "badcolumn": "resqualcode",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "If MDL <= Result < RL Then ResQualCode must say 'DNQ'"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK -If MDL <= Result < RL Then ResQualCode must say "DNQ"
+    print("# END CHECK - If MDL <= Result < RL Then ResQualCode must say 'DNQ'")
+
+
+
+    # CHECK - If Result >= RL Then resqualcode should be "None"
+    print("# CHECK - If Result >= RL Then resqualcode should be 'None'")
+
+    badrows = wq[
+        (wq['result'] >= wq['rl']) & (wq['resqualcode'] != 'None')
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": wq,
+        "tablename": 'tbl_waterquality',
+        "badrows": badrows,
+        "badcolumn": "resqualcode",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "If Result >= RL Then resqualcode must say 'None'"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK -If Result >= RL Then resqualcode should be "None"
+    print("# END CHECK - If Result >= RL Then resqualcode should be 'None'")
+
+
+
+
+    # CHECK - If MDL = Result = RL Then resqualcode should be none as well
+    print("# CHECK -  If MDL = Result = RL Then resqualcode should be 'None'")
+
+    badrows = wq[
+        (wq['mdl'] == wq['result']) & (wq['result'] == wq['rl']) & (wq['resqualcode'] != 'None')
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": wq,
+        "tablename": 'tbl_waterquality',
+        "badrows": badrows,
+        "badcolumn": "resqualcode",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "If MDL = Result = RL Then resqualcode must say 'None'"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - If MDL = Result = RL Then resqualcode should be none as well
+    print("# END CHECK - If MDL = Result = RL Then resqualcode should be 'None'")
+
+
+
+        # CHECK - RL must never be less than the MDL
+    print("# CHECK - RL must never be less than the MDL")
+
+    badrows = wq[
+        (wq['rl'] < wq['mdl'])
+    ].tmp_row.tolist()
+    
+    args.update({
+        "dataframe": wq,
+        "tablename": 'tbl_waterquality',
+        "badrows": badrows,
+        "badcolumn": "rl",
+        "error_type": "Value Error",
+        "is_core_error": False,
+        "error_message": "RL must never be less than the MDL"
+    })
+    errs = [*errs, checkData(**args)]
+
+    # END CHECK - RL must never be less than the MDL
+    print("# END CHECK - RL must never be less than the MDL")
 
 
 

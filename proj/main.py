@@ -204,7 +204,7 @@ def main():
     # We are not sure if we want to do this
     # some projects like bight prohibit this
     all_dfs = clean_data(all_dfs)
-    all_dfs = hardcoded_fixes(all_dfs)
+    # all_dfs = hardcoded_fixes(all_dfs)
 
 
     print("DONE preprocessing and cleaning data")

@@ -46,39 +46,38 @@ def fix_case(all_dfs: dict):
     print("BEGIN fix_case function")
     for table_name in all_dfs.keys():
         table_df = all_dfs[f'{table_name}'] 
-    #Among all the varchar cols, only get the ones tied to the lookup list -- modified to only find lu_lists that are not of numeric types
+        # Among all the varchar cols, only get the ones tied to the lookup list -- modified to only find lu_lists that are not of numeric types
         lookup_sql = f"""
             SELECT
-                kcu.column_name, 
-                ccu.table_name AS foreign_table_name,
-                ccu.column_name AS foreign_column_name,
-                isc.data_type AS column_data_type 
-            FROM 
-                information_schema.table_constraints AS tc 
-                JOIN information_schema.key_column_usage AS kcu
-                ON tc.constraint_name = kcu.constraint_name
-                AND tc.table_schema = kcu.table_schema
-                JOIN information_schema.constraint_column_usage AS ccu
-                ON ccu.constraint_name = tc.constraint_name
-                AND ccu.table_schema = tc.table_schema
-                JOIN information_schema.columns as isc
-                ON isc.column_name = ccu.column_name
-                AND isc.table_name = ccu.table_name
-            WHERE tc.constraint_type = 'FOREIGN KEY' 
-            AND tc.table_name='{table_name}'
-            AND ccu.table_name LIKE 'lu_%%'
-            AND isc.data_type NOT IN ('integer', 'smallint', 'numeric');
+                con.conname AS constraint_name,
+                src_table.relname AS source_table,
+                src_col.attname AS source_column,
+                tgt_table.relname AS foreign_table,
+                tgt_col.attname AS foreign_column
+            FROM
+                pg_constraint con
+                JOIN pg_class src_table ON con.conrelid = src_table.oid
+                JOIN pg_class tgt_table ON con.confrelid = tgt_table.oid
+                JOIN unnest(con.conkey) WITH ORDINALITY AS src_col_nums(src_attnum, ord)
+                    ON true
+                JOIN unnest(con.confkey) WITH ORDINALITY AS tgt_col_nums(tgt_attnum, ord)
+                    ON src_col_nums.ord = tgt_col_nums.ord
+                JOIN pg_attribute src_col ON src_col.attrelid = src_table.oid AND src_col.attnum = src_col_nums.src_attnum
+                JOIN pg_attribute tgt_col ON tgt_col.attrelid = tgt_table.oid AND tgt_col.attnum = tgt_col_nums.tgt_attnum
+            WHERE
+                con.contype = 'f'
+                AND src_table.relname = '{table_name}';
         """
         lu_info = pd.read_sql(lookup_sql, g.eng)
            
         # The keys of this dictionary are the column's names in the dataframe, values are their lookup values
         foreignkeys_luvalues = {
             x : y for x,y in zip(
-                lu_info.column_name,
+                lu_info.source_column,
                 [
                     pd.read_sql(f"SELECT {lu_col} FROM {lu_table}",  g.eng)[f'{lu_col}'].to_list() 
                     for lu_col,lu_table 
-                    in zip (lu_info.foreign_column_name, lu_info.foreign_table_name) 
+                    in zip (lu_info.foreign_column, lu_info.foreign_table) 
                 ]
             ) 
         }
@@ -87,9 +86,9 @@ def fix_case(all_dfs: dict):
             x : [
                 item 
                 for item in table_df[x] 
-                if str(item).lower() in list(map(str.lower,foreignkeys_luvalues[x])) # bug: 'lower' for 'str' objects doesn't apply to 'int' object
+                if str(item).lower() in list(map(str.lower, foreignkeys_luvalues[x] )) # bug: 'lower' for 'str' objects doesn't apply to 'int' object
             ]  
-            for x in lu_info.column_name
+            for x in lu_info.source_column
         }
         
         # Remove the empty lists in the dictionary's values. 
@@ -128,11 +127,13 @@ def clean_data(all_dfs):
     all_dfs = strip_whitespace(all_dfs)
     print("done stripping whitespace")
     
-    # print("fix case")
+    print("fix case")
     # fix for lookup list values too, match to the lookup list value if case insensitivity is the only issue
-    # all_dfs = fix_case(all_dfs)                
-    
+    all_dfs = fix_case(all_dfs)                
+    print("Done fixing case")
 
+    print("all_dfs['tbl_waterquality'].fractionname.unique()")
+    print(all_dfs['tbl_waterquality'].fractionname.unique())
     # all_dfs = hardcoded_fixes(all_dfs)
 
     print('done')

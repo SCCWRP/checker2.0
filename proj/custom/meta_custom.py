@@ -51,48 +51,6 @@ def meta(all_dfs):
 
     eng = g.readonly_eng
 
-    # Example of appending an error (same logic applies for a warning)
-    # args.update({
-    #   "badrows": df[df.tmperature != 'asdf']),
-    #   "badcolumn": "temperature",
-    #   "error_type" : "Not asdf",
-    #   "error_message" : "This is a helpful useful message for the user"
-    # })
-    # errs = [*errs, checkData(**args)]
-
-
-
-    print("# ----------------------                     Unknown    Checks                                    ----------------------- #")
-    ##############################################################################################################################
-    # ----------------------                         Unknwon Checks                                    --------------------------- #
-    ##############################################################################################################################
-
-
-
-    # (2)
-    # Upstream BMP names must be found within the list of BMP names that they are submitting
-    #bad_upstreambmp = (
-    #    set([x.strip() for item in bmp['upstreambmpnames'].dropna().values for x in item.split(",")])  
-    #    -
-    #    set(bmp['bmpname'].values)
-    #)
-    
-    #badrows = bmp[bmp['upstreambmpnames'].isin(
-    #    set([x for x in bmp['upstreambmpnames'].dropna().values for y in bad_upstreambmp if y in x]) 
-    #)].tmp_row.tolist()
-
-    #args.update({
-    #    "dataframe": bmp, 
-   #    "tablename": 'tbl_bmpinfo',
-    #    "badrows": badrows,
-    #    "badcolumn": "upstreambmpnames",
-    #    "error_type" : "Invalid BMP Name",
-    #    "error_message" : "There is a BMP name in your list of upstream BMP names, which did not appear in the BMPName column"
-    #})
-    #errs = [*errs, checkData(**args)]
-
-
-
 
 
     print("# ----------------------                         Logic Checks                                    ----------------------- #")

@@ -70,8 +70,8 @@ def qrydata():
         
         alltables = [
             *datasets.get(dataset).get("tables", []), 
-            *(datasets.get(dataset).get("analysis_tables", []) if analysis_tables is not None else []),
-            *(datasets.get(dataset).get("additional_tables", [])  if additional_tables is not None else [])
+            *(datasets.get(dataset).get("analysis_tables", [])),
+            *(datasets.get(dataset).get("additional_tables", []))
         ]
         
         for tbl in alltables:
