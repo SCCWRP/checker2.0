@@ -85,6 +85,13 @@ def template():
         
         print("tabs dict")
         print( tabs_dict[tbl] )
+        
+        # use this to order the lookup tables in the template
+        foreign_key_map = {
+            v["referenced_table"]: v["referenced_column"]
+            for tmp_table_dict in fkey_detail.values()
+            for v in tmp_table_dict.values()
+        }
     
     lookup_tables = [t for v in tabs_dict.values() for t in v.get('foreign_key_tables')]
     
@@ -138,7 +145,8 @@ def template():
             'glossary': pd.read_sql(f"""SELECT * FROM vw_template_glossary WHERE tablename IN ('{"','".join(tbls)}') ;""", eng)
         },
         **{
-            lu_name: pd.read_sql(f"SELECT * from {lu_name}", eng).drop(columns=['objectid'], errors = 'ignore')
+            # if for some reason (which should not happen) the lookup table isnt in the foreign_key_map, we will just use the first column as the default to order the lookup table
+            lu_name: pd.read_sql(f"SELECT * from {lu_name} ORDER BY {foreign_key_map.get(lu_name, 1)}", eng).drop(columns=['objectid'], errors = 'ignore')
             for lu_name in list(set(lookup_tables))
         }
     }
